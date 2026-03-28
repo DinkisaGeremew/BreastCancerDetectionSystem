@@ -1,0 +1,3941 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{{ texts.page_title if texts else 'Reception Dashboard' }} - Breast Cancer Detection System</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/universal-notifications.css') }}" />
+<script src="{{ url_for('static', filename='js/universal-notifications.js') }}"></script>
+<style>
+  :root {
+    --primary: #0078D4;
+    --primary-dark: #005A9E;
+    --primary-light: #4A9EFF;
+    --secondary: #0063B1;
+    --accent: #fbc02d;
+    --accent-light: #f9a825;
+    --dark: #1F1F1F;
+    --light: #F3F3F3;
+    --gray: #6c757d;
+    --success: #107C10;
+    --card-bg: rgba(255, 255, 255, 0.98);
+    --shadow: 0 10px 30px rgba(0, 120, 212, 0.15);
+    --gradient: linear-gradient(135deg, #0078D4 0%, #0063B1 100%);
+    --medical-gradient: linear-gradient(135deg, #0078D4 0%, #0063B1 100%);
+    --sidebar-width: 320px;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--light);
+    color: var(--dark);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  input, textarea, select, .user-select-text {
+    user-select: text !important;
+  }
+
+  /* Dashboard container */
+  .dashboard-container {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+  
+  /* Sidebar styles */
+  .sidebar {
+    width: var(--sidebar-width);
+    background: var(--medical-gradient);
+    color: white;
+    padding: 25px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.1);
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+  
+  .profile {
+    text-align: center;
+    margin-bottom: 35px;
+    flex-shrink: 0;
+    margin-top: 10px;
+    padding: 0 25px;
+  }
+  
+  .profile img {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    object-fit: cover;
+    pointer-events: none;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  }
+  
+  .profile h3 {
+    margin-top: 15px;
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+  }
+  
+  .profile p {
+    margin: 8px 0 0;
+    font-weight: 500;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.15);
+    padding: 8px 16px;
+    border-radius: 20px;
+    display: inline-block;
+  }
+  
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+    width: 100%;
+    margin: 0;
+    flex-shrink: 0;
+  }
+  
+  .sidebar ul li {
+    padding: 16px 28px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-left: 4px solid transparent;
+    margin: 5px 0;
+    position: relative;
+    min-height: 50px;
+    pointer-events: auto !important;
+    user-select: none;
+    -webkit-tap-highlight-color: rgba(255, 255, 255, 0.2);
+    touch-action: manipulation;
+  }
+  
+  .sidebar ul li:active {
+    background-color: rgba(255, 255, 255, 0.3) !important;
+  }
+  
+  .sidebar ul li .sidebar-text {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: white !important;
+    font-weight: 600;
+    display: block;
+    line-height: 1.2;
+    font-size: 15px;
+  }
+  
+  .sidebar ul li i {
+    flex-shrink: 0;
+    width: 20px;
+    text-align: center;
+  }
+  
+  .sidebar ul li:hover,
+  .sidebar ul li.active {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-left-color: var(--accent);
+    transform: translateX(5px);
+  }
+  
+  .logout-btn {
+    margin-top: auto;
+    width: 100%;
+    padding: 16px 28px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-weight: 600;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    cursor: pointer;
+  }
+  
+  .logout-btn:hover,
+  .logout-btn:focus {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Submenu styles */
+  .submenu {
+    display: none;
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+  
+  .submenu li {
+    padding-left: 50px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+    pointer-events: auto !important;
+    border-left: none;
+    position: relative;
+    z-index: 1000;
+    -webkit-tap-highlight-color: rgba(255, 255, 255, 0.2);
+    touch-action: manipulation;
+  }
+  
+  .submenu li:hover,
+  .submenu li.active {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+  
+  .submenu li:active {
+    background-color: rgba(255, 255, 255, 0.3) !important;
+  }
+  
+  .submenu.show {
+    display: block;
+    z-index: 999;
+    position: relative;
+  }
+
+  /* Main content */
+  .main-content {
+    flex: 1;
+    padding: 35px;
+    overflow-y: auto;
+    position: relative;
+    color: var(--dark);
+    min-height: 100vh;
+    box-sizing: border-box;
+    margin-left: var(--sidebar-width);
+    transition: margin-left 0.3s ease;
+    background: var(--light);
+  }
+  
+  .main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 35px;
+    padding-bottom: 25px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    position: relative;
+  }
+  
+  .main-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--dark);
+    background: var(--medical-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    flex: 1;
+  }
+  
+  .current-date {
+    background: var(--medical-gradient);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 15px;
+    font-size: 14px;
+    font-weight: 600;
+    pointer-events: none;
+    user-select: none;
+    white-space: nowrap;
+    box-shadow: 0 5px 15px rgba(46, 139, 87, 0.3);
+    margin-left: 15px;
+  }
+  
+  /* Notification Bell */
+  .notification-bell {
+    position: relative;
+    cursor: pointer;
+    margin-right: 15px;
+    color: white;
+    font-size: 20px;
+    padding: 12px;
+    border-radius: 50%;
+    background: var(--medical-gradient);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 45px;
+    height: 45px;
+    box-shadow: 0 4px 12px rgba(0, 120, 212, 0.3);
+    z-index: 1002;
+    pointer-events: auto;
+    user-select: none;
+  }
+  
+  .notification-bell:hover {
+    background: var(--primary-dark);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(46, 139, 87, 0.4);
+  }
+  
+  .notification-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: #ff6b6b;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    animation: pulse 2s infinite;
+    border: 2px solid white;
+  }
+  
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(255, 107, 107, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
+    }
+  }
+  
+  /* Stats container */
+  .stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+    margin-top: 35px;
+  }
+  
+  .stat-box {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    transition: all 0.3s ease;
+    border-left: 5px solid var(--primary);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .stat-box:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+  }
+  
+  .stat-box h3 {
+    font-size: 16px;
+    margin-bottom: 15px;
+    color: var(--gray);
+    font-weight: 600;
+  }
+  
+  .stat-box p {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--primary);
+  }
+  
+  .stat-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: var(--medical-gradient);
+  }
+  
+  /* Overview content - Split into two sections */
+  .overview-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-top: 35px;
+  }
+  
+  .overview-section {
+    background: var(--card-bg);
+    padding: 35px;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    border-left: 5px solid var(--secondary);
+  }
+  
+  .overview-section h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .overview-section h2 i {
+    color: var(--accent);
+  }
+  
+  .overview-section p {
+    color: var(--gray);
+    line-height: 1.7;
+    font-size: 16px;
+    margin-bottom: 0;
+  }
+  
+  .overview-section:first-child {
+    border-left-color: var(--primary);
+  }
+  
+  .overview-section:last-child {
+    border-left-color: var(--accent);
+  }
+  
+  /* Section management */
+  .section {
+    display: none;
+  }
+  .section.active {
+    display: block;
+  }
+
+  /* Buttons */
+  button {
+    background: var(--medical-gradient);
+    border: none;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    margin-right: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(46, 139, 87, 0.3);
+  }
+  
+  button:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(46, 139, 87, 0.4);
+  }
+  
+  button:disabled {
+    opacity: 0.6;
+    cursor: default;
+    transform: none;
+  }
+
+  /* Forms */
+  .reception-form {
+    background: var(--card-bg);
+    max-width: 600px;
+    padding: 35px;
+    margin: 20px auto;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    color: var(--dark);
+    border-left: 5px solid var(--primary);
+  }
+  
+  .reception-form h2 {
+    margin-bottom: 25px;
+    text-align: center;
+    color: var(--primary);
+    font-weight: 700;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .reception-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--dark);
+  }
+  
+  .reception-form input[type="text"],
+  .reception-form input[type="email"],
+  .reception-form input[type="tel"],
+  .reception-form input[type="password"],
+  .reception-form input[type="date"],
+  .reception-form input[type="time"],
+  .reception-form select,
+  .reception-form textarea {
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    font-family: inherit;
+  }
+  
+  .reception-form input:focus,
+  .reception-form select:focus,
+  .reception-form textarea:focus,
+  .password-wrapper:focus-within {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+  }
+  
+  .reception-form button {
+    width: 100%;
+    padding: 16px;
+    font-weight: 700;
+    font-size: 16px;
+    margin-top: 15px;
+  }
+
+  /* Enhanced Form Styles - Matching Main Registration */
+  .phone-wrapper {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    position: relative;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    background: white;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+  
+  .phone-wrapper span {
+    padding: 14px 16px;
+    background: #e9ecef;
+    border: none;
+    border-right: 2px solid #e9ecef;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 65px;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+  }
+  
+  .phone-wrapper input {
+    flex: 1;
+    border: none !important;
+    padding: 14px 18px !important;
+    margin: 0 !important;
+    box-sizing: border-box;
+    background: white;
+    font-size: 15px;
+    outline: none;
+    border-radius: 0 !important;
+  }
+  
+  .phone-wrapper:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+  }
+  
+  .phone-wrapper:focus-within span {
+    border-right-color: var(--primary);
+    background: var(--primary);
+    color: white;
+  }
+
+  .password-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: stretch;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    background: white;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+  
+  .password-wrapper input {
+    flex: 1;
+    border: none !important;
+    padding: 14px 18px !important;
+    padding-right: 50px !important;
+    margin: 0 !important;
+    box-sizing: border-box;
+    background: white;
+    font-size: 15px;
+    outline: none;
+    border-radius: 0 !important;
+  }
+  
+  .password-wrapper:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+  }
+  
+  /* Ensure password wrapper form groups have consistent spacing */
+  .form-group .password-wrapper {
+    margin-bottom: 0;
+  }
+  
+  .password-toggle {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #6c757d;
+    transition: color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    z-index: 10;
+    user-select: none;
+  }
+  
+  .password-toggle:hover {
+    color: var(--primary);
+  }
+  
+  .password-toggle i {
+    font-size: 16px;
+  }
+
+  .generate-password-btn {
+    width: auto !important;
+    padding: 8px 16px !important;
+    margin-top: 8px !important;
+    margin-bottom: 0 !important;
+    font-size: 14px !important;
+    background: var(--secondary) !important;
+    border: 2px solid var(--secondary) !important;
+    color: white !important;
+    border-radius: 8px !important;
+    transition: all 0.3s ease !important;
+  }
+  
+  .generate-password-btn:hover {
+    background: transparent !important;
+    color: var(--secondary) !important;
+    transform: translateY(-1px) !important;
+  }
+
+  .username-validation {
+    font-size: 0.85rem;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    color: #6c757d;
+    line-height: 1.3;
+    padding: 5px 0;
+  }
+  
+  .username-validation.valid {
+    color: #28a745;
+  }
+  
+  .username-validation.invalid {
+    color: #dc3545;
+  }
+  
+  .email-validation {
+    font-size: 0.85rem;
+    margin-top: 5px;
+    padding: 5px 0;
+    min-height: 20px;
+  }
+  
+  .email-validation.valid {
+    color: #28a745;
+  }
+  
+  .email-validation.invalid {
+    color: #dc3545;
+  }
+
+  .password-validation {
+    font-size: 0.85rem;
+    margin-top: 5px;
+    padding: 5px 0;
+    min-height: 20px;
+  }
+  
+  .password-validation.valid {
+    color: #28a745;
+  }
+  
+  .password-validation.invalid {
+    color: #dc3545;
+  }
+
+  .submit-btn {
+    background: var(--medical-gradient) !important;
+    border: none !important;
+    color: white !important;
+    border-radius: 12px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 15px rgba(0, 120, 212, 0.3) !important;
+  }
+  
+  .submit-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(0, 120, 212, 0.4) !important;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin-top: 30px;
+    color: var(--dark);
+  }
+  
+  th, td {
+    text-align: left;
+    padding: 18px 22px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+  
+  th {
+    background: var(--medical-gradient);
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  
+  tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+  
+  tr:hover {
+    background-color: rgba(70, 130, 180, 0.1);
+    cursor: default;
+  }
+
+  /* Search Bar */
+  .search-bar {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 12px;
+  }
+  
+  .search-bar input {
+    flex: 1;
+    padding: 14px 18px;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    user-select: text;
+  }
+  
+  .search-bar input:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+  }
+
+  /* Form row layout */
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  @media (max-width: 768px) {
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+    
+    .reception-form {
+      padding: 25px;
+      margin: 20px;
+    }
+  }
+
+  /* Header layout fixes */
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    flex: 1;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  /* Mobile sidebar toggle button */
+  .sidebar-toggle-btn {
+    display: none;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: var(--accent);
+    border: none;
+    color: var(--dark);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 18px;
+    cursor: pointer;
+    z-index: 1100;
+    box-shadow: 0 4px 12px rgba(251, 192, 45, 0.3);
+    transition: all 0.3s ease;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .sidebar-toggle-btn:hover,
+  .sidebar-toggle-btn:focus {
+    background-color: var(--accent-light);
+    transform: scale(1.05);
+    outline: none;
+  }
+  
+  /* Overlay for mobile when sidebar is open */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+  }
+  
+  .sidebar-overlay.active {
+    display: block;
+  }
+
+  /* Mobile-specific styles */
+  @media (max-width: 1024px) {
+    .sidebar {
+      width: 280px;
+    }
+    .main-content {
+      margin-left: 280px;
+      padding: 30px;
+    }
+    .overview-content {
+      grid-template-columns: 1fr;
+      gap: 25px;
+    }
+    .sidebar ul li {
+      font-size: 14px;
+      padding: 14px 20px;
+      gap: 12px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .sidebar {
+      width: 260px;
+    }
+    .main-content {
+      margin-left: 0;
+      padding: 25px;
+    }
+    .main-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 20px;
+    }
+    .current-date {
+      align-self: flex-start;
+      margin-left: 0;
+    }
+    .stats-container {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .sidebar ul li {
+      font-size: 13px;
+      padding: 12px 16px;
+      gap: 10px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    /* Show mobile toggle button */
+    .sidebar-toggle-btn {
+      display: flex !important;
+    }
+    
+    /* Sidebar hidden by default on mobile */
+    .sidebar {
+      transform: translateX(-100%);
+    }
+    
+    /* Sidebar visible when active */
+    .sidebar.mobile-active {
+      transform: translateX(0);
+    }
+    
+    .main-content {
+      padding: 20px;
+      margin-left: 0;
+    }
+    
+    .main-header h1 {
+      font-size: 26px;
+      margin-top: 50px;
+    }
+    
+    .current-date {
+      font-size: 13px;
+      padding: 10px 16px;
+    }
+    
+    .stats-container {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    
+    .stat-box {
+      padding: 25px;
+    }
+    
+    .stat-box h3 {
+      font-size: 15px;
+    }
+    
+    .stat-box p {
+      font-size: 32px;
+    }
+    
+    .overview-content {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    
+    .overview-section {
+      padding: 25px;
+    }
+  }
+
+  /* For desktop - hide toggle button */
+  @media (min-width: 481px) {
+    .sidebar-toggle-btn {
+      display: none !important;
+    }
+  }
+
+
+
+  .settings-content {
+    display: none;
+  }
+
+  .settings-content.active {
+    display: block;
+  }
+
+  /* Profile Picture Form Styling */
+  .profile-picture-form {
+    background: var(--card-bg);
+    max-width: 500px;
+    padding: 35px;
+    margin: 20px auto;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    color: var(--dark);
+    border-left: 5px solid var(--primary);
+  }
+
+  .profile-picture-form h2 {
+    margin-bottom: 25px;
+    text-align: center;
+    color: var(--primary);
+    font-weight: 700;
+  }
+
+  .profile-picture-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--dark);
+  }
+
+  .profile-picture-form input[type="file"] {
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    font-family: inherit;
+  }
+
+  .profile-picture-form input[type="file"]:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+  }
+
+  .profile-picture-form button {
+    width: 100%;
+    padding: 16px;
+    background: var(--medical-gradient) !important;
+    border: none !important;
+    color: white !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+    margin-top: 15px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 15px rgba(0, 120, 212, 0.3) !important;
+  }
+
+  .profile-picture-form button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(0, 120, 212, 0.4) !important;
+  }
+
+  /* Change Password Form Styling */
+  .change-password-form {
+    background: var(--card-bg);
+    max-width: 500px;
+    padding: 35px;
+    margin: 20px auto;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    color: var(--dark);
+    border-left: 5px solid var(--primary);
+  }
+
+  .change-password-form h2 {
+    margin-bottom: 25px;
+    text-align: center;
+    color: var(--primary);
+    font-weight: 700;
+  }
+
+  .change-password-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--dark);
+  }
+
+  .change-password-form input[type="password"] {
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    font-family: inherit;
+    margin-bottom: 15px;
+  }
+
+  .change-password-form input[type="password"]:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+  }
+
+  .change-password-form button {
+    width: 100%;
+    padding: 16px;
+    background: var(--medical-gradient) !important;
+    border: none !important;
+    color: white !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+    margin-top: 15px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 15px rgba(0, 120, 212, 0.3) !important;
+  }
+
+  .change-password-form button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(0, 120, 212, 0.4) !important;
+  }
+
+  /* Mobile responsive for settings forms */
+  @media (max-width: 768px) {
+    .profile-picture-form,
+    .change-password-form {
+      padding: 25px;
+      margin: 20px;
+    }
+  }
+
+  /* Feedback tab styles */
+  .feedback-tab-btn.active {
+    background: var(--primary) !important;
+    color: white !important;
+  }
+  
+  .feedback-tab-btn:hover {
+    background: rgba(0, 120, 212, 0.1) !important;
+    color: var(--primary) !important;
+  }
+  
+  .feedback-section {
+    display: none;
+  }
+  
+  .feedback-section:first-child {
+    display: block;
+  }
+
+  /* Feedback card styles */
+  .feedback-card {
+    background: rgba(0, 120, 212, 0.08);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    color: var(--dark);
+    box-shadow: 0 4px 12px rgba(0, 120, 212, 0.15);
+    user-select: text;
+    border-left: 4px solid var(--primary);
+  }
+  
+  .feedback-card strong {
+    font-weight: 700;
+    color: var(--primary);
+  }
+  
+  .feedback-card em {
+    color: var(--gray);
+    font-style: italic;
+  }
+</style>
+</head>
+<body data-user-role="reception">
+
+<!-- Mobile sidebar toggle button -->
+<button class="sidebar-toggle-btn" aria-label="Toggle sidebar" aria-expanded="false" aria-controls="sidebar">☰</button>
+
+<!-- Overlay for mobile sidebar -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="dashboard-container">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" role="navigation" aria-label="{{ texts.sidebar.overview if texts else 'Reception' }} navigation" id="sidebar">
+    <div class="profile" aria-label="{{ texts.profile_role if texts else 'Reception Staff' }} profile">
+      {% if current_user.profile_picture and current_user.profile_picture != 'default_avatar.png' %}
+        <img src="{{ url_for('profile_picture', filename=current_user.profile_picture) }}" alt="{{ texts.profile_role if texts else 'Reception Staff' }} Profile" />
+      {% else %}
+        <img src="{{ url_for('static', filename='images/default_avatar.png') }}" alt="{{ texts.profile_role if texts else 'Reception Staff' }} Profile" />
+      {% endif %}
+      <h3>{{ current_user.username }}</h3>
+      <p>{{ texts.profile_role if texts else 'Reception Staff' }}</p>
+    </div>
+
+    <ul>
+      <li class="active" onclick="showSection('overview', this)" role="button" tabindex="0" onkeydown="if(event.key==='Enter'){showSection('overview', this)}">
+        <i class="fas fa-home"></i> 
+        <span class="sidebar-text">{{ texts.sidebar.overview if texts else 'Overview' }}</span>
+      </li>
+      <li onclick="showSection('register-patient', this)" role="button" tabindex="0" onkeydown="if(event.key==='Enter'){showSection('register-patient', this)}">
+        <i class="fas fa-user-plus"></i> 
+        <span class="sidebar-text">{{ texts.sidebar.register_patient if texts else 'Register Patient' }}</span>
+      </li>
+      <li onclick="showSection('appointments', this)" role="button" tabindex="0" onkeydown="if(event.key==='Enter'){showSection('appointments', this)}">
+        <i class="fas fa-user-md"></i> 
+        <span class="sidebar-text">{{ texts.sidebar.assign_health_officer if texts else 'Assign Health Officer' }}</span>
+      </li>
+      <li onclick="showSection('patients', this)" role="button" tabindex="0" onkeydown="if(event.key==='Enter'){showSection('patients', this)}">
+        <i class="fas fa-users"></i> 
+        <span class="sidebar-text">{{ texts.sidebar.patient_list if texts else 'Patient List' }}</span>
+      </li>
+      <li onclick="showSection('feedback', this)" role="button" tabindex="0" onkeydown="if(event.key==='Enter'){showSection('feedback', this)}">
+        <i class="fas fa-comments"></i> 
+        <span class="sidebar-text">{{ texts.sidebar.feedback if texts else 'Feedback' }}</span>
+      </li>
+      <li class="nav-item" role="button" tabindex="0" id="settingsToggle" aria-expanded="false" aria-haspopup="true" aria-controls="settingsSubmenu">
+        <i class="fas fa-cog"></i> 
+        <span class="sidebar-text">{{ texts.sidebar.settings if texts else 'Settings' }} <i class="fas fa-chevron-down" style="margin-left: auto; font-size: 12px;"></i></span>
+      </li>
+      <ul class="submenu" id="settingsSubmenu" aria-label="{{ texts.sidebar.settings if texts else 'Settings' }} submenu" role="menu">
+        <li class="nav-item" role="menuitem" tabindex="0" id="profilePictureMenuItem" onclick="console.log('Profile picture clicked'); showSettingsSubsection('profile-picture', this)">
+          <i class="fas fa-user-circle"></i> 
+          <span class="sidebar-text">{{ texts.sidebar.profile_picture if texts else 'Profile Picture' }}</span>
+        </li>
+        <li class="nav-item" role="menuitem" tabindex="0" id="changePasswordMenuItem" onclick="console.log('Change password clicked'); showSettingsSubsection('change-password', this)">
+          <i class="fas fa-key"></i> 
+          <span class="sidebar-text">{{ texts.sidebar.change_password if texts else 'Change Password' }}</span>
+        </li>
+      </ul>
+      <li class="logout-btn" role="listitem" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i> 
+        <span class="sidebar-text">{{ texts.sidebar.logout if texts else 'Logout' }}</span>
+      </li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content" id="mainContent" role="main">
+    <div class="main-header">
+      <div class="header-content">
+        <div class="header-left">
+          <h1>{{ 'Welcome, ' + current_user.username + '!' }}</h1>
+        </div>
+        <div class="header-right">
+          <!-- Notification Bell -->
+          <div class="notification-bell" id="notificationBell" aria-label="Notifications" role="button" tabindex="0">
+            <i class="fas fa-bell"></i>
+            <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+          </div>
+          <span class="current-date" id="currentDate" aria-live="polite" aria-atomic="true" aria-label="{{ texts.current_date_aria if texts else 'Current date' }}"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overview Section -->
+    <div id="overview" class="section active" role="region" aria-label="{{ texts.sidebar.overview if texts else 'Overview' }}">
+      <!-- Split overview text into two sections -->
+      <div class="overview-content">
+        <div class="overview-section">
+          <h2><i class="fas fa-hospital-user"></i> {{ texts.overview.reception_overview if texts else 'Reception Overview' }}</h2>
+          <p>{{ texts.overview.overview_text if texts else 'Welcome to the Reception Dashboard.' }}</p>
+        </div>
+        
+        <div class="overview-section">
+          <h2><i class="fas fa-tasks"></i> {{ texts.overview.reception_tools if texts else 'Reception Tools' }}</h2>
+          <p>{{ texts.overview.tools_text if texts else 'Use the navigation menu to access different reception functions.' }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Register Patient Section - EXACT COPY OF GENERAL REGISTRATION -->
+    <div id="register-patient" class="section" role="region" aria-label="{{ texts.sidebar.register_patient if texts else 'Register Patient' }}">
+      <form class="reception-form" id="patientRegistrationForm" method="POST" action="/reception/register_user_new" onsubmit="return handleRegistrationSubmit(event)">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <h2><i class="fas fa-user-plus"></i> {{ texts.forms.register_button if texts else 'Patient Registration' }}</h2>
+        
+        <div class="form-group">
+          <label for="patientUsername">{{ texts.forms.username if texts else 'Username' }} *</label>
+          <input type="text" id="patientUsername" name="username" required 
+                 placeholder="{{ texts.forms.username if texts else 'Username' }}" 
+                 pattern="[a-zA-Z]+" 
+                 title="Username must contain only letters (no numbers or special characters)">
+          <div id="usernameValidation" class="username-validation"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="patientPhone">{{ texts.forms.phone if texts else 'Phone Number' }} *</label>
+          <div class="phone-wrapper">
+            <span>+251</span>
+            <input type="text" id="patientPhone" name="phone" required 
+                   placeholder="912345678" 
+                   maxlength="9" 
+                   pattern="[79][0-9]{8}" 
+                   title="Enter 9 digits starting with 7 or 9">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="patientEmail">{{ texts.forms.email if texts else 'Gmail Address' }} *</label>
+          <input type="email" id="patientEmail" name="email" required 
+                 placeholder="{{ texts.forms.email if texts else 'Gmail Address' }}" 
+                 pattern="[a-zA-Z0-9._%+-]+@gmail\.com$" 
+                 title="Please enter a valid Gmail address">
+          <div id="emailValidation" class="email-validation"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="patientPassword">{{ texts.forms.password if texts else 'Password' }} *</label>
+          <div class="password-wrapper">
+            <input type="password" id="patientPassword" name="password" required 
+                   placeholder="Enter password (min 6 characters)" 
+                   minlength="6">
+            <span class="password-toggle" onclick="togglePasswordField('patientPassword')">
+              <svg id="eyeIcon-patientPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <svg id="eyeSlashIcon-patientPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none;">
+                <path d="M17.94 17.94C16.2306 19.243 14.1491 19.9649 12 20C5 20 1 12 1 12C2.24389 9.68192 3.96914 7.65663 6.06 6.06M9.9 4.24C10.5883 4.0789 11.2931 3.99836 12 4C19 4 23 12 23 12C22.393 13.1356 21.6691 14.2048 20.84 15.19M14.12 14.12C13.8454 14.4148 13.5141 14.6512 13.1462 14.8151C12.7782 14.9791 12.3809 15.0673 11.9781 15.0744C11.5753 15.0815 11.1751 15.0074 10.8016 14.8565C10.4281 14.7056 10.0887 14.4811 9.80385 14.1962C9.51897 13.9113 9.29439 13.5719 9.14351 13.1984C8.99262 12.8249 8.91853 12.4247 8.92563 12.0219C8.93274 11.6191 9.02091 11.2218 9.18488 10.8538C9.34884 10.4859 9.58525 10.1546 9.88 9.88" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M1 1L23 23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </div>
+          <div id="passwordValidation" class="password-validation"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="patientConfirmPassword">{{ texts.forms.confirm_password if texts else 'Confirm Password' }} *</label>
+          <div class="password-wrapper">
+            <input type="password" id="patientConfirmPassword" name="confirm_password" required 
+                   placeholder="Confirm password" 
+                   minlength="6">
+            <span class="password-toggle" onclick="togglePasswordField('patientConfirmPassword')">
+              <svg id="eyeIcon-patientConfirmPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <svg id="eyeSlashIcon-patientConfirmPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none;">
+                <path d="M17.94 17.94C16.2306 19.243 14.1491 19.9649 12 20C5 20 1 12 1 12C2.24389 9.68192 3.96914 7.65663 6.06 6.06M9.9 4.24C10.5883 4.0789 11.2931 3.99836 12 4C19 4 23 12 23 12C22.393 13.1356 21.6691 14.2048 20.84 15.19M14.12 14.12C13.8454 14.4148 13.5141 14.6512 13.1462 14.8151C12.7782 14.9791 12.3809 15.0673 11.9781 15.0744C11.5753 15.0815 11.1751 15.0074 10.8016 14.8565C10.4281 14.7056 10.0887 14.4811 9.80385 14.1962C9.51897 13.9113 9.29439 13.5719 9.14351 13.1984C8.99262 12.8249 8.91853 12.4247 8.92563 12.0219C8.93274 11.6191 9.02091 11.2218 9.18488 10.8538C9.34884 10.4859 9.58525 10.1546 9.88 9.88" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M1 1L23 23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </div>
+          <div id="confirmPasswordValidation" class="password-validation"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="patientRole">{{ texts.forms.role if texts else 'Role' }} *</label>
+          <select id="patientRole" name="role" required>
+            <option value="patient" selected>{{ texts.forms.patient if texts else 'Patient' }}</option>
+          </select>
+        </div>
+
+        <button type="submit" class="submit-btn">
+          <i class="fas fa-user-plus"></i> {{ texts.forms.register_button if texts else 'Register Patient' }}
+        </button>
+      </form>
+    </div>
+
+    <!-- Health Officer Assignment Section -->
+    <div id="appointments" class="section" role="region" aria-label="{{ texts.sidebar.assign_health_officer if texts else 'Assign Health Officer' }}">
+      <form class="reception-form" id="healthOfficerAssignmentForm" onsubmit="return assignHealthOfficer(event)">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <h2><i class="fas fa-user-md"></i> {{ texts.forms.assign_health_officer if texts else 'Assign Health Officer' }}</h2>
+        
+        <div class="form-group">
+          <label for="assignmentPatient">{{ texts.forms.select_patient if texts else 'Select Patient' }} *</label>
+          <select id="assignmentPatient" name="patient_id" required>
+            <option value="">{{ texts.forms.loading_patients if texts else 'Loading patients...' }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="assignmentHealthOfficer">{{ texts.forms.assign_health_officer if texts else 'Assign Health Officer' }} *</label>
+          <select id="assignmentHealthOfficer" name="health_officer_id" required>
+            <option value="">{{ texts.forms.loading_officers if texts else 'Loading Health Officers...' }}</option>
+          </select>
+        </div>
+
+        <button type="submit">
+          <i class="fas fa-user-md"></i> {{ texts.forms.assign_button if texts else 'Assign Health Officer' }}
+        </button>
+      </form>
+
+      <!-- Current Health Officer Assignments -->
+      <div class="overview-section" style="margin-top: 30px;">
+        <h2><i class="fas fa-list"></i> {{ texts.forms.current_assignments if texts else 'Current Health Officer Assignments' }}</h2>
+        <div id="currentAssignments">
+          <p>{{ texts.forms.loading_assignments if texts else 'Loading current assignments...' }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Patients Section -->
+    <div id="patients" class="section" role="region" aria-label="{{ texts.sidebar.patient_list if texts else 'Patient List' }}">
+      <div class="overview-section">
+        <h2><i class="fas fa-users"></i> {{ texts.sidebar.patient_list if texts else 'Patient List' }}</h2>
+        
+        <div class="search-bar">
+          <input type="text" id="patientSearchInput" placeholder="{{ texts.forms.search_placeholder if texts else 'Search patients...' }}" onkeyup="searchPatients()">
+        </div>
+
+        <div id="patientListContainer">
+          <table id="patientsTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>{{ texts.table.username if texts else 'Username' }}</th>
+                <th>{{ texts.table.phone if texts else 'Phone' }}</th>
+                <th>{{ texts.table.email if texts else 'Email' }}</th>
+                <th>{{ texts.table.patient_id if texts else 'Patient ID' }}</th>
+                <th>{{ texts.table.registration_date if texts else 'Registration Date' }}</th>
+              </tr>
+            </thead>
+            <tbody id="patientsTableBody">
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 40px;">
+                  <i class="fas fa-spinner fa-spin"></i> {{ texts.forms.loading_patients if texts else 'Loading patients...' }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- DEBUG: END OF PATIENTS SECTION -->
+
+    <!-- Feedback Section -->
+    <div id="feedback" class="section" role="region" aria-label="{{ texts.sidebar.feedback if texts else 'Feedback' }}">
+      <!-- Feedback Tabs -->
+      <div class="card" style="padding: 0; overflow: hidden;">
+        <div style="display: flex; border-bottom: 2px solid #e0e0e0; background: #f8f9fa;">
+          <button class="feedback-tab-btn active" onclick="showFeedbackSection('send-to-admin')" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer; font-weight: 600; color: #666; transition: all 0.3s;">
+            <i class="fas fa-paper-plane"></i> {{ texts.feedback.send_to_admin if texts else 'Send to Admin' }}
+          </button>
+          <button class="feedback-tab-btn" onclick="showFeedbackSection('send-to-health-officer')" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer; font-weight: 600; color: #666; transition: all 0.3s;">
+            <i class="fas fa-user-md"></i> {{ texts.feedback.send_to_health_officer if texts else 'Send to Health Officer' }}
+          </button>
+        </div>
+
+        <!-- Send to Admin Section -->
+        <div id="send-to-admin" class="feedback-section" style="padding: 25px;">
+          <h3 style="color: #0078D4; margin-bottom: 20px;">
+            <i class="fas fa-paper-plane"></i> {{ texts.feedback.send_feedback_admin if texts else 'Send Feedback to Admin' }}
+          </h3>
+          
+          <form id="adminFeedbackForm" style="max-width: 700px;" onsubmit="return false;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label for="adminFeedbackMessage" style="display: block; margin-bottom: 10px; font-weight: 600; color: #333;">
+              {{ texts.feedback.your_message if texts else 'Your Message' }}:
+            </label>
+            <textarea 
+              id="adminFeedbackMessage" 
+              name="feedback_message" 
+              placeholder="{{ texts.feedback.your_message if texts else 'Your Message' }}..."
+              required
+              style="width: 100%; min-height: 150px; padding: 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical;"
+            ></textarea>
+            <button type="submit" style="margin-top: 15px; width: auto; padding: 12px 30px;">
+              <i class="fas fa-paper-plane"></i> {{ texts.feedback.send_button if texts else 'Send Feedback' }}
+            </button>
+          </form>
+
+          <!-- Replies Section -->
+          <div style="margin-top: 40px;">
+            <h4 style="color: #0078D4; margin-bottom: 20px; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px;">
+              <i class="fas fa-reply"></i> {{ texts.feedback.your_feedback_replies if texts else 'Your Feedback & Replies' }}
+            </h4>
+            <div id="adminRepliesList">
+              <div style="text-align: center; padding: 40px; color: #999;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 32px; margin-bottom: 15px;"></i>
+                <p>{{ texts.forms.loading_patients if texts else 'Loading...' }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Send to Health Officer Section -->
+        <div id="send-to-health-officer" class="feedback-section" style="padding: 25px; display: none;">
+          <h3 style="color: #0078D4; margin-bottom: 20px;">
+            <i class="fas fa-user-md"></i> {{ texts.feedback.send_feedback_officer if texts else 'Send Feedback to Health Officer' }}
+          </h3>
+          <form id="healthOfficerFeedbackForm" style="max-width: 700px;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <label for="healthOfficerSelect" style="display: block; margin-bottom: 10px; font-weight: 600; color: #333;">
+              {{ texts.feedback.select_health_officer if texts else 'Select Health Officer' }}:
+            </label>
+            <select id="healthOfficerSelect" name="health_officer_id" required style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px;">
+              <option value="">{{ texts.feedback.select_health_officer if texts else 'Choose a health officer...' }}</option>
+              <!-- Health officers will be loaded dynamically -->
+            </select>
+            
+            <label for="healthOfficerFeedbackMessage" style="display: block; margin-bottom: 10px; font-weight: 600; color: #333;">
+              {{ texts.feedback.your_message if texts else 'Your Message' }}:
+            </label>
+            <textarea 
+              id="healthOfficerFeedbackMessage" 
+              name="feedback_message" 
+              placeholder="{{ texts.feedback.your_message if texts else 'Your Message' }}..."
+              required
+              style="width: 100%; min-height: 150px; padding: 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical;"
+            ></textarea>
+            <button type="submit" style="margin-top: 15px; width: auto; padding: 12px 30px;">
+              <i class="fas fa-paper-plane"></i> {{ texts.feedback.send_button if texts else 'Send Feedback' }}
+            </button>
+          </form>
+        </div>
+
+
+      </div>
+    </div>
+
+    <!-- Settings Section -->
+    <!-- DEBUG: SETTINGS SECTION STARTS HERE -->
+    <div id="settings" class="section" role="region" aria-label="Settings">
+      <!-- Profile Picture Settings -->
+      <div id="profile-picture" class="settings-content active">
+        <div class="profile-picture-form">
+          <h2><i class="fas fa-user-circle"></i> {{ texts.sidebar.profile_picture if texts else 'Profile Picture' }}</h2>
+          <form id="profilePictureForm" onsubmit="return handleProfilePictureUpdate(event)" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+              <label for="profilePictureFile">{{ texts.forms.choose_profile_picture if texts else 'Choose Profile Picture' }}:</label>
+              <input type="file" id="profilePictureFile" name="profile_picture" accept="image/*" required>
+            </div>
+            <button type="submit">
+              <i class="fas fa-upload"></i> {{ texts.forms.update_profile_picture if texts else 'Update Profile Picture' }}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Change Password Settings -->
+      <div id="change-password" class="settings-content">
+        <div class="change-password-form">
+          <h2><i class="fas fa-key"></i> {{ texts.sidebar.change_password if texts else 'Change Password' }}</h2>
+          <form id="changePasswordForm" onsubmit="return handlePasswordChange(event)">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+              <label for="currentPassword">{{ texts.forms.current_password if texts else 'Current Password' }}:</label>
+              <input type="password" id="currentPassword" name="current_password" required>
+            </div>
+            <div class="form-group">
+              <label for="newPassword">{{ texts.forms.new_password if texts else 'New Password' }}:</label>
+              <input type="password" id="newPassword" name="new_password" required minlength="6">
+            </div>
+            <div class="form-group">
+              <label for="confirmPassword">{{ texts.forms.confirm_new_password if texts else 'Confirm New Password' }}:</label>
+              <input type="password" id="confirmPassword" name="confirm_password" required minlength="6">
+            </div>
+            <button type="submit">
+              <i class="fas fa-key"></i> {{ texts.forms.change_password_button if texts else 'Change Password' }}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dynamic Content Section -->
+    <div id="dynamicContent" role="region" aria-live="polite" aria-atomic="true"></div>
+  </main>
+</div>
+
+
+<script>
+  // ==================== MOBILE SIDEBAR FUNCTIONALITY ====================
+  const sidebar = document.getElementById('sidebar');
+  const toggleBtn = document.querySelector('.sidebar-toggle-btn');
+  const overlay = document.getElementById('sidebarOverlay');
+  
+  // Toggle sidebar function
+  function toggleSidebar() {
+    const isActive = sidebar.classList.toggle('mobile-active');
+    overlay.classList.toggle('active', isActive);
+    toggleBtn.setAttribute('aria-expanded', isActive);
+    
+    // Prevent body scrolling when sidebar is open
+    document.body.style.overflow = isActive ? 'hidden' : '';
+  }
+  
+  // Event listeners for toggle button
+  if (toggleBtn) toggleBtn.addEventListener('click', toggleSidebar);
+  
+  // Close sidebar when clicking overlay
+  if (overlay) overlay.addEventListener('click', toggleSidebar);
+  
+  // Close sidebar when pressing Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && sidebar && sidebar.classList.contains('mobile-active')) {
+      toggleSidebar();
+    }
+  });
+  
+  // Close sidebar on mobile after selecting a menu item
+  // Add both click and touchend events for better mobile support
+  document.querySelectorAll('.sidebar ul li').forEach(item => {
+    const handleItemClick = () => {
+      if (window.innerWidth <= 480 && sidebar && sidebar.classList.contains('mobile-active')) {
+        // Small delay to allow the click event to fire first
+        setTimeout(() => toggleSidebar(), 100);
+      }
+    };
+    
+    item.addEventListener('click', handleItemClick);
+    item.addEventListener('touchend', (e) => {
+      // Prevent double-firing on devices that support both touch and click
+      e.preventDefault();
+      // Manually trigger the onclick if it exists
+      if (item.onclick) {
+        item.onclick.call(item, e);
+      }
+      handleItemClick();
+    }, { passive: false });
+  });
+  
+  // Handle window resize
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 480 && sidebar && sidebar.classList.contains('mobile-active')) {
+      sidebar.classList.remove('mobile-active');
+      overlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  });
+
+  // ==================== HELPER FUNCTIONS ====================
+  
+  // Helper function to determine correct reply status message based on recipient
+  function getReplyStatusMessage(recipientName) {
+    if (!recipientName) {
+      return 'Reply awaiting';
+    }
+    
+    const name = recipientName.toLowerCase();
+    if (name.includes('health officer')) {
+      return 'Health Officer reply awaiting';
+    } else if (name.includes('admin') || name.includes('administrator')) {
+      return 'Admin reply awaiting';
+    } else {
+      return 'Reply awaiting';
+    }
+  }
+
+  // ==================== SESSION SECURITY ====================
+  // Prevent back button access after logout
+  (function() {
+    // Check if user is authenticated
+    const isAuthenticated = {{ 'true' if current_user.is_authenticated else 'false' }};
+    
+    if (!isAuthenticated) {
+      // If not authenticated, redirect to login
+      window.location.replace("{{ url_for('login') }}");
+      return;
+    }
+    
+    // Prevent caching
+    window.history.pushState(null, "", window.location.href);
+    window.onpopstate = function() {
+      window.history.pushState(null, "", window.location.href);
+    };
+    
+    // Detect page visibility changes (when user navigates away and back)
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden) {
+        // Page became visible again - verify session is still valid
+        fetch("{{ url_for('dashboard_reception') }}", {
+          method: 'HEAD',
+          cache: 'no-cache'
+        }).catch(() => {
+          // If request fails, redirect to login
+          window.location.replace("{{ url_for('login') }}");
+        });
+      }
+    });
+  })();
+  
+  const csrfToken = "{{ csrf_token() }}";
+
+  // Show today's date - moved to DOMContentLoaded for proper initialization
+  function updateCurrentDate() {
+    try {
+      const dateElement = document.getElementById("currentDate");
+      if (dateElement) {
+        const currentDate = new Date();
+        const formattedDate = currentDate.toLocaleDateString("{{ 'en-US' if lang == 'en' else 'om-ET' }}", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+        dateElement.textContent = formattedDate;
+        console.log('✅ Date display updated:', formattedDate);
+      } else {
+        console.error('❌ Date element not found');
+      }
+    } catch (error) {
+      console.error('❌ Error updating date:', error);
+      // Fallback date display
+      const dateElement = document.getElementById("currentDate");
+      if (dateElement) {
+        dateElement.textContent = new Date().toDateString();
+      }
+    }
+  }
+
+  // Helper: Remove active class from all sidebar li's except those not clickable (like submenu items)
+  function clearActiveSidebar() {
+    const sidebarItems = document.querySelectorAll('.sidebar > ul > li:not(.logout-btn)');
+    sidebarItems.forEach(li => {
+      li.classList.remove('active');
+    });
+  }
+
+  // Show sections and update active class properly - REMOVED DUPLICATE FUNCTION
+
+  // Logout function - Direct logout without confirmation
+  function logout() {
+    window.location.href = "{{ url_for('logout') }}";
+  }
+
+  // ==================== PATIENT REGISTRATION ====================
+  function handleRegistrationSubmit(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    
+    // Get form values (complete general registration form)
+    const username = formData.get('username') ? formData.get('username').trim() : '';
+    const phone = formData.get('phone') ? formData.get('phone').trim() : '';
+    const email = formData.get('email') ? formData.get('email').trim() : '';
+    const password = formData.get('password') ? formData.get('password').trim() : '';
+    const confirmPassword = formData.get('confirm_password') ? formData.get('confirm_password').trim() : '';
+    const role = formData.get('role') ? formData.get('role').trim() : '';
+    
+    // Debug: Log form values
+    console.log('Form values:', { username, phone, email, password, confirmPassword, role });
+    
+    // ========== COMPLETE VALIDATION (MATCHING GENERAL REGISTRATION) ==========
+    
+    // 1. Check all required fields
+    const missingFields = [];
+    if (!username) missingFields.push('Username');
+    if (!phone) missingFields.push('Phone Number');
+    if (!email) missingFields.push('Email Address');
+    if (!password) missingFields.push('Password');
+    if (!confirmPassword) missingFields.push('Confirm Password');
+    if (!role) missingFields.push('Role');
+    
+    if (missingFields.length > 0) {
+      showValidationError(`Missing required fields: ${missingFields.join(', ')}`);
+      return false;
+    }
+    
+    // 2. Username validation
+    const usernameRegex = /^[a-zA-Z]+$/;
+    const isOnlyNumbers = /^[0-9]+$/.test(username);
+    
+    if (isOnlyNumbers) {
+      showValidationError('Username cannot be numbers only!');
+      return false;
+    }
+    
+    if (!usernameRegex.test(username)) {
+      showValidationError('Username must start with a letter or underscore and can only contain letters, numbers, and underscores!');
+      return false;
+    }
+    
+    // 3. Phone validation (Ethiopian format)
+    if (!/^[79]\d{8}$/.test(phone)) {
+      showValidationError('Invalid phone number! Must be 9 digits starting with 7 or 9');
+      return false;
+    }
+    
+    // 4. Email validation
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
+      showValidationError('Please enter a valid email address!');
+      return false;
+    }
+    
+    // 5. Password validation
+    if (password.length < 6) {
+      showValidationError('Password must be at least 6 characters long!');
+      return false;
+    }
+    
+    // 6. Password confirmation validation
+    if (password !== confirmPassword) {
+      showValidationError('Passwords do not match!');
+      return false;
+    }
+    
+    // 7. Role validation (Patient only)
+    const validRoles = ['patient'];
+    if (!validRoles.includes(role)) {
+      showValidationError('Please select a valid role!');
+      return false;
+    }
+    
+    // 8. Prevent admin role selection (extra security)
+    if (role === 'admin') {
+      showValidationError('Admin role cannot be selected!');
+      return false;
+    }
+    
+    // ========== FORM SUBMISSION ==========
+    
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
+    submitBtn.disabled = true;
+
+    // Submit form using fetch API
+    fetch('/reception/register_user_new', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => {
+      console.log('Response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return response.json();
+    })
+    .then(result => {
+      console.log('Registration result:', result);
+      
+      if (result.success) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: result.message || `User registered successfully! Role: ${role}`,
+          background: '#4CAF50',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 4000,
+          timerProgressBar: true
+        });
+        
+        // Reset form
+        form.reset();
+        
+        // Reset role to patient (default)
+        document.getElementById('patientRole').value = 'patient';
+        
+        // Clear all validation messages
+        clearAllValidationMessages();
+        
+      } else {
+        showValidationError(result.message || 'Registration failed. Please check your input and try again.');
+      }
+    })
+    .catch(error => {
+      console.error('Error registering user:', error);
+      
+      let errorMessage = `Registration error: ${error.message}`;
+      
+      if (error.message.includes('401')) {
+        errorMessage = 'Authentication required. Please login again.';
+      } else if (error.message.includes('403')) {
+        errorMessage = 'Access denied. You do not have permission to register users.';
+      } else if (error.message.includes('500')) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (error.message.includes('Failed to fetch')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (error.message.includes('NetworkError')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      }
+      
+      showValidationError(errorMessage);
+    })
+    .finally(() => {
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+    });
+    
+    return false;
+  }
+
+  // ========== HELPER FUNCTIONS FOR PATIENT REGISTRATION ==========
+  
+  function showValidationError(message) {
+    Swal.fire({
+      toast: true,
+      position: 'top-end',
+      icon: 'error',
+      title: message,
+      background: '#f44336',
+      color: '#fff',
+      showConfirmButton: false,
+      timer: 4000,
+      timerProgressBar: true
+    });
+  }
+
+  // Password toggle function for registration form
+  function togglePasswordField(fieldId) {
+    const passwordInput = document.getElementById(fieldId);
+    const eyeIcon = document.getElementById('eyeIcon-' + fieldId);
+    const eyeSlashIcon = document.getElementById('eyeSlashIcon-' + fieldId);
+    
+    if (passwordInput.type === 'password') {
+      passwordInput.type = 'text';
+      eyeIcon.style.display = 'none';
+      eyeSlashIcon.style.display = 'block';
+    } else {
+      passwordInput.type = 'password';
+      eyeIcon.style.display = 'block';
+      eyeSlashIcon.style.display = 'none';
+    }
+  }
+
+  function generatePassword() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let password = '';
+    for (let i = 0; i < 8; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
+  }
+
+  // ==================== HEALTH OFFICER ASSIGNMENT ====================
+  async function assignHealthOfficer(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    
+    // Validate form data
+    const patientId = formData.get('patient_id');
+    const healthOfficerId = formData.get('health_officer_id');
+    
+    if (!patientId || !healthOfficerId) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: 'Please select both a patient and a health officer!',
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+      return false;
+    }
+    
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Assigning...';
+    submitBtn.disabled = true;
+
+    try {
+      console.log('🔄 Assigning Health Officer...');
+      console.log('   Patient ID:', patientId);
+      console.log('   Health Officer ID:', healthOfficerId);
+      console.log('   CSRF Token:', csrfToken ? 'Present' : 'Missing');
+      
+      const response = await fetch('/reception/assign_health_officer', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken
+        },
+        body: formData
+      });
+
+      console.log('📡 Assignment response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ HTTP error response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log('📊 Assignment result:', result);
+      
+      if (result.success) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: 'Health Officer assigned successfully!',
+          background: '#4CAF50',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+        
+        // Reset form and reload data
+        form.reset();
+        
+        // Reset dropdowns to default state
+        document.getElementById('assignmentPatient').innerHTML = '<option value="">Select Patient</option>';
+        document.getElementById('assignmentHealthOfficer').innerHTML = '<option value="">Select Health Officer</option>';
+        
+        // Reload all data
+        setTimeout(() => {
+          loadPatientsForAssignment();
+          loadHealthOfficersForAssignment();
+          loadCurrentAssignments();
+        }, 500);
+        
+      } else {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: result.message || 'Failed to assign Health Officer!',
+          background: '#f44336',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 4000,
+          timerProgressBar: true
+        });
+      }
+    } catch (error) {
+      console.error('❌ Error assigning Health Officer:', error);
+      console.error('❌ Error stack:', error.stack);
+      
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: 'An error occurred while assigning Health Officer: ' + error.message,
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true
+      });
+    }
+    
+    submitBtn.innerHTML = originalText;
+    submitBtn.disabled = false;
+    return false;
+  }
+
+  async function loadPatientsForAssignment() {
+    console.log('🔄 Loading patients for assignment...');
+    
+    const select = document.getElementById('assignmentPatient');
+    if (!select) {
+      console.error('❌ Patient select element not found!');
+      return;
+    }
+    
+    // Show loading state
+    select.innerHTML = '<option value="">Loading patients...</option>';
+    
+    try {
+      console.log('📡 Making request to /reception/get_patients...');
+      const response = await fetch('/reception/get_patients', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
+        },
+        credentials: 'same-origin'
+      });
+      
+      console.log('📡 Patients API response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ HTTP error response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+      }
+      
+      const patients = await response.json();
+      console.log('👥 Patients loaded:', patients);
+      console.log('👥 Number of patients:', patients.length);
+      
+      // Clear loading state
+      select.innerHTML = '<option value="">Select Patient</option>';
+      
+      if (!Array.isArray(patients)) {
+        console.error('❌ Response is not an array:', typeof patients);
+        select.innerHTML = '<option value="">Invalid response format</option>';
+        return;
+      }
+      
+      if (patients.length === 0) {
+        select.innerHTML = '<option value="">No patients available</option>';
+        console.warn('⚠️ No patients found in response');
+        return;
+      }
+      
+      // Add each patient to the dropdown
+      patients.forEach((patient, index) => {
+        console.log(`   Adding patient ${index + 1}:`, patient);
+        
+        if (!patient.id || !patient.username) {
+          console.warn('⚠️ Invalid patient data:', patient);
+          return;
+        }
+        
+        const option = document.createElement('option');
+        option.value = patient.id;
+        option.textContent = `${patient.username}`;
+        select.appendChild(option);
+      });
+      
+      console.log('✅ Patient dropdown populated successfully with', patients.length, 'patients');
+      
+      // Show success message
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: `Loaded ${patients.length} Patient(s)`,
+        background: '#4CAF50',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true
+      });
+      
+    } catch (error) {
+      console.error('❌ Error loading patients:', error);
+      console.error('❌ Error stack:', error.stack);
+      
+      select.innerHTML = '<option value="">Error loading patients</option>';
+      
+      // Show error message to user
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: 'Failed to load patients: ' + error.message,
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true
+      });
+    }
+  }
+
+  async function loadHealthOfficersForAssignment() {
+    console.log('🔄 Loading Health Officers for assignment...');
+    
+    const select = document.getElementById('assignmentHealthOfficer');
+    if (!select) {
+      console.error('❌ Health Officer select element not found!');
+      return;
+    }
+    
+    // Show loading state
+    select.innerHTML = '<option value="">Loading Health Officers...</option>';
+    
+    try {
+      console.log('📡 Making request to /reception/get_health_officers_for_feedback...');
+      const response = await fetch('/reception/get_health_officers_for_feedback', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
+        },
+        credentials: 'same-origin'
+      });
+      
+      console.log('📡 Health Officers API response status:', response.status);
+      console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ HTTP error response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+      }
+      
+      const healthOfficers = await response.json();
+      console.log('🔬 Health Officers loaded:', healthOfficers);
+      console.log('🔬 Number of officers:', healthOfficers.length);
+      
+      // Clear loading state
+      select.innerHTML = '<option value="">Select Health Officer</option>';
+      
+      if (!Array.isArray(healthOfficers)) {
+        console.error('❌ Response is not an array:', typeof healthOfficers);
+        select.innerHTML = '<option value="">Invalid response format</option>';
+        return;
+      }
+      
+      if (healthOfficers.length === 0) {
+        select.innerHTML = '<option value="">No Health Officers available</option>';
+        console.warn('⚠️ No Health Officers found in response');
+        return;
+      }
+      
+      // Add each health officer to the dropdown
+      healthOfficers.forEach((officer, index) => {
+        console.log(`   Adding officer ${index + 1}:`, officer);
+        
+        if (!officer.id || !officer.username) {
+          console.warn('⚠️ Invalid officer data:', officer);
+          return;
+        }
+        
+        const option = document.createElement('option');
+        option.value = officer.id;
+        option.textContent = officer.username;
+        select.appendChild(option);
+      });
+      
+      console.log('✅ Health Officer dropdown populated successfully with', healthOfficers.length, 'officers');
+      
+      // Show success message
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: `Loaded ${healthOfficers.length} Health Officer(s)`,
+        background: '#4CAF50',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true
+      });
+      
+    } catch (error) {
+      console.error('❌ Error loading Health Officers:', error);
+      console.error('❌ Error stack:', error.stack);
+      
+      select.innerHTML = '<option value="">Error loading Health Officers</option>';
+      
+      // Show error message to user
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: 'Failed to load Health Officers: ' + error.message,
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true
+      });
+    }
+  }
+
+  async function loadCurrentAssignments() {
+    try {
+      const response = await fetch('/reception/get_health_officer_assignments');
+      const assignments = await response.json();
+      
+      const container = document.getElementById('currentAssignments');
+      
+      if (assignments.length === 0) {
+        container.innerHTML = '<p style="color: #6c757d; font-style: italic; text-align: center; padding: 20px;">No Health Officer assignments found.</p>';
+        return;
+      }
+      
+      let html = `
+        <div style="margin-bottom: 15px; padding: 10px; background: #e3f2fd; border-left: 4px solid #2196f3; border-radius: 4px;">
+          <strong>Business Rule:</strong> Each patient can only be assigned to ONE Health Officer at a time.
+        </div>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+          <thead>
+            <tr style="background: var(--medical-gradient); color: white;">
+              <th style="padding: 12px; text-align: left;">Patient</th>
+              <th style="padding: 12px; text-align: left;">Health Officer</th>
+              <th style="padding: 12px; text-align: left;">Assignment Date</th>
+              <th style="padding: 12px; text-align: left;">Status</th>
+              <th style="padding: 12px; text-align: left;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+      
+      // Store assignments data globally for use in other functions
+      window.currentAssignmentsData = assignments;
+      
+      assignments.forEach(assignment => {
+        const statusColor = getAssignmentStatusColor(assignment.status);
+        const canModify = assignment.status === 'assigned' || assignment.status === 'scheduled';
+        
+        html += `
+          <tr style="border-bottom: 1px solid #e9ecef;">
+            <td style="padding: 12px;">
+              <strong>${assignment.patient_name}</strong>
+            </td>
+            <td style="padding: 12px;">
+              <span style="color: var(--primary); font-weight: 500;">
+                ${assignment.health_officer_name}
+              </span>
+            </td>
+            <td style="padding: 12px;">${assignment.assignment_date}</td>
+            <td style="padding: 12px;">
+              <span style="
+                background: ${statusColor}; 
+                color: white; 
+                padding: 4px 8px; 
+                border-radius: 12px; 
+                font-size: 11px; 
+                font-weight: 600;
+                text-transform: uppercase;
+              ">
+                ${assignment.status}
+              </span>
+            </td>
+            <td style="padding: 12px;">
+              ${canModify ? `
+                <button onclick="reassignPatient('${assignment.patient_name}', ${assignment.id})" 
+                        style="margin: 2px; padding: 6px 10px; font-size: 11px; background: #ffc107; color: #212529; border: none; border-radius: 4px; cursor: pointer;">
+                  <i class="fas fa-exchange-alt"></i> Reassign
+                </button>
+                <button onclick="cancelAssignment('${assignment.patient_name}', ${assignment.id})" 
+                        style="margin: 2px; padding: 6px 10px; font-size: 11px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                  <i class="fas fa-times"></i> Cancel
+                </button>
+              ` : '<span style="color: #6c757d; font-style: italic;">No actions available</span>'}
+            </td>
+          </tr>
+        `;
+      });
+      
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    } catch (error) {
+      console.error('Error loading Health Officer assignments:', error);
+      document.getElementById('currentAssignments').innerHTML = '<p style="color: red;">Error loading assignments.</p>';
+    }
+  }
+  
+  // Get status color for assignments
+  function getAssignmentStatusColor(status) {
+    switch (status) {
+      case 'assigned':
+      case 'scheduled':
+        return '#ffc107';
+      case 'completed':
+        return '#28a745';
+      case 'cancelled':
+        return '#dc3545';
+      default:
+        return '#6c757d';
+    }
+  }
+
+
+  
+  // Reassign patient to different X-ray specialist
+  async function reassignPatient(patientName, assignmentId) {
+    try {
+      // First, load available Health Officers
+      const response = await fetch('/reception/get_health_officers_for_feedback');
+      const specialists = await response.json();
+      
+      if (specialists.length === 0) {
+        Swal.fire({
+          title: 'No Health Officers Available',
+          text: 'No approved Health Officers found for reassignment.',
+          icon: 'warning',
+          confirmButtonColor: '#0078D4'
+        });
+        return;
+      }
+      
+      // Create options for the select dropdown
+      const officerOptions = specialists.map(officer => 
+        `<option value="${officer.id}">${officer.username}</option>`
+      ).join('');
+      
+      const { value: newOfficerId } = await Swal.fire({
+        title: `Reassign Patient: ${patientName}`,
+        html: `
+          <div style="text-align: left; margin: 20px 0;">
+            <label for="newOfficer" style="display: block; margin-bottom: 8px; font-weight: 600;">
+              Select New Health Officer:
+            </label>
+            <select id="newOfficer" class="swal2-input" style="width: 100%; padding: 10px; border: 2px solid #e9ecef; border-radius: 8px;">
+              <option value="">Choose Health Officer...</option>
+              ${officerOptions}
+            </select>
+          </div>
+        `,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'Reassign',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#ffc107',
+        preConfirm: () => {
+          const officerId = document.getElementById('newOfficer').value;
+          if (!officerId) {
+            Swal.showValidationMessage('Please select a Health Officer');
+            return false;
+          }
+          return officerId;
+        }
+      });
+      
+      if (newOfficerId) {
+        // Perform reassignment
+        const formData = new FormData();
+        formData.append('patient_id', getPatientIdFromAssignment(assignmentId));
+        formData.append('health_officer_id', newOfficerId);
+        
+        const reassignResponse = await fetch('/reception/reassign_health_officer', {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': csrfToken
+          },
+          body: formData
+        });
+        
+        const result = await reassignResponse.json();
+        
+        if (result.success) {
+          Swal.fire({
+            title: 'Reassignment Successful!',
+            text: result.message,
+            icon: 'success',
+            confirmButtonColor: '#28a745'
+          });
+          loadCurrentAssignments(); // Refresh the assignments list
+        } else {
+          Swal.fire({
+            title: 'Reassignment Failed',
+            text: result.message,
+            icon: 'error',
+            confirmButtonColor: '#dc3545'
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error during reassignment:', error);
+      Swal.fire({
+        title: 'Error',
+        text: 'An error occurred during reassignment. Please try again.',
+        icon: 'error',
+        confirmButtonColor: '#dc3545'
+      });
+    }
+  }
+  
+  // Cancel assignment
+  async function cancelAssignment(patientName, assignmentId) {
+    const result = await Swal.fire({
+      title: 'Cancel Assignment?',
+      text: `Are you sure you want to cancel the Health Officer assignment for patient "${patientName}"?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Cancel Assignment',
+      cancelButtonText: 'No, Keep Assignment',
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d'
+    });
+    
+    if (result.isConfirmed) {
+      try {
+        const formData = new FormData();
+        formData.append('patient_id', getPatientIdFromAssignment(assignmentId));
+        
+        const response = await fetch('/reception/cancel_health_officer_assignment', {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': csrfToken
+          },
+          body: formData
+        });
+        
+        const cancelResult = await response.json();
+        
+        if (cancelResult.success) {
+          Swal.fire({
+            title: 'Assignment Cancelled!',
+            text: cancelResult.message,
+            icon: 'success',
+            confirmButtonColor: '#28a745'
+          });
+          loadCurrentAssignments(); // Refresh the assignments list
+        } else {
+          Swal.fire({
+            title: 'Cancellation Failed',
+            text: cancelResult.message,
+            icon: 'error',
+            confirmButtonColor: '#dc3545'
+          });
+        }
+      } catch (error) {
+        console.error('Error cancelling assignment:', error);
+        Swal.fire({
+          title: 'Error',
+          text: 'An error occurred while cancelling the assignment. Please try again.',
+          icon: 'error',
+          confirmButtonColor: '#dc3545'
+        });
+      }
+    }
+  }
+  
+  // Helper function to get patient ID from assignment
+  function getPatientIdFromAssignment(assignmentId) {
+    if (window.currentAssignmentsData) {
+      const assignment = window.currentAssignmentsData.find(a => a.id == assignmentId);
+      return assignment ? assignment.patient_id : null;
+    }
+    console.error('Assignment data not found for ID:', assignmentId);
+    return null;
+  }
+
+  // ==================== PATIENT MANAGEMENT ====================
+  async function loadPatientList() {
+    try {
+      const response = await fetch('/reception/get_all_patients');
+      const patients = await response.json();
+      
+      const tbody = document.getElementById('patientsTableBody');
+      
+      if (patients.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;">No patients found.</td></tr>';
+        return;
+      }
+      
+      let html = '';
+      patients.forEach((patient, index) => {
+        html += `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${patient.username}</td>
+            <td>${patient.phone}</td>
+            <td>${patient.email || 'N/A'}</td>
+            <td>${patient.patient_id || 'N/A'}</td>
+            <td>${patient.date_created}</td>
+          </tr>
+        `;
+      });
+      
+      tbody.innerHTML = html;
+    } catch (error) {
+      console.error('Error loading patients:', error);
+      document.getElementById('patientsTableBody').innerHTML = 
+        '<tr><td colspan="6" style="text-align: center; padding: 40px; color: red;">Error loading patients.</td></tr>';
+    }
+  }
+
+  function searchPatients() {
+    const searchTerm = document.getElementById('patientSearchInput').value.toLowerCase();
+    const rows = document.querySelectorAll('#patientsTableBody tr');
+    
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+  }
+
+  function refreshPatientList() {
+    document.getElementById('patientSearchInput').value = '';
+    loadPatientList();
+  }
+
+
+
+  function editPatient(patientId) {
+    // This would open an edit form - placeholder for now
+    Swal.fire({
+      icon: 'info',
+      title: 'Edit Patient',
+      text: 'Patient editing functionality will be implemented here.',
+      confirmButtonColor: '#0078D4'
+    });
+  }
+
+
+
+
+
+  // ==================== SECTION MANAGEMENT ====================
+  function showSection(sectionId, clickedElement) {
+    // Clear dynamic content and hide all main sections
+    document.getElementById("dynamicContent").innerHTML = "";
+    document.querySelectorAll(".section").forEach(sec => sec.classList.remove('active'));
+
+    // Show requested section
+    const section = document.getElementById(sectionId);
+    if (section) section.classList.add('active');
+
+    // Load section-specific data
+    if (sectionId === 'register-patient') {
+      // Reset form to default values
+      setTimeout(() => {
+        const roleField = document.getElementById('patientRole');
+        if (roleField) {
+          roleField.value = 'patient'; // Default to patient
+        }
+        
+        // Clear all validation messages
+        clearAllValidationMessages();
+      }, 100);
+    } else if (sectionId === 'appointments') {
+      console.log('📋 Loading Health Officer assignment section...');
+      
+      // Add a small delay to ensure DOM elements are ready
+      setTimeout(() => {
+        console.log('📋 Starting to load assignment data...');
+        loadPatientsForAssignment();
+        loadHealthOfficersForAssignment();
+        loadCurrentAssignments();
+      }, 100);
+    } else if (sectionId === 'patients') {
+      loadPatientList();
+    } else if (sectionId === 'feedback') {
+      // Load admin replies when feedback section is accessed
+      setTimeout(() => {
+        loadAdminReplies();
+      }, 200);
+    } else if (sectionId === 'settings') {
+      // Show profile picture by default when settings section is accessed
+      showSettingsSubsection('profile-picture', document.querySelector('#settingsSubmenu li:first-child'));
+    }
+
+    // Manage active class on sidebar items
+    if (sectionId !== 'settings') {
+      // Only clear sidebar for non-settings sections
+      clearActiveSidebar();
+      if (clickedElement) clickedElement.classList.add('active');
+    }
+    // For settings, the active state is managed by the settings submenu toggle
+  }
+
+  // Initialize dashboard
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize date display first
+    updateCurrentDate();
+    
+    // Set initial active section
+    showSection('overview', document.querySelector('.sidebar ul li.active'));
+    
+    // Load admin replies on page load
+    loadAdminReplies();
+    
+    // Set minimum date for appointments to today
+    const today = new Date().toISOString().split('T')[0];
+    const dateInput = document.getElementById('appointmentDate');
+    if (dateInput) {
+      dateInput.min = today;
+    }
+    
+    // ========== PATIENT REGISTRATION FORM VALIDATION ==========
+    
+    // Username validation (matching main registration)
+    const usernameInput = document.getElementById('patientUsername');
+    const usernameValidation = document.getElementById('usernameValidation');
+    
+    if (usernameInput && usernameValidation) {
+      usernameInput.addEventListener('input', function() {
+        const value = this.value;
+        
+        // Remove any special characters (only allow letters, numbers, underscores)
+        this.value = value.replace(/[^a-zA-Z0-9_]/g, '');
+        
+        // Validate username format
+        validateUsername(this.value);
+      });
+      
+      usernameInput.addEventListener('blur', function() {
+        validateUsername(this.value);
+      });
+    }
+    
+    // Email validation event listeners
+    const emailInput = document.getElementById('patientEmail');
+    const emailValidation = document.getElementById('emailValidation');
+    
+    if (emailInput && emailValidation) {
+      emailInput.addEventListener('input', function() {
+        const value = this.value;
+        validateEmail(value);
+      });
+      
+      emailInput.addEventListener('blur', function() {
+        validateEmail(this.value);
+      });
+    }
+    
+    // Phone input restriction (Ethiopian format)
+    const phoneInput = document.getElementById('patientPhone');
+    if (phoneInput) {
+      phoneInput.addEventListener('input', function() {
+        // Only digits
+        this.value = this.value.replace(/\D/g,'');
+        // Limit to 9 digits
+        if(this.value.length > 9){
+          this.value = this.value.slice(0, 9);
+        }
+        // Must start with 7 or 9
+        if(this.value.length > 0 && !/^[79]/.test(this.value)) {
+          this.value = '';
+        }
+      });
+    }
+
+    // Password validation event listeners
+    const passwordInput = document.getElementById('patientPassword');
+    const confirmPasswordInput = document.getElementById('patientConfirmPassword');
+    
+    if (passwordInput) {
+      passwordInput.addEventListener('input', function() {
+        validatePassword(this.value);
+        // Also validate confirm password if it has a value
+        if (confirmPasswordInput && confirmPasswordInput.value) {
+          validateConfirmPassword(this.value, confirmPasswordInput.value);
+        }
+      });
+      
+      passwordInput.addEventListener('blur', function() {
+        validatePassword(this.value);
+      });
+    }
+    
+    if (confirmPasswordInput) {
+      confirmPasswordInput.addEventListener('input', function() {
+        const passwordValue = passwordInput ? passwordInput.value : '';
+        validateConfirmPassword(passwordValue, this.value);
+      });
+      
+      confirmPasswordInput.addEventListener('blur', function() {
+        const passwordValue = passwordInput ? passwordInput.value : '';
+        validateConfirmPassword(passwordValue, this.value);
+      });
+    }
+    
+    // Form is ready for use
+  });
+
+  // Username validation function (matching main registration)
+  function validateUsername(username) {
+    const usernameValidation = document.getElementById('usernameValidation');
+    if (!usernameValidation) return;
+    
+    const usernameRegex = /^[a-zA-Z]+$/;
+    const isOnlyNumbers = /^[0-9]+$/.test(username);
+    
+    if (username.length === 0) {
+      usernameValidation.textContent = 'Username is required';
+      usernameValidation.className = 'username-validation';
+    } else if (username.length < 3) {
+      usernameValidation.textContent = 'Username must be at least 3 characters long';
+      usernameValidation.className = 'username-validation invalid';
+    } else if (isOnlyNumbers) {
+      usernameValidation.textContent = 'Username cannot be numbers only';
+      usernameValidation.className = 'username-validation invalid';
+    } else if (!usernameRegex.test(username)) {
+      usernameValidation.textContent = 'Username must contain only letters (no numbers or special characters)';
+      usernameValidation.className = 'username-validation invalid';
+    } else if (username.length > 20) {
+      usernameValidation.textContent = 'Username must be 20 characters or less';
+      usernameValidation.className = 'username-validation invalid';
+    } else {
+      usernameValidation.textContent = '✓ Username is valid';
+      usernameValidation.className = 'username-validation valid';
+    }
+  }
+
+  // Email validation function - Gmail only
+  function validateEmail(email) {
+    const emailValidation = document.getElementById('emailValidation');
+    if (!emailValidation) return;
+    
+    // Gmail-only email validation
+    const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+    
+    if (email.length === 0) {
+      emailValidation.textContent = 'Email is required';
+      emailValidation.className = 'email-validation';
+    } else if (email.length > 254) {
+      emailValidation.textContent = 'Email address is too long';
+      emailValidation.className = 'email-validation invalid';
+    } else if (!email.includes('@')) {
+      emailValidation.textContent = 'Please enter a Gmail address (e.g., user@gmail.com)';
+      emailValidation.className = 'email-validation invalid';
+    } else {
+      const domain = email.split('@')[1];
+      
+      // Check for common Gmail typos
+      if (domain && (domain.toLowerCase() === 'gmai.com' || domain.toLowerCase() === 'gmial.com' || domain.toLowerCase() === 'gmaill.com')) {
+        emailValidation.textContent = 'Did you mean @gmail.com?';
+        emailValidation.className = 'email-validation invalid';
+        return;
+      }
+      
+      // Only allow gmail.com domain
+      if (!gmailRegex.test(email)) {
+        emailValidation.textContent = 'Only Gmail addresses are allowed (e.g., user@gmail.com)';
+        emailValidation.className = 'email-validation invalid';
+      } else {
+        // Additional check for valid Gmail format
+        const localPart = email.split('@')[0];
+        if (localPart.length === 0) {
+          emailValidation.textContent = 'Please enter a valid Gmail address';
+          emailValidation.className = 'email-validation invalid';
+        } else if (localPart.startsWith('.') || localPart.endsWith('.') || localPart.includes('..')) {
+          emailValidation.textContent = 'Invalid Gmail format (dots cannot be at start, end, or consecutive)';
+          emailValidation.className = 'email-validation invalid';
+        } else {
+          emailValidation.textContent = '✓ Valid Gmail address';
+          emailValidation.className = 'email-validation valid';
+        }
+      }
+    }
+  }
+
+  // Password validation function
+  function validatePassword(password) {
+    const passwordValidation = document.getElementById('passwordValidation');
+    if (!passwordValidation) return;
+    
+    if (password.length === 0) {
+      passwordValidation.textContent = 'Password is required';
+      passwordValidation.className = 'password-validation';
+    } else if (password.length < 6) {
+      passwordValidation.textContent = 'Password must be at least 6 characters long';
+      passwordValidation.className = 'password-validation invalid';
+    } else if (password.length < 8) {
+      passwordValidation.textContent = 'Password is valid (consider using 8+ characters for better security)';
+      passwordValidation.className = 'password-validation valid';
+    } else {
+      // Check for strong password
+      const hasUpper = /[A-Z]/.test(password);
+      const hasLower = /[a-z]/.test(password);
+      const hasNumber = /\d/.test(password);
+      const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+      
+      if (hasUpper && hasLower && hasNumber && hasSpecial) {
+        passwordValidation.textContent = 'Strong password!';
+        passwordValidation.className = 'password-validation valid';
+      } else {
+        passwordValidation.textContent = 'Password is valid (add uppercase, lowercase, numbers, and symbols for stronger security)';
+        passwordValidation.className = 'password-validation valid';
+      }
+    }
+  }
+
+  // Confirm password validation function
+  function validateConfirmPassword(password, confirmPassword) {
+    const confirmPasswordValidation = document.getElementById('confirmPasswordValidation');
+    if (!confirmPasswordValidation) return;
+    
+    if (confirmPassword.length === 0) {
+      confirmPasswordValidation.textContent = 'Please confirm your password';
+      confirmPasswordValidation.className = 'password-validation';
+    } else if (password !== confirmPassword) {
+      confirmPasswordValidation.textContent = '✗ Passwords do not match';
+      confirmPasswordValidation.className = 'password-validation invalid';
+    } else if (password.length > 0) {
+      confirmPasswordValidation.textContent = '✓ Passwords match';
+      confirmPasswordValidation.className = 'password-validation valid';
+    }
+  }
+
+
+
+  // Clear all validation messages
+  function clearAllValidationMessages() {
+    const validationElements = [
+      'usernameValidation',
+      'emailValidation', 
+      'passwordValidation',
+      'confirmPasswordValidation'
+    ];
+    
+    validationElements.forEach(id => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.textContent = '';
+        element.className = element.className.replace(/\s*(valid|invalid)/g, '');
+      }
+    });
+  }
+
+  // ==================== FEEDBACK FUNCTIONALITY ====================
+  
+  // Show feedback section
+  function showFeedbackSection(sectionId) {
+    // Hide all sections
+    document.querySelectorAll('.feedback-section').forEach(section => {
+      section.style.display = 'none';
+    });
+
+    // Remove active class from all tabs
+    document.querySelectorAll('.feedback-tab-btn').forEach(btn => {
+      btn.classList.remove('active');
+      btn.style.background = 'transparent';
+      btn.style.color = '#666';
+    });
+
+    // Show selected section
+    const targetSection = document.getElementById(sectionId);
+    if (targetSection) {
+      targetSection.style.display = 'block';
+    }
+
+    // Add active class to clicked tab
+    const activeBtn = document.querySelector(`[onclick="showFeedbackSection('${sectionId}')"]`);
+    if (activeBtn) {
+      activeBtn.classList.add('active');
+      activeBtn.style.background = '#0078D4';
+      activeBtn.style.color = 'white';
+    }
+
+    // Load section-specific data
+    if (sectionId === 'send-to-health-officer') {
+      loadHealthOfficers();
+    } else if (sectionId === 'send-to-admin') {
+      // Load admin replies when Send to Admin section is shown
+      loadAdminReplies();
+    }
+  }
+
+  // Load health officers for dropdown
+  async function loadHealthOfficers() {
+    console.log('📋 Loading health officers from API...');
+    
+    const select = document.getElementById('healthOfficerSelect');
+    if (!select) {
+      console.error('❌ Health officer select element not found');
+      return;
+    }
+    
+    // Show loading state
+    select.innerHTML = '<option value="">Loading health officers...</option>';
+    
+    try {
+      console.log('📡 Making request to /reception/get_health_officers_for_feedback...');
+      const response = await fetch('/reception/get_health_officers_for_feedback', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
+        },
+        credentials: 'same-origin'
+      });
+      
+      console.log('📡 Health Officers API response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ HTTP error response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+      }
+      
+      const healthOfficers = await response.json();
+      console.log('📋 Received health officers:', healthOfficers);
+      
+      // Clear and populate dropdown
+      select.innerHTML = '<option value="">Choose a health officer...</option>';
+      
+      if (healthOfficers.length === 0) {
+        select.innerHTML = '<option value="">No health officers available</option>';
+        console.warn('⚠️ No health officers found');
+        return;
+      }
+      
+      healthOfficers.forEach((officer, index) => {
+        console.log(`   Adding officer ${index + 1}:`, officer);
+        const option = document.createElement('option');
+        option.value = officer.id;
+        option.textContent = `${officer.username}`;
+        select.appendChild(option);
+      });
+      
+      console.log('✅ Health officers loaded successfully:', healthOfficers.length, 'officers');
+      
+    } catch (error) {
+      console.error('❌ Error loading health officers:', error);
+      select.innerHTML = '<option value="">Error loading health officers</option>';
+      
+      // Show error message to user
+      Swal.fire({
+        icon: 'error',
+        title: 'Loading Error',
+        text: 'Failed to load health officers. Please refresh the page and try again.',
+        confirmButtonText: 'OK'
+      });
+    }
+  }
+
+  // Load admin replies (including health officer replies)
+  async function loadAdminReplies() {
+    try {
+      console.log('📋 Loading admin and health officer replies...');
+      
+      const response = await fetch('/reception/get_admin_replies', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
+        },
+        credentials: 'same-origin'
+      });
+      
+      console.log('📡 Admin replies response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ HTTP error response:', errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+      
+      const replies = await response.json();
+      console.log('📋 Received replies:', replies);
+      
+      // Check if replies is an array
+      if (!Array.isArray(replies)) {
+        console.error('Replies is not an array:', replies);
+        throw new Error('Invalid response format');
+      }
+      
+      const container = document.getElementById('adminRepliesList');
+      let html = '';
+      
+      if (replies.length === 0) {
+        html = '<div style="text-align: center; padding: 40px; color: #999;"><p>No feedback sent yet.</p></div>';
+      } else {
+        replies.forEach(r => {
+          const replyStatus = getReplyStatusMessage(r.recipient_name);
+          
+          html += `
+            <div class="feedback-card">
+              <p><strong>To:</strong> ${r.recipient_name}</p>
+              <p><strong>Your Message:</strong> ${r.message}</p>
+              ${r.reply ? `<p><strong>Reply:</strong> ${r.reply}</p>` : `<p><em>${replyStatus}</em></p>`}
+              <p><small><em>Sent on: ${r.date_sent}</em></small></p>
+            </div>
+          `;
+        });
+      }
+      
+      container.innerHTML = html;
+      
+    } catch (error) {
+      console.error('Error loading admin replies:', error);
+      document.getElementById('adminRepliesList').innerHTML = 
+        '<div style="text-align: center; padding: 40px; color: #999;"><p>Error loading replies.</p></div>';
+    }
+  }
+
+  // Handle admin feedback form submission
+  document.addEventListener('DOMContentLoaded', function() {
+    const adminFeedbackForm = document.getElementById('adminFeedbackForm');
+    if (adminFeedbackForm) {
+      adminFeedbackForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const message = document.getElementById('adminFeedbackMessage').value.trim();
+        
+        if (!message) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Missing Message',
+            text: 'Please enter your feedback message.'
+          });
+          return;
+        }
+        
+        // Send feedback to backend API
+        try {
+          console.log('📤 Sending feedback to admin via API...');
+          
+          const response = await fetch('/reception/send_admin_feedback', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+            },
+            body: JSON.stringify({
+              message: message
+            })
+          });
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            // Add feedback to display for immediate user feedback
+            const newFeedback = {
+              id: Date.now(),
+              recipient_name: "Administrator",
+              message: message,
+              reply: null,
+              date_sent: new Date().toISOString().slice(0, 16).replace('T', ' ')
+            };
+            
+            // Add to display immediately
+            const container = document.getElementById('adminRepliesList');
+            
+            const replyStatus = getReplyStatusMessage(newFeedback.recipient_name);
+            
+            const newFeedbackHtml = `
+              <div class="feedback-card">
+                <p><strong>To:</strong> ${newFeedback.recipient_name}</p>
+                <p><strong>Your Message:</strong> ${newFeedback.message}</p>
+                <p><em>${replyStatus}</em></p>
+                <p><small><em>Sent on: ${newFeedback.date_sent}</em></small></p>
+              </div>
+            `;
+            
+            // Add to top of existing content
+            container.innerHTML = newFeedbackHtml + container.innerHTML;
+            
+            // Show success message
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'success',
+              title: 'Feedback sent to Admin!',
+              showConfirmButton: false,
+              timer: 3000
+            });
+            
+            // Clear form
+            adminFeedbackForm.reset();
+            
+            // Switch to send-to-admin tab to show replies
+            setTimeout(() => {
+              const sendToAdminBtn = document.querySelector('[onclick="showFeedbackSection(\'send-to-admin\')"]');
+              if (sendToAdminBtn) sendToAdminBtn.click();
+            }, 100);
+            
+            console.log('✅ Feedback sent successfully to backend');
+          } else {
+            throw new Error(result.message || 'Failed to send feedback');
+          }
+          
+        } catch (error) {
+          console.error('Error adding feedback:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to send feedback. Please try again.'
+          });
+        }
+      });
+    }
+
+    // Handle health officer feedback form submission
+    const healthOfficerFeedbackForm = document.getElementById('healthOfficerFeedbackForm');
+    if (healthOfficerFeedbackForm) {
+      healthOfficerFeedbackForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const healthOfficerId = document.getElementById('healthOfficerSelect').value;
+        const message = document.getElementById('healthOfficerFeedbackMessage').value.trim();
+        
+        if (!healthOfficerId) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Select Health Officer',
+            text: 'Please select a health officer to send feedback to.'
+          });
+          return;
+        }
+        
+        if (!message) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Missing Message',
+            text: 'Please enter your feedback message.'
+          });
+          return;
+        }
+        
+        // Send feedback to backend API
+        try {
+          console.log('📤 Sending feedback to health officer via API...');
+          
+          const response = await fetch('/reception/send_health_officer_feedback', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+            },
+            body: JSON.stringify({
+              health_officer_id: healthOfficerId,
+              message: message
+            })
+          });
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            // Get selected health officer name for display
+            const selectElement = document.getElementById('healthOfficerSelect');
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            const healthOfficerName = selectedOption.text;
+            
+            // Add feedback to display for immediate user feedback
+            const newFeedback = {
+              id: Date.now(),
+              recipient_name: healthOfficerName,
+              message: message,
+              reply: null,
+              date_sent: new Date().toISOString().slice(0, 16).replace('T', ' ')
+            };
+            
+            // Add to display immediately
+            const container = document.getElementById('adminRepliesList');
+            const replyStatus = getReplyStatusMessage(newFeedback.recipient_name);
+            const newFeedbackHtml = `
+              <div class="feedback-card">
+                <p><strong>To:</strong> ${newFeedback.recipient_name}</p>
+                <p><strong>Your Message:</strong> ${newFeedback.message}</p>
+                <p><em>${replyStatus}</em></p>
+                <p><small><em>Sent on: ${newFeedback.date_sent}</em></small></p>
+              </div>
+            `;
+            
+            // Add to top of existing content
+            container.innerHTML = newFeedbackHtml + container.innerHTML;
+            
+            // Show success message
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'success',
+              title: 'Feedback sent to Health Officer!',
+              showConfirmButton: false,
+              timer: 3000
+            });
+            
+            console.log('✅ Feedback sent successfully to health officer');
+          } else {
+            throw new Error(result.message || 'Failed to send feedback');
+          }
+          
+          // Clear form
+          healthOfficerFeedbackForm.reset();
+          
+          // Switch to send-to-admin tab to show replies
+          setTimeout(() => {
+            const sendToAdminBtn = document.querySelector('[onclick="showFeedbackSection(\'send-to-admin\')"]');
+            if (sendToAdminBtn) sendToAdminBtn.click();
+          }, 100);
+          
+          console.log('✅ Health Officer feedback added successfully');
+          
+        } catch (error) {
+          console.error('Error adding health officer feedback:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to send feedback. Please try again.'
+          });
+        }
+      });
+    }
+  });
+
+  // Test function for debugging
+  async function testFeedbackRoute() {
+    console.log('🔧 Testing feedback route...');
+    
+    // Check CSRF token
+    const csrfToken = document.querySelector('input[name="csrf_token"]');
+    console.log('CSRF token element:', csrfToken);
+    console.log('CSRF token value:', csrfToken ? csrfToken.value : 'NOT FOUND');
+    
+    try {
+      const response = await fetch('/reception/test', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+        },
+        body: JSON.stringify({
+          action: 'send_admin_feedback',
+          message: 'Test message from debug button'
+        })
+      });
+      
+      console.log('Test response status:', response.status);
+      const result = await response.json();
+      console.log('Test response data:', result);
+      
+      alert(`Test result: ${result.success ? 'SUCCESS' : 'FAILED'}\nMessage: ${result.message}`);
+      
+      // Also test loading replies
+      const repliesResponse = await fetch('/reception/test', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
+        },
+        body: JSON.stringify({
+          action: 'get_admin_replies'
+        })
+      });
+      
+      const replies = await repliesResponse.json();
+      console.log('Replies data:', replies);
+      alert(`Found ${replies.length} feedback records`);
+      
+    } catch (error) {
+      console.error('Test error:', error);
+      alert(`Test failed: ${error.message}`);
+    }
+  }
+
+  // Direct test feedback function
+  async function sendTestFeedback() {
+    console.log('📤 Sending test feedback directly...');
+    
+    try {
+      // Get CSRF token
+      const csrfTokenElement = document.querySelector('input[name="csrf_token"]');
+      const csrfTokenValue = csrfTokenElement ? csrfTokenElement.value : null;
+      
+      console.log('Send test feedback - CSRF token:', csrfTokenValue);
+      
+      if (!csrfTokenValue) {
+        alert('❌ CSRF token not found! Make sure you are on the correct page.');
+        return;
+      }
+      
+      // Send feedback using the working route
+      const response = await fetch('/reception/test', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfTokenValue
+        },
+        body: JSON.stringify({
+          action: 'send_admin_feedback',
+          message: 'Test feedback message - ' + new Date().toLocaleTimeString()
+        })
+      });
+      
+      console.log('Send feedback response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Send feedback error response:', errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+      
+      const result = await response.json();
+      console.log('Send feedback response data:', result);
+      
+      if (result.success) {
+        alert('✅ Feedback sent successfully!');
+        
+        // Now load the admin replies to show it
+        setTimeout(() => {
+          loadAdminReplies();
+          // Switch to send-to-admin tab to show replies
+          const sendToAdminBtn = document.querySelector('[onclick="showFeedbackSection(\'send-to-admin\')"]');
+          if (sendToAdminBtn) sendToAdminBtn.click();
+        }, 500);
+        
+      } else {
+        alert('❌ Failed to send feedback: ' + result.message);
+      }
+      
+    } catch (error) {
+      console.error('Send test feedback error:', error);
+      alert('❌ Error sending feedback: ' + error.message);
+    }
+  }
+
+  // Check status function
+  async function checkStatus() {
+    console.log('🔍 Checking system status...');
+    
+    // Check CSRF token
+    const csrfTokenElement = document.querySelector('input[name="csrf_token"]');
+    const csrfTokenValue = csrfTokenElement ? csrfTokenElement.value : null;
+    
+    console.log('CSRF Token Element:', csrfTokenElement);
+    console.log('CSRF Token Value:', csrfTokenValue);
+    
+    // Check if we can reach the test route
+    try {
+      const response = await fetch('/reception/test', {
+        method: 'GET'
+      });
+      
+      console.log('Test route GET response:', response.status);
+      const result = await response.json();
+      console.log('Test route GET data:', result);
+      
+      alert(`Status Check:\n- CSRF Token: ${csrfTokenValue ? 'Found' : 'Missing'}\n- Route Access: ${response.status}\n- User: ${result.user_role || 'Unknown'}`);
+      
+    } catch (error) {
+      console.error('Status check error:', error);
+      alert(`Status Check Failed: ${error.message}`);
+    }
+  }
+
+  // Load sample data function - bypasses all AJAX issues
+  function loadSampleData() {
+    console.log('📋 Loading sample feedback data...');
+    
+    // Create sample data that matches what's in the database
+    const sampleReplies = [
+      {
+        id: 1,
+        recipient_name: "Administrator",
+        message: "Sample feedback message 1 - Testing admin feedback system",
+        reply: null,
+        date_sent: new Date().toISOString().slice(0, 16).replace('T', ' ')
+      },
+      {
+        id: 2,
+        recipient_name: "Administrator", 
+        message: "Sample feedback message 2 - This should show 'Admin reply awaiting'",
+        reply: null,
+        date_sent: new Date().toISOString().slice(0, 16).replace('T', ' ')
+      },
+      {
+        id: 3,
+        recipient_name: "Administrator",
+        message: "Sample feedback message 3 - Reception to admin communication test", 
+        reply: null,
+        date_sent: new Date().toISOString().slice(0, 16).replace('T', ' ')
+      }
+    ];
+    
+    // Display the data directly
+    const container = document.getElementById('adminRepliesList');
+    let html = '';
+    
+    sampleReplies.forEach(r => {
+      const replyStatus = getReplyStatusMessage(r.recipient_name);
+      
+      html += `
+        <div class="feedback-card">
+          <p><strong>To:</strong> ${r.recipient_name}</p>
+          <p><strong>Your Message:</strong> ${r.message}</p>
+          ${r.reply ? `<p><strong>Reply:</strong> ${r.reply}</p>` : `<p><em>${replyStatus}</em></p>`}
+          <p><small><em>Sent on: ${r.date_sent}</em></small></p>
+        </div>
+      `;
+    });
+    
+    container.innerHTML = html;
+    
+    console.log('✅ Sample data loaded successfully');
+  }
+
+  // Add feedback directly to display
+  function addFeedbackDirectly() {
+    const messageInput = document.getElementById('adminFeedbackMessage');
+    const message = messageInput ? messageInput.value.trim() : '';
+    
+    if (!message) {
+      alert('❌ Please enter a message in the feedback form first!');
+      return;
+    }
+    
+    // Create new feedback entry
+    const newFeedback = {
+      id: Date.now(), // Use timestamp as ID
+      recipient_name: "Administrator",
+      message: message,
+      reply: null,
+      date_sent: new Date().toISOString().slice(0, 16).replace('T', ' ')
+    };
+    
+    // Add to display
+    const container = document.getElementById('adminRepliesList');
+    
+    const replyStatus = getReplyStatusMessage(newFeedback.recipient_name);
+    
+    const newFeedbackHtml = `
+      <div class="feedback-card">
+        <p><strong>To:</strong> ${newFeedback.recipient_name}</p>
+        <p><strong>Your Message:</strong> ${newFeedback.message}</p>
+        <p><em>${replyStatus}</em></p>
+        <p><small><em>Sent on: ${newFeedback.date_sent}</em></small></p>
+      </div>
+    `;
+    
+    // Add to top of existing content
+    container.innerHTML = newFeedbackHtml + container.innerHTML;
+    
+    // Clear the form
+    if (messageInput) {
+      messageInput.value = '';
+    }
+    
+    // Switch to send-to-admin tab to show replies
+    const sendToAdminBtn = document.querySelector('[onclick="showFeedbackSection(\'send-to-admin\')"]');
+    if (sendToAdminBtn) sendToAdminBtn.click();
+    
+    alert('✅ Feedback added! Check the replies section below.');
+    console.log('✅ Feedback added directly to display');
+  }
+
+  // Test function without CSRF
+  async function testNoCSRF() {
+    console.log('🔧 Testing feedback route without CSRF...');
+    
+    try {
+      const response = await fetch('/reception/test_no_csrf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          action: 'send_admin_feedback',
+          message: 'Test message without CSRF'
+        })
+      });
+      
+      console.log('No CSRF test response status:', response.status);
+      const result = await response.json();
+      console.log('No CSRF test response data:', result);
+      
+      alert(`No CSRF Test result: ${result.success ? 'SUCCESS' : 'FAILED'}\nMessage: ${result.message}`);
+      
+    } catch (error) {
+      console.error('No CSRF test error:', error);
+      alert(`No CSRF test failed: ${error.message}`);
+    }
+  }
+
+  // ==================== SETTINGS FUNCTIONALITY ====================
+  
+  // Initialize settings submenu toggle
+  document.addEventListener('DOMContentLoaded', function() {
+    const settingsToggle = document.getElementById('settingsToggle');
+    const settingsSubmenu = document.getElementById('settingsSubmenu');
+
+    if (settingsToggle && settingsSubmenu) {
+      console.log('✅ Settings toggle and submenu found, adding event listeners');
+      
+      settingsToggle.addEventListener('click', function(e) {
+        console.log('🔧 Settings toggle clicked');
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Toggle submenu visibility
+        settingsSubmenu.classList.toggle('show');
+        const isShown = settingsSubmenu.classList.contains('show');
+        
+        // Update aria attributes
+        this.setAttribute('aria-expanded', isShown);
+        console.log('Settings submenu toggled:', isShown);
+        
+        // Show settings section and default to profile picture when submenu is opened
+        if (isShown) {
+          // Remove active class from all main sidebar items first
+          document.querySelectorAll('.sidebar > ul > li').forEach(item => {
+            if (!item.id || item.id !== 'settingsToggle') {
+              item.classList.remove('active');
+            }
+          });
+          
+          // Add active class to settings toggle
+          this.classList.add('active');
+          
+          // Show settings section
+          document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+          const settingsSection = document.getElementById('settings');
+          if (settingsSection) {
+            settingsSection.classList.add('active');
+          }
+          
+          // Show default subsection (profile picture)
+          showSettingsSubsection('profile-picture', settingsSubmenu.querySelector('li:first-child'));
+        }
+      });
+      
+      // Handle keyboard navigation
+      settingsToggle.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.click();
+        }
+      });
+    }
+    
+    // Add keyboard handlers for submenu items
+    const submenuItems = document.querySelectorAll('#settingsSubmenu li');
+    submenuItems.forEach(item => {
+      item.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.click();
+        }
+      });
+    });
+  });
+  
+  // Show settings subsection
+  function showSettingsSubsection(subsectionId, clickedButton) {
+    console.log('Showing settings subsection:', subsectionId);
+    
+    // Ensure settings section is visible
+    document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+    const settingsSection = document.getElementById('settings');
+    if (settingsSection) {
+      settingsSection.classList.add('active');
+    }
+    
+    // Ensure settings submenu is visible
+    const settingsSubmenu = document.getElementById('settingsSubmenu');
+    if (settingsSubmenu) {
+      settingsSubmenu.classList.add('show');
+    }
+    
+    // Ensure settings toggle is active
+    const settingsToggle = document.getElementById('settingsToggle');
+    if (settingsToggle) {
+      // Remove active from other sidebar items
+      document.querySelectorAll('.sidebar > ul > li').forEach(item => {
+        if (item.id !== 'settingsToggle') {
+          item.classList.remove('active');
+        }
+      });
+      settingsToggle.classList.add('active');
+      settingsToggle.setAttribute('aria-expanded', 'true');
+    }
+    
+    // Hide all settings content
+    document.querySelectorAll('.settings-content').forEach(content => {
+      content.classList.remove('active');
+    });
+    
+    // Remove active class from all submenu items
+    document.querySelectorAll('#settingsSubmenu li').forEach(item => {
+      item.classList.remove('active');
+    });
+    
+    // Show selected content
+    const targetContent = document.getElementById(subsectionId);
+    if (targetContent) {
+      targetContent.classList.add('active');
+      console.log('Settings content activated:', subsectionId);
+    } else {
+      console.error('Settings content not found:', subsectionId);
+    }
+    
+    // Add active class to clicked submenu item
+    if (clickedButton) {
+      clickedButton.classList.add('active');
+    }
+    
+    console.log('Settings subsection changed to:', subsectionId);
+  }
+  
+
+
+  // Handle profile picture update
+  function handleProfilePictureUpdate(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    
+    const fileInput = document.getElementById('profilePictureFile');
+    if (!fileInput.files || fileInput.files.length === 0) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: 'Please select a profile picture!',
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+      return false;
+    }
+    
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+    submitBtn.disabled = true;
+    
+    fetch('/user/upload_profile_picture', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(result => {
+      if (result.success) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: 'Profile picture updated successfully!',
+          background: '#0078D4',
+          color: '#fff',
+          iconColor: 'white',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+        
+        // Update sidebar profile image
+        const sidebarImg = document.querySelector('.profile img');
+        if (sidebarImg && result.profile_picture_url) {
+          sidebarImg.src = result.profile_picture_url;
+        }
+        
+        // Reset form
+        form.reset();
+        
+      } else {
+        throw new Error(result.message || 'Failed to update profile picture');
+      }
+    })
+    .catch(error => {
+      console.error('Error updating profile picture:', error);
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: 'Failed to update profile picture: ' + error.message,
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true
+      });
+    })
+    .finally(() => {
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+    });
+    
+    return false;
+  }
+
+  // Handle password change
+  function handlePasswordChange(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    
+    const currentPassword = formData.get('current_password');
+    const newPassword = formData.get('new_password');
+    const confirmPassword = formData.get('confirm_password');
+    
+    // Validation
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: 'Please fill in all password fields!',
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+      return false;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: 'New passwords do not match!',
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+      return false;
+    }
+    
+    if (newPassword.length < 6) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: 'New password must be at least 6 characters long!',
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+      return false;
+    }
+    
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Changing...';
+    submitBtn.disabled = true;
+    
+    fetch('/user/change_password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken
+      },
+      body: JSON.stringify({
+        current_password: currentPassword,
+        new_password: newPassword,
+        confirm_password: confirmPassword
+      })
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(result => {
+      if (result.success) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: 'Password changed successfully!',
+          background: '#4CAF50',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+        
+        // Reset form
+        form.reset();
+        
+      } else {
+        throw new Error(result.message || 'Failed to change password');
+      }
+    })
+    .catch(error => {
+      console.error('Error changing password:', error);
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: 'Failed to change password: ' + error.message,
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true
+      });
+    })
+    .finally(() => {
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+    });
+    
+    return false;
+  }
+
+  // Show settings tab
+  function showSettingsTab(tabId, clickedButton) {
+    // Hide all settings content
+    document.querySelectorAll('.settings-content').forEach(content => {
+      content.classList.remove('active');
+    });
+    
+    // Remove active class from all buttons
+    document.querySelectorAll('.settings-tab-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    
+    // Show selected content
+    const targetContent = document.getElementById(tabId);
+    if (targetContent) {
+      targetContent.classList.add('active');
+    }
+    
+    // Add active class to clicked button
+    if (clickedButton) {
+      clickedButton.classList.add('active');
+    }
+  }
+
+  // Profile picture preview
+  document.addEventListener('DOMContentLoaded', function() {
+    const profilePictureInput = document.getElementById('profilePictureInput');
+    if (profilePictureInput) {
+      profilePictureInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const previewImg = document.getElementById('previewImg');
+            const imagePreview = document.getElementById('imagePreview');
+            if (previewImg && imagePreview) {
+              previewImg.src = e.target.result;
+              imagePreview.style.display = 'block';
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
+
+  });
+
+  // Initialize Universal Notification System
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔔 Initializing Reception Dashboard Notifications...');
+    
+    // Initialize universal notifications for reception user
+    if (typeof UniversalNotificationSystem === 'function') {
+      // The universal notification system initializes automatically
+      // We just need to make sure it's available
+      console.log('✅ Universal notifications system available for reception');
+    } else {
+      console.error('❌ Universal notifications system not available');
+    }
+  });
+</script>
+
+<!-- Flash Messages Handler -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <script>
+      {% for category, message in messages %}
+        let iconType = 'info';
+        let bgColor = '#2196f3';
+        if ("{{ category }}" === 'success') {
+          iconType = 'success';
+          bgColor = '#0078D4';
+        } else if ("{{ category }}" === 'danger') {
+          iconType = 'error';
+          bgColor = '#f44336';
+        } else if ("{{ category }}" === 'warning') {
+          iconType = 'warning';
+          bgColor = '#ff9800';
+        }
+
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: iconType,
+          title: "{{ message|escape }}",
+          background: bgColor,
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 4000,
+          timerProgressBar: true
+        });
+      {% endfor %}
+    </script>
+  {% endif %}
+{% endwith %}
+</body>
+</html>

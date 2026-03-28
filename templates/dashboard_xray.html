@@ -1,0 +1,3773 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{{ texts.page_title }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- Universal Notification System -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/universal-notifications.css') }}" />
+<script src="{{ url_for('static', filename='js/universal-notifications.js') }}"></script>
+<style>
+  :root {
+    --primary: #0078D4;
+    --primary-dark: #005A9E;
+    --primary-light: #4A9EFF;
+    --secondary: #0063B1;
+    --accent: #00BCF2;
+    --accent-light: #50E6FF;
+    --dark: #1F1F1F;
+    --light: #F3F3F3;
+    --gray: #6c757d;
+    --success: #107C10;
+    --card-bg: rgba(255, 255, 255, 0.98);
+    --shadow: 0 10px 30px rgba(0, 120, 212, 0.15);
+    --gradient: linear-gradient(135deg, #0078D4 0%, #0063B1 100%);
+    --medical-gradient: linear-gradient(135deg, #0078D4 0%, #0063B1 100%);
+    --sidebar-width: 280px;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--light);
+    color: var(--dark);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  input, textarea, select, .user-select-text {
+    user-select: text !important;
+  }
+  
+  /* Validation Error Animations */
+  @keyframes slideInRight {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes slideOutRight {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+  }
+  
+  /* Dashboard container */
+  .dashboard-container {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+  
+  /* Sidebar styles */
+  .sidebar {
+    width: var(--sidebar-width);
+    background: var(--medical-gradient);
+    color: white;
+    padding: 25px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: visible;
+    box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.1);
+    pointer-events: auto;
+  }
+  
+  /* Mobile sidebar toggle button - SIMILAR TO DOCTOR DASHBOARD */
+  .sidebar-toggle-btn {
+    display: none;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: #fbc02d;
+    border: 2px dashed #f9a825;
+    color: #1a237e;
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 16px;
+    cursor: pointer;
+    z-index: 1100;
+    user-select: none;
+    transition: background-color 0.3s, color 0.3s;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Workflow description styling */
+  .workflow-description {
+    background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+    border-left: 4px solid var(--primary);
+    padding: 15px 20px;
+    margin-bottom: 25px;
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+    color: #1565c0;
+  }
+
+  /* Form section styling */
+  .patient-identification-section,
+  .doctor-selection-section,
+  .xray-upload-section {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .patient-identification-section h3,
+  .doctor-selection-section h3,
+  .xray-upload-section h3 {
+    color: var(--primary);
+    margin-bottom: 15px;
+    font-size: 1.1em;
+  }
+
+  .patient-identification-section h3 i,
+  .doctor-selection-section h3 i,
+  .xray-upload-section h3 i {
+    margin-right: 8px;
+  }
+
+  .help-text {
+    display: block;
+    color: #6c757d;
+    font-size: 0.85em;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    font-style: italic;
+  }
+
+  /* Submit button styling */
+  .submit-btn {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-size: 1.1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .submit-btn:hover {
+    background: linear-gradient(135deg, #218838 0%, #1ea085 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+  }
+
+  .submit-btn i {
+    margin-right: 8px;
+  }
+  
+  .sidebar-toggle-btn:hover,
+  .sidebar-toggle-btn:focus {
+    background-color: #f9a825;
+    color: #fff;
+    outline: none;
+  }
+  
+  /* Overlay for mobile when sidebar is open */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+  }
+  
+  .profile {
+    text-align: center;
+    margin-bottom: 35px;
+    flex-shrink: 0;
+    margin-top: 10px;
+    padding: 0 25px;
+  }
+  
+  .profile img {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    object-fit: cover;
+    pointer-events: none;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  }
+  
+  .profile h3 {
+    margin-top: 15px;
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+  }
+  
+  .profile p {
+    margin: 8px 0 0;
+    font-weight: 500;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.15);
+    padding: 8px 16px;
+    border-radius: 20px;
+    display: inline-block;
+  }
+  
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+    width: 100%;
+    margin: 0;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .sidebar ul li {
+    padding: 16px 28px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-left: 4px solid transparent;
+    margin: 5px 0;
+    user-select: none;
+  }
+  
+  .sidebar ul li a {
+    color: inherit;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+  }
+  
+  .sidebar ul li:hover,
+  .sidebar ul li.active {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-left-color: var(--accent);
+    transform: translateX(5px);
+  }
+  
+  .submenu {
+    display: none;
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+  
+  .submenu li {
+    padding-left: 50px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+    pointer-events: auto;
+    border-left: none;
+  }
+  
+  .submenu li:hover,
+  .submenu li.active {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+  
+  .submenu.show {
+    display: block;
+  }
+  
+  .logout-btn {
+    margin-top: auto;
+    width: 100%;
+    padding: 16px 28px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-weight: 600;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+  }
+  
+  .logout-btn a {
+    color: inherit;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    cursor: pointer;
+  }
+  
+  .logout-btn:hover,
+  .logout-btn:focus {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Main content */
+  .main-content {
+    flex: 1;
+    padding: 35px;
+    overflow-y: auto;
+    position: relative;
+    color: var(--dark);
+    min-height: 100vh;
+    box-sizing: border-box;
+    margin-left: var(--sidebar-width);
+    transition: margin-left 0.3s ease;
+    background: var(--light);
+  }
+  
+  .main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 35px;
+    padding-bottom: 25px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  
+  .main-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--dark);
+    background: var(--medical-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .current-date {
+    background: var(--medical-gradient);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 15px;
+    font-size: 14px;
+    font-weight: 600;
+    pointer-events: none;
+    user-select: none;
+    white-space: nowrap;
+    box-shadow: 0 5px 15px rgba(46, 139, 87, 0.3);
+  }
+  
+  /* Notification Bell */
+  .notification-bell {
+    position: relative;
+    cursor: pointer;
+    margin-left: 15px;
+    color: white;
+    font-size: 20px;
+    padding: 12px;
+    border-radius: 50%;
+    background: var(--medical-gradient);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 45px;
+    height: 45px;
+    box-shadow: 0 4px 12px rgba(0, 120, 212, 0.3);
+    z-index: 1002;
+    pointer-events: auto;
+    user-select: none;
+  }
+  
+  .notification-bell:hover {
+    background: var(--primary-dark);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 120, 212, 0.4);
+  }
+  
+  .notification-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: #ff6b6b;
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    animation: pulse 2s infinite;
+    border: 2px solid white;
+  }
+  
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(255, 107, 107, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
+    }
+  }
+  
+  /* Notification Panel */
+  .notification-panel {
+    position: fixed;
+    top: 100px;
+    right: 35px;
+    width: 350px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    z-index: 1003;
+    display: none;
+    overflow: hidden;
+    max-height: 80vh;
+    border: 1px solid #e9ecef;
+    pointer-events: auto;
+  }
+  
+  .notification-panel.active {
+    display: block;
+  }
+  
+  .notification-header {
+    padding: 20px;
+    background: var(--medical-gradient);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .notification-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  
+  .notification-header button {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 14px;
+    padding: 5px 10px;
+    box-shadow: none;
+    margin: 0;
+    cursor: pointer;
+  }
+  
+  .notification-header button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: none;
+  }
+  
+  .notification-list {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  
+  .notification-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  
+  .notification-item:hover {
+    background: #f9f9f9;
+  }
+  
+  .notification-item.unread {
+    background: #f0f7ff;
+    border-left: 3px solid var(--primary);
+  }
+  
+  .notification-title {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: var(--dark);
+    font-size: 14px;
+  }
+  
+  .notification-message {
+    font-size: 13px;
+    color: var(--gray);
+    margin-bottom: 5px;
+    line-height: 1.4;
+  }
+  
+  .notification-time {
+    font-size: 11px;
+    color: #aaa;
+  }
+  
+  .notification-empty {
+    padding: 30px 20px;
+    text-align: center;
+    color: var(--gray);
+  }
+  
+  .notification-empty i {
+    font-size: 40px;
+    margin-bottom: 15px;
+    opacity: 0.5;
+  }
+  
+  /* Notification Footer */
+  .notification-footer {
+    padding: 15px 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+    text-align: center;
+  }
+  
+  .notification-footer button {
+    background: var(--medical-gradient);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+  }
+  
+  .notification-footer button:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 120, 212, 0.3);
+  }
+  
+  .clear-all-btn {
+    background: transparent !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    padding: 6px 12px !important;
+    border-radius: 6px !important;
+    font-size: 13px !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+  
+  .clear-all-btn:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    transform: none !important;
+  }
+  
+  /* Header layout fixes */
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    flex: 1;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  /* Stats container */
+  .stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+    margin-top: 35px;
+  }
+  
+  .stat-box {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    transition: all 0.3s ease;
+    border-left: 5px solid var(--primary);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .stat-box:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+  }
+  
+  .stat-box h3 {
+    font-size: 16px;
+    margin-bottom: 15px;
+    color: var(--gray);
+    font-weight: 600;
+  }
+  
+  .stat-box p {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--primary);
+  }
+  
+  .stat-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: var(--medical-gradient);
+  }
+  
+  /* Overview content - Split into two sections */
+  .overview-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-top: 35px;
+  }
+  
+  .overview-section {
+    background: var(--card-bg);
+    padding: 35px;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    border-left: 5px solid var(--secondary);
+  }
+  
+  .overview-section h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .overview-section h2 i {
+    color: var(--accent);
+  }
+  
+  .overview-section p {
+    color: var(--gray);
+    line-height: 1.7;
+    font-size: 16px;
+    margin-bottom: 0;
+  }
+  
+  .overview-section:first-child {
+    border-left-color: var(--primary);
+  }
+  
+  .overview-section:last-child {
+    border-left-color: var(--accent);
+  }
+  
+  /* Tab content management */
+  .tab-content {
+    display: none;
+    animation: fadeIn 0.5s ease;
+  }
+  
+  .tab-content.active {
+    display: block;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  section.card {
+    background: var(--card-bg);
+    padding: 35px;
+    margin-top: 35px;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    border-left: 5px solid var(--primary);
+  }
+  
+  section.card h2, section.card h3 {
+    font-weight: 700;
+    margin-bottom: 25px;
+    user-select: text;
+    color: var(--primary);
+  }
+  
+  section.card p {
+    font-weight: 500;
+    color: var(--gray);
+  }
+  
+  form label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 12px;
+    user-select: text;
+    color: var(--dark);
+  }
+  
+  form select, form input[type="file"], form textarea {
+    width: 100%;
+    padding: 16px 18px;
+    margin-bottom: 25px;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    font-size: 15px;
+    box-sizing: border-box;
+    font-family: inherit;
+    user-select: text;
+    transition: all 0.3s ease;
+  }
+  
+  form select:focus, form input[type="file"]:focus, form textarea:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.1);
+  }
+  
+  form textarea {
+    resize: vertical;
+    min-height: 130px;
+  }
+  
+  button {
+    background: var(--medical-gradient);
+    border: none;
+    color: white;
+    padding: 16px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    margin-top: 20px;
+    width: 100%;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(46, 139, 87, 0.3);
+  }
+  
+  button:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(46, 139, 87, 0.4);
+  }
+  
+  button:disabled {
+    opacity: 0.6;
+    cursor: default;
+    transform: none;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin-top: 30px;
+    user-select: text;
+    background: var(--card-bg);
+  }
+  
+  th, td {
+    padding: 18px 22px;
+    text-align: left;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    vertical-align: middle;
+    font-weight: 500;
+  }
+  
+  th {
+    background: var(--medical-gradient);
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  
+  tr:hover {
+    background-color: rgba(46, 139, 87, 0.05);
+    cursor: default;
+  }
+  
+  a {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+  
+  a:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+  }
+
+  /* Change Password Form Styling */
+  .change-password-form,
+  .profile-picture-form {
+    background: var(--card-bg);
+    max-width: 500px;
+    padding: 35px;
+    margin: 40px auto;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    color: var(--dark);
+    border-left: 5px solid var(--primary);
+  }
+  
+  .change-password-form h2,
+  .profile-picture-form h2 {
+    margin-bottom: 25px;
+    text-align: center;
+    color: var(--primary);
+    font-weight: 700;
+  }
+  
+  .change-password-form label,
+  .profile-picture-form label {
+    display: block;
+    margin-bottom: 12px;
+    font-weight: 600;
+    color: var(--dark);
+  }
+  
+  .change-password-form input[type="password"],
+  .profile-picture-form input[type="file"] {
+    width: 100%;
+    padding: 14px 18px;
+    margin-bottom: 25px;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+  }
+  
+  .change-password-form input[type="password"]:focus,
+  .profile-picture-form input[type="file"]:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.1);
+  }
+  
+  .change-password-form button,
+  .profile-picture-form button {
+    width: 100%;
+    padding: 16px;
+    font-weight: 700;
+    font-size: 16px;
+    margin-top: 15px;
+  }
+
+  /* Feedback Section Styles */
+  .feedback-container {
+    background: var(--card-bg);
+    padding: 35px;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    margin-top: 35px;
+    border-left: 5px solid var(--accent);
+  }
+
+  .feedback-form {
+    margin-bottom: 40px;
+  }
+
+  .feedback-form h3 {
+    color: var(--primary);
+    margin-bottom: 20px;
+    font-weight: 700;
+  }
+
+  .feedback-form textarea {
+    width: 100%;
+    padding: 16px 18px;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    font-size: 15px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 120px;
+    transition: all 0.3s ease;
+  }
+
+  .feedback-form textarea:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.1);
+  }
+
+  .feedback-form button {
+    width: auto;
+    padding: 12px 24px;
+    margin-top: 15px;
+  }
+
+  .feedback-list {
+    margin-top: 30px;
+  }
+
+  .feedback-item {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border-left: 4px solid var(--primary);
+  }
+
+  .feedback-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .feedback-sender {
+    font-weight: 600;
+    color: var(--dark);
+  }
+
+  .feedback-date {
+    color: var(--gray);
+    font-size: 13px;
+  }
+
+  .feedback-content {
+    color: var(--dark);
+    line-height: 1.6;
+    margin-bottom: 15px;
+  }
+
+  .feedback-reply {
+    background: rgba(46, 139, 87, 0.05);
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 15px;
+    border-left: 3px solid var(--primary);
+  }
+
+  .reply-header {
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .reply-content {
+    color: var(--dark);
+    line-height: 1.5;
+  }
+
+  .no-feedback {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--gray);
+  }
+
+  .no-feedback i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+
+  /* Feedback Tab Styles */
+  .feedback-tab-btn.active {
+    background: var(--primary) !important;
+    color: white !important;
+  }
+  
+  .feedback-tab-btn:hover {
+    background: rgba(0, 120, 212, 0.1) !important;
+    color: var(--primary) !important;
+  }
+  
+  .feedback-section {
+    display: none;
+  }
+  
+  .feedback-section:first-child {
+    display: block;
+  }
+
+  .feedback-reply-card {
+    background: rgba(0, 120, 212, 0.08);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    color: var(--dark);
+    box-shadow: 0 4px 12px rgba(0, 120, 212, 0.15);
+    user-select: text;
+    border-left: 4px solid var(--primary);
+  }
+  
+  .feedback-reply-card strong {
+    font-weight: 700;
+    color: var(--primary);
+  }
+  
+  .feedback-reply-card em {
+    color: var(--gray);
+    font-style: italic;
+  }
+  
+  /* Mobile-specific styles */
+  @media (max-width: 1024px) {
+    .sidebar {
+      width: 240px;
+    }
+    .main-content {
+      margin-left: 240px;
+      padding: 30px;
+    }
+    .overview-content {
+      grid-template-columns: 1fr;
+      gap: 25px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .sidebar {
+      width: 240px;
+    }
+    .main-content {
+      margin-left: 0;
+      padding: 25px;
+    }
+    .main-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 20px;
+    }
+    .current-date {
+      align-self: flex-start;
+    }
+    .stats-container {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (max-width: 480px) {
+    /* Show mobile toggle button */
+    .sidebar-toggle-btn {
+      display: flex;
+    }
+    
+    /* Sidebar hidden by default on mobile */
+    .sidebar {
+      transform: translateX(-100%);
+    }
+    
+    /* Sidebar visible when active */
+    .sidebar.mobile-active {
+      transform: translateX(0);
+    }
+    
+    /* Show overlay when sidebar is active */
+    .sidebar-overlay.active {
+      display: block;
+    }
+    
+    .main-content {
+      padding: 20px;
+      margin-left: 0;
+    }
+    
+    .main-header h1 {
+      font-size: 26px;
+      margin-top: 50px;
+    }
+    
+    .current-date {
+      font-size: 13px;
+      padding: 10px 16px;
+    }
+    
+    section.card {
+      padding: 25px;
+      margin-top: 25px;
+      border-radius: 18px;
+    }
+    
+    .stats-container {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    
+    .stat-box {
+      padding: 25px;
+    }
+    
+    .stat-box h3 {
+      font-size: 15px;
+    }
+    
+    .stat-box p {
+      font-size: 32px;
+    }
+    
+    .overview-content {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    
+    .overview-section {
+      padding: 25px;
+    }
+    
+    table {
+      font-size: 14px;
+    }
+    
+    th, td {
+      padding: 14px 16px;
+    }
+    
+    form select, form input[type="file"], form textarea {
+      font-size: 14px;
+      padding: 14px 16px;
+    }
+    
+    button {
+      font-size: 14px;
+      padding: 14px;
+    }
+    
+    .change-password-form,
+    .profile-picture-form {
+      padding: 25px;
+      margin: 20px auto;
+    }
+
+    .feedback-container {
+      padding: 25px;
+      margin-top: 25px;
+    }
+    
+    /* Stack table columns on very small screens */
+    @media (max-width: 360px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+      
+      thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+      }
+      
+      tr {
+        margin-bottom: 20px;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 18px;
+      }
+      
+      td {
+        border: none;
+        position: relative;
+        padding-left: 50%;
+      }
+      
+      td:before {
+        position: absolute;
+        top: 14px;
+        left: 14px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        font-weight: bold;
+        color: var(--primary);
+      }
+      
+      /* Label each cell */
+      td:nth-of-type(1):before { content: "{{ texts.patient_name }}:"; }
+      td:nth-of-type(2):before { content: "{{ texts.file_name }}:"; }
+      td:nth-of-type(3):before { content: "{{ texts.date_sent }}:"; }
+    }
+  }
+
+  /* For desktop - hide toggle button */
+  @media (min-width: 481px) {
+    .sidebar-toggle-btn {
+      display: none;
+    }
+  }
+
+  /* Custom toast notification styles */
+  .colored-toast.swal2-popup {
+    background: #0078D4 !important;
+    color: white !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 25px rgba(0, 120, 212, 0.3) !important;
+  }
+  
+  .colored-toast .swal2-title {
+    color: white !important;
+    font-weight: 600 !important;
+  }
+  
+  .colored-toast .swal2-icon.swal2-success {
+    border-color: white !important;
+    color: white !important;
+  }
+  
+  .colored-toast .swal2-icon.swal2-success [class^='swal2-success-line'] {
+    background-color: white !important;
+  }
+  
+  .colored-toast .swal2-icon.swal2-success .swal2-success-ring {
+    border-color: rgba(255, 255, 255, 0.3) !important;
+  }
+  
+  .colored-toast .swal2-timer-progress-bar {
+    background: rgba(255, 255, 255, 0.8) !important;
+  }
+
+  /* Modal styles */
+  .modal {
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px);
+  }
+  
+  .modal-content {
+    background-color: white;
+    margin: 10% auto;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: modalSlideIn 0.3s ease-out;
+  }
+  
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-50px) scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  
+  .modal-header {
+    padding: 20px 25px;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--gradient);
+    color: white;
+    border-radius: 12px 12px 0 0;
+  }
+  
+  .modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  
+  .close {
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+    opacity: 0.8;
+    transition: opacity 0.3s;
+  }
+  
+  .close:hover {
+    opacity: 1;
+  }
+  
+  .modal-body {
+    padding: 25px;
+    color: var(--dark);
+  }
+  
+  .modal-footer {
+    padding: 20px 25px;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    background: #f8f9fa;
+    border-radius: 0 0 12px 12px;
+  }
+  
+  .btn-primary, .btn-secondary {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .btn-primary {
+    background: #28a745;
+    color: white;
+  }
+  
+  .btn-primary:hover {
+    background: #218838;
+    transform: translateY(-1px);
+  }
+  
+  .btn-secondary {
+    background: #6c757d;
+    color: white;
+  }
+  
+  .btn-secondary:hover {
+    background: #5a6268;
+    transform: translateY(-1px);
+  }
+</style>
+</head>
+<body data-user-role="xrayspecialist">
+
+<!-- Validation Error Message (Top Right Corner) -->
+<div id="validationErrorContainer" style="
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  max-width: 350px;
+"></div>
+
+<!-- Mobile sidebar toggle button - SIMILAR TO DOCTOR DASHBOARD -->
+<button class="sidebar-toggle-btn" aria-label="Toggle sidebar" aria-expanded="false" aria-controls="sidebar">☰</button>
+
+<!-- Overlay for mobile sidebar -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="dashboard-container">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" role="navigation" aria-label="{{ texts.sidebar.overview }} dashboard navigation" id="sidebar">
+    <div class="profile" aria-label="{{ texts.profile_role }} profile">
+      {% if current_user.profile_picture and current_user.profile_picture != 'default_avatar.png' %}
+        <img src="{{ url_for('profile_picture', filename=current_user.profile_picture) }}" alt="{{ texts.profile_role }} Profile" />
+      {% else %}
+        <img src="{{ url_for('static', filename='images/default_avatar.png') }}" alt="{{ texts.profile_role }} Profile" />
+      {% endif %}
+      <h3>{{ current_user.username }}</h3>
+      <p>{{ texts.profile_role }}</p>
+    </div>
+    <ul class="nav-menu">
+      <li class="nav-item active" role="button" tabindex="0" aria-current="page" data-tab="overview">
+        <i class="fas fa-home"></i> {{ texts.sidebar.overview }}
+      </li>
+      <!-- ASSIGNED PATIENTS SECTION - MOVED UP -->
+      <li class="nav-item" role="button" tabindex="0" data-tab="assigned-patients">
+        <i class="fas fa-user-injured"></i> {% if lang == 'or' %}Dhukkubsattoota Ramadaman{% else %}Assigned Patients{% endif %}
+      </li>
+      <li class="nav-item" role="button" tabindex="0" data-tab="appointment">
+        <i class="fas fa-calendar-check"></i> {{ texts.sidebar.appointment }}
+      </li>
+      <li class="nav-item" role="button" tabindex="0" data-tab="notes">
+        <i class="fas fa-notes-medical"></i> {{ texts.sidebar.notes }}
+      </li>
+      <!-- NEW FEEDBACK SECTION ADDED HERE -->
+      <li class="nav-item" role="button" tabindex="0" data-tab="feedback">
+        <i class="fas fa-comments"></i> {{ texts.sidebar.feedback }}
+      </li>
+      <li class="nav-item" role="button" tabindex="0" id="settingsToggle" aria-expanded="false" aria-haspopup="true" aria-controls="settingsSubmenu">
+        <i class="fas fa-cog"></i> {{ texts.sidebar.settings }} <i class="fas fa-chevron-down" style="margin-left: auto; font-size: 12px;"></i>
+      </li>
+      <ul class="submenu" id="settingsSubmenu" aria-label="{{ texts.sidebar.settings }} submenu" role="menu">
+        <li class="nav-item" role="menuitem" tabindex="0" data-tab="profile-picture">
+          <i class="fas fa-user-circle"></i> {{ texts.sidebar.profile_picture if texts else 'Profile Picture' }}
+        </li>
+        <li class="nav-item" role="menuitem" tabindex="0" data-tab="change-password">
+          <i class="fas fa-key"></i> {{ texts.sidebar.change_password }}
+        </li>
+      </ul>
+      <li class="logout-btn" role="listitem">
+        <a href="{{ url_for('logout') }}" role="link" tabindex="0" aria-label="{{ texts.sidebar.logout }}">
+          <i class="fas fa-sign-out-alt"></i> {{ texts.sidebar.logout }}
+        </a>
+      </li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content" id="mainContent" role="main">
+    <div class="main-header">
+      <div class="header-content">
+        <div class="header-left">
+          <h1>{{ texts.welcome.format(current_user.username) }}</h1>
+        </div>
+        <div class="header-right">
+          <div class="notification-bell" id="notificationBell" aria-label="Notifications" role="button" tabindex="0" style="pointer-events: auto; cursor: pointer; z-index: 1002;">
+            <i class="fas fa-bell"></i>
+            <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+          </div>
+          <span class="current-date" id="currentDate" aria-live="polite" aria-atomic="true" aria-label="{{ texts.current_date_aria }}"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Panel -->
+    <div class="notification-panel" id="notificationPanel" role="dialog" aria-label="Notifications" aria-modal="true">
+      <div class="notification-header">
+        <h3>{{ 'Notifications' if lang == 'en' else 'Beekumsa' }}</h3>
+        <div style="display: flex; gap: 10px;">
+          <button id="markAllReadBtn">{{ 'Mark all as read' if lang == 'en' else 'Hundaa akka dubbistanii galmeessi' }}</button>
+          <button class="clear-all-btn" id="clearAllBtn">{{ 'Clear All' if lang == 'en' else 'Hunda Haaquu' }}</button>
+        </div>
+      </div>
+      <div class="notification-list" id="notificationList">
+        <!-- Notifications will be loaded here -->
+      </div>
+      <div class="notification-footer">
+        <button id="viewAllBtn">{{ 'View All Notifications' if lang == 'en' else 'Beekumsa Hunda Ilaali' }}</button>
+      </div>
+    </div>
+
+    <div id="overview" class="tab-content active" role="region" aria-label="{{ texts.sidebar.overview }} Section">
+      <!-- Split overview text into two sections - SAME AS DOCTOR DASHBOARD -->
+      <div class="overview-content">
+        <div class="overview-section">
+          <h2><i class="fas fa-briefcase-medical"></i> {{ texts.overview.xray_overview if texts else 'X-ray Specialist Overview' }}</h2>
+          <p>{{ texts.overview.overview_text if texts else 'Welcome to your professional medical dashboard.' }}</p>
+        </div>
+        
+        <div class="overview-section">
+          <h2><i class="fas fa-chart-line"></i> {{ texts.overview.xray_tools if texts else 'X-ray Tools' }}</h2>
+          <p>{{ texts.overview.tools_text if texts else 'Use the navigation menu to access different clinical sections quickly.' }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="appointment" class="tab-content" role="region" aria-label="{{ texts.sidebar.appointment }} Section">
+      <section class="card">
+        <h2><i class="fas fa-x-ray"></i> {{ texts.send_xray_to_patient if texts else 'Send Patient X-ray to Doctor' }}</h2>
+        <p class="workflow-description">
+          {% if lang == 'or' %}
+            Dhukkubsataa filadhuutii, X-ray isaa ogeessa fayyaa gara qorannoo fi yaada kennuuf ergi
+          {% else %}
+            Select a patient and send their X-ray to a doctor for diagnosis and medical recommendations
+          {% endif %}
+        </p>
+        
+        <form action="{{ url_for('upload_xray') }}" method="POST" enctype="multipart/form-data">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          
+          <div class="patient-identification-section">
+            <h3><i class="fas fa-user-injured"></i> {% if lang == 'or' %}Dhukkubsataa Ramadame Filadhu{% else %}Select Assigned Patient{% endif %}</h3>
+            
+            <label for="patient_id">{% if lang == 'or' %}Dhukkubsataa kan X-ray isaa ergamu:{% else %}Patient whose X-ray will be sent:{% endif %}</label>
+            <select name="patient_id" id="patient_id" required>
+              {% if patients %}
+                <option value="">{% if lang == 'or' %}Dhukkubsataa Filadhu{% else %}Select Patient{% endif %}</option>
+                {% for patient in patients %}
+                <option value="{{ patient.id }}" data-unique-id="{{ patient.patient_profile.patient_unique_id if patient.patient_profile else 'N/A' }}">
+                  {{ patient.username }}
+                </option>
+                {% endfor %}
+              {% else %}
+                <option value="" disabled>
+                  {% if lang == 'or' %}Dhukkubsataan naaf hin ramadamne{% else %}No patients assigned to you{% endif %}
+                </option>
+              {% endif %}
+            </select>
+            <small class="help-text">
+              {% if patients %}
+                {% if lang == 'or' %}
+                  Dhukkubsattoota naaf ramadaman keessaa kan X-ray isaa ogeessa fayyaatti ergamu filadhu
+                {% else %}
+                  Select from your assigned patients whose X-ray will be sent to the doctor for diagnosis
+                {% endif %}
+              {% else %}
+                {% if lang == 'or' %}
+                  Reception irraa dhukkubsataan naaf ramadamuu qaba. Reception qunnamaa.
+                {% else %}
+                  You need patients assigned by Health Officer staff. Please contact Health Officer.
+                {% endif %}
+              {% endif %}
+            </small>
+          </div>
+
+          <div class="doctor-selection-section">
+            <h3><i class="fas fa-user-md"></i> {% if lang == 'or' %}Ogeessa Fayyaa Filadhu{% else %}Select Doctor for Diagnosis{% endif %}</h3>
+            
+            <label for="doctor_id">{% if lang == 'or' %}Ogeessa Fayyaa kan qorannoo kennu:{% else %}Doctor who will provide diagnosis:{% endif %}</label>
+            <select name="doctor_id" id="doctor_id" required>
+              <option value="">{% if lang == 'or' %}Ogeessa Fayyaa Filadhu{% else %}Select Doctor{% endif %}</option>
+              {% for doctor in doctors %}
+              <option value="{{ doctor.id }}">Dr. {{ doctor.username }}</option>
+              {% endfor %}
+            </select>
+            <small class="help-text">
+              {% if lang == 'or' %}
+                Ogeessa fayyaa kan X-ray kana qoratee yaada kennuu danda'u filadhu
+              {% else %}
+                Select the doctor who will analyze this X-ray and provide medical recommendations
+              {% endif %}
+            </small>
+          </div>
+
+          <div class="xray-upload-section">
+            <h3><i class="fas fa-upload"></i> {% if lang == 'or' %}X-ray Suuraa Olkaa'i{% else %}Upload X-ray Image{% endif %}</h3>
+            
+            <label for="xray_file">{% if lang == 'or' %}X-ray suuraa filadhu:{% else %}Select X-ray image file:{% endif %}</label>
+            <input type="file" name="xray_file" id="xray_file" accept="image/*" required>
+            <small class="help-text">
+              {% if lang == 'or' %}
+                X-ray suuraa qulqulluu fi ifa ta'e filadhu
+              {% else %}
+                Select a clear and high-quality X-ray image file
+              {% endif %}
+            </small>
+          </div>
+
+          <button type="submit" class="submit-btn">
+            <i class="fas fa-paper-plane"></i>
+            {{ texts.send_xray_button if texts else 'Send X-ray to Doctor' }}
+          </button>
+        </form>
+      </section>
+    </div>
+
+    <!-- NEW ASSIGNED PATIENTS SECTION -->
+    <div id="assigned-patients" class="tab-content" role="region" aria-label="Assigned Patients Section">
+      <section class="card">
+        <h2><i class="fas fa-user-injured"></i> {% if lang == 'or' %}Dhukkubsattoota Naaf Ramadaman{% else %}Patients Assigned to Me{% endif %}</h2>
+        <p style="color: #6c757d; margin-bottom: 25px; font-style: italic;">
+          {% if lang == 'or' %}
+            Dhukkubsattoota reception irraa naaf ramadaman ilaaluu fi hojii isaanii hordofuu dandeessa.
+          {% else %}
+            View and manage patients that have been assigned to you by the Health Officer staff for X-ray services.
+          {% endif %}
+        </p>
+        
+        <!-- Assignment Statistics -->
+        <!-- Assigned Patients Table -->
+        <div id="assignedPatientsContainer">
+          <table id="assignedPatientsTable">
+            <thead>
+              <tr>
+                <th>{% if lang == 'or' %}Maqaa Dhukkubsataa{% else %}Patient Name{% endif %}</th>
+                <th>{% if lang == 'or' %}Lakkoofsa Bilbilaa{% else %}Phone Number{% endif %}</th>
+                <th>{% if lang == 'or' %}Guyyaa Ramadame{% else %}Assignment Date{% endif %}</th>
+                <th>{% if lang == 'or' %}Haala{% else %}Status{% endif %}</th>
+                <th>{% if lang == 'or' %}Gochaalee{% else %}Actions{% endif %}</th>
+              </tr>
+            </thead>
+            <tbody id="assignedPatientsTableBody">
+              <!-- Assigned patients will be loaded here -->
+            </tbody>
+          </table>
+          
+          <!-- Loading state -->
+          <div id="assignedPatientsLoading" style="text-align: center; padding: 40px; display: none;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: var(--primary);"></i>
+            <p style="margin-top: 15px; color: #6c757d;">
+              {% if lang == 'or' %}Dhukkubsattoota ramadaman laadaa...{% else %}Loading assigned patients...{% endif %}
+            </p>
+          </div>
+          
+          <!-- Empty state -->
+          <div id="assignedPatientsEmpty" style="text-align: center; padding: 40px; display: none;">
+            <i class="fas fa-user-slash" style="font-size: 48px; color: #dee2e6; margin-bottom: 20px;"></i>
+            <h3 style="color: #6c757d; margin-bottom: 10px;">
+              {% if lang == 'or' %}Dhukkubsataan Hin Ramadamne{% else %}No Patients Assigned{% endif %}
+            </h3>
+            <p style="color: #adb5bd;">
+              {% if lang == 'or' %}
+                Yeroo ammaa dhukkubsataan tokkollee siif hin ramadamne. Reception yeroo dhukkubsataa siif ramadu as ni mul'ata.
+              {% else %}
+                No patients have been assigned to you yet. When Health Officer assigns patients to you, they will appear here.
+              {% endif %}
+            </p>
+          </div>
+        </div>
+
+        <!-- Patient Details Modal (for future enhancement) -->
+        <div id="patientDetailsModal" style="display: none;">
+          <!-- Modal content will be added here for viewing patient details -->
+        </div>
+      </section>
+    </div>
+
+    <!-- Complete Assignment Modal -->
+    <div id="completeModal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3><i class="fas fa-check-circle"></i> {% if lang == 'or' %}Ramadamni Xumuruu{% else %}Complete Assignment{% endif %}</h3>
+          <span class="close" onclick="closeCompleteModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+          <p id="completeModalText">
+            {% if lang == 'or' %}
+              Ramadamni dhukkubsataa <strong id="patientNameModal"></strong> xumurameera jedhuun mirkaneessuu barbaadduu?
+            {% else %}
+              Are you sure you want to mark the assignment for patient <strong id="patientNameModal"></strong> as completed?
+            {% endif %}
+          </p>
+          <div style="margin-top: 20px;">
+            <label for="completionNotes" style="display: block; margin-bottom: 8px; font-weight: 600;">
+              {% if lang == 'or' %}Yaadannoo (Dirqama miti):{% else %}Notes (Optional):{% endif %}
+            </label>
+            <textarea id="completionNotes" placeholder="{% if lang == 'or' %}Yaadannoo dabalataa galchaa...{% else %}Enter any additional notes...{% endif %}" style="width: 100%; min-height: 80px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; resize: vertical;"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button onclick="closeCompleteModal()" class="btn-secondary">
+            <i class="fas fa-times"></i> {% if lang == 'or' %}Dhiisi{% else %}Cancel{% endif %}
+          </button>
+          <button onclick="confirmComplete()" class="btn-primary">
+            <i class="fas fa-check"></i> {% if lang == 'or' %}Xumuri{% else %}Complete{% endif %}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="notes" class="tab-content" role="region" aria-label="{{ texts.sidebar.notes }} Section">
+      <section class="card">
+        <h2>{{ texts.sent_xray_records }}</h2>
+        
+        <!-- Info note about doctor assignments -->
+        <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 12px 16px; margin-bottom: 20px; border-radius: 0 4px 4px 0;">
+          <p style="margin: 0; color: #1565c0; font-size: 0.9em;">
+            <i class="fas fa-info-circle"></i>
+            {% if lang == 'or' %}
+              Yaadannoo: X-ray durii ogeessa fayyaa hin qaban. X-ray haaraa erguu keessatti ogeessa fayyaa filadhu.
+            {% else %}
+              Note: Older X-ray records may not have doctor assignments. When sending new X-rays, make sure to select a doctor.
+            {% endif %}
+          </p>
+        </div>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>{{ texts.patient_name }}</th>
+              <th>{% if lang == 'or' %}Maqaa Ogeessa Fayyaa{% else %}Doctor Name{% endif %}</th>
+              <th>{{ texts.file_name }}</th>
+              <th>{{ texts.date_sent }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for record in uploaded_images %}
+            <tr>
+              <td>{{ record.patient_name }}</td>
+              <td>
+                {% if record.doctor_name and record.doctor_name not in ['Not assigned', 'Pending assignment'] %}
+                  <span style="color: #28a745; font-weight: 500;">{{ record.doctor_name }}</span>
+                {% else %}
+                  <span style="color: #dc3545; font-style: italic; font-size: 0.9em;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    {% if lang == 'or' %}Ogeessa fayyaa hin ramadamne{% else %}No doctor assigned{% endif %}
+                  </span>
+                {% endif %}
+              </td>
+              <td><a href="{{ url_for('uploaded_file', filename=record.filename) }}" target="_blank">{{ record.filename }}</a></td>
+              <td>{{ record.date_sent }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" style="text-align:center;">{{ texts.no_xray_sent }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
+    </div>
+
+    <!-- FEEDBACK SECTION -->
+    <div id="feedback" class="tab-content" role="region" aria-label="{{ texts.sidebar.feedback }} Section">
+        <!-- Feedback Tabs -->
+        <div class="card" style="padding: 0; overflow: hidden;">
+            <div style="display: flex; border-bottom: 2px solid #e0e0e0; background: #f8f9fa;">
+                <button class="feedback-tab-btn active" onclick="showFeedbackSection('health-officer-feedback')" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer; font-weight: 600; color: #666; transition: all 0.3s;">
+                    <i class="fas fa-user-md"></i> {{ 'Health Officer Feedback' if lang == 'en' else 'Yaada Ogeessa Fayyaa' }}
+                </button>
+                <button class="feedback-tab-btn" onclick="showFeedbackSection('send-to-admin')" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer; font-weight: 600; color: #666; transition: all 0.3s;">
+                    <i class="fas fa-paper-plane"></i> {{ 'Send to Admin' if lang == 'en' else 'Gara Adminitti Ergi' }}
+                </button>
+                <button class="feedback-tab-btn" onclick="showFeedbackSection('doctor-feedback')" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer; font-weight: 600; color: #666; transition: all 0.3s;">
+                    <i class="fas fa-user-doctor"></i> {{ 'Doctor Feedback' if lang == 'en' else 'Yaada Doktora' }}
+                </button>
+            </div>
+
+            <!-- Health Officer Feedback Section -->
+            <div id="health-officer-feedback" class="feedback-section" style="padding: 25px;">
+                <h3 style="color: #0078D4; margin-bottom: 20px;">
+                    <i class="fas fa-comments"></i> {{ 'Feedback from Health Officers' if lang == 'en' else 'Yaada Ogeessa Fayyaa Irraa' }}
+                </h3>
+                <div id="healthOfficerFeedbackList">
+                    <div style="text-align: center; padding: 40px; color: #999;">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 32px; margin-bottom: 15px;"></i>
+                        <p>{{ 'Loading feedback...' if lang == 'en' else 'Yaada laadaa jira...' }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Send to Admin Section -->
+            <div id="send-to-admin" class="feedback-section" style="padding: 25px; display: none;">
+                <h3 style="color: #0078D4; margin-bottom: 20px;">
+                    <i class="fas fa-paper-plane"></i> {{ 'Send Feedback to Admin' if lang == 'en' else 'Yaada Gara Adminitti Ergi' }}
+                </h3>
+                <form id="adminFeedbackForm" style="max-width: 700px;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <label for="adminFeedbackMessage" style="display: block; margin-bottom: 10px; font-weight: 600; color: #333;">
+                        {{ 'Your Message:' if lang == 'en' else 'Ergaa Kee:' }}
+                    </label>
+                    <textarea 
+                        id="adminFeedbackMessage" 
+                        name="feedback_message" 
+                        placeholder="{{ 'Write your feedback, suggestions, or concerns for the admin here...' if lang == 'en' else 'Yaada kee, yaada yaalaa, ykn rakkina kee asii barreessi...' }}"
+                        required
+                        style="width: 100%; min-height: 150px; padding: 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical;"
+                    ></textarea>
+                    <button type="submit" style="margin-top: 15px; width: auto; padding: 12px 30px;">
+                        <i class="fas fa-paper-plane"></i> {{ 'Send Feedback' if lang == 'en' else 'Yaada Ergi' }}
+                    </button>
+                </form>
+                
+                <!-- Your Feedback History and Admin Replies -->
+                <div style="margin-top: 40px; border-top: 2px solid #e0e0e0; padding-top: 30px;">
+                    <h4 style="color: #0078D4; margin-bottom: 20px;">
+                        <i class="fas fa-history"></i> {{ 'Your Feedback History and Admin Replies' if lang == 'en' else 'Seenaa Yaada Keetii fi Deebii Admin' }}
+                    </h4>
+                    <div id="adminRepliesList">
+                        <div style="text-align: center; padding: 40px; color: #999;">
+                            <i class="fas fa-spinner fa-spin" style="font-size: 32px; margin-bottom: 15px;"></i>
+                            <p>{{ 'Loading your feedback...' if lang == 'en' else 'Yaada kee laadaa jira...' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Doctor Feedback Section -->
+            <div id="doctor-feedback" class="feedback-section" style="padding: 25px; display: none;">
+                <h3 style="color: #0078D4; margin-bottom: 20px;">
+                    <i class="fas fa-user-doctor"></i> {{ 'Send Feedback to Doctor' if lang == 'en' else 'Yaada Gara Doktoratti Ergi' }}
+                </h3>
+                <form id="doctorFeedbackForm" style="max-width: 700px;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <!-- Doctor Selection -->
+                    <label for="doctorSelect" style="display: block; margin-bottom: 10px; font-weight: 600; color: #333;">
+                        {{ 'Select Doctor:' if lang == 'en' else 'Doktora Filadhu:' }}
+                    </label>
+                    <select 
+                        id="doctorSelect" 
+                        name="doctor_id" 
+                        required
+                        style="width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; margin-bottom: 20px; background: white;"
+                    >
+                        <option value="">{{ 'Choose a doctor...' if lang == 'en' else 'Doktora filadhu...' }}</option>
+                        <!-- Doctors will be loaded here via JavaScript -->
+                    </select>
+                    
+                    <!-- Message -->
+                    <label for="doctorFeedbackMessage" style="display: block; margin-bottom: 10px; font-weight: 600; color: #333;">
+                        {{ 'Your Message:' if lang == 'en' else 'Ergaa Kee:' }}
+                    </label>
+                    <textarea 
+                        id="doctorFeedbackMessage" 
+                        name="feedback_message" 
+                        placeholder="{{ 'Write your feedback, questions, or concerns for the doctor here...' if lang == 'en' else 'Yaada kee, gaaffii, ykn rakkina kee doktoraaf asii barreessi...' }}"
+                        required
+                        style="width: 100%; min-height: 150px; padding: 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical;"
+                    ></textarea>
+                    <button type="submit" style="margin-top: 15px; width: auto; padding: 12px 30px;">
+                        <i class="fas fa-paper-plane"></i> {{ 'Send Feedback' if lang == 'en' else 'Yaada Ergi' }}
+                    </button>
+                </form>
+                
+                <!-- Your Feedback History and Doctor Replies -->
+                <div style="margin-top: 40px; border-top: 2px solid #e0e0e0; padding-top: 30px;">
+                    <h4 style="color: #0078D4; margin-bottom: 20px;">
+                        <i class="fas fa-history"></i> {{ 'Your Feedback History and Doctor Replies' if lang == 'en' else 'Seenaa Yaada Keetii fi Deebii Doktora' }}
+                    </h4>
+                    <div id="doctorRepliesList">
+                        <div style="text-align: center; padding: 40px; color: #999;">
+                            <i class="fas fa-spinner fa-spin" style="font-size: 32px; margin-bottom: 15px;"></i>
+                            <p>{{ 'Loading your feedback...' if lang == 'en' else 'Yaada kee laadaa jira...' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Picture Tab -->
+    <div id="profile-picture" class="tab-content" role="region" aria-label="{{ texts.sidebar.profile_picture if texts else 'Profile Picture Section' }}">
+      <section class="profile-picture-form">
+        <h2>{{ texts.sidebar.profile_picture if texts else 'Profile Picture' }}</h2>
+        <div style="text-align: center; margin: 20px 0;">
+          <img id="currentProfilePic" src="{% if current_user.profile_picture and current_user.profile_picture != 'default_avatar.png' %}{{ url_for('profile_picture', filename=current_user.profile_picture) }}{% else %}{{ url_for('static', filename='images/default_avatar.png') }}{% endif %}" alt="Current profile" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary);">
+        </div>
+        <form id="profilePictureForm" enctype="multipart/form-data">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <label for="profilePictureInput">{{ texts.forms.choose_profile_picture if texts else 'Choose New Picture' }}</label>
+          <input type="file" id="profilePictureInput" name="profile_picture" accept="image/*" required>
+          <div id="imagePreview" style="text-align: center; margin: 15px 0; display: none;">
+            <p style="font-size: 14px; color: #666;">{% if lang == 'or' %}Durargii:{% else %}Preview:{% endif %}</p>
+            <img id="previewImg" src="" alt="Preview" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 2px solid #ddd;">
+          </div>
+          <button type="submit">{{ texts.forms.update_profile_picture if texts else 'Update Picture' }}</button>
+        </form>
+      </section>
+    </div>
+
+    <!-- Change Password Tab -->
+    <div id="change-password" class="tab-content">
+      <form class="change-password-form" id="changePasswordForm">
+        <h2>{{ texts.sidebar.change_password }}</h2>
+        <label for="currentPassword">{{ texts.forms.current_password if texts else 'Current Password' }}</label>
+        <input type="password" id="currentPassword" name="current_password" required autocomplete="current-password">
+
+        <label for="newPassword">{{ texts.forms.new_password if texts else 'New Password' }}</label>
+        <input type="password" id="newPassword" name="new_password" required autocomplete="new-password">
+
+        <label for="confirmPassword">{{ texts.forms.confirm_new_password if texts else 'Confirm New Password' }}</label>
+        <input type="password" id="confirmPassword" name="confirm_password" required autocomplete="new-password">
+
+        <button type="submit">{{ texts.forms.change_password_button if texts else 'Change Password' }}</button>
+      </form>
+    </div>
+  </main>
+</div>
+
+<script>
+  // Template variables
+  const currentUsername = "{{ current_user.username }}";
+  const currentLang = "{{ lang }}";
+  const adminReplyText = "{{ 'Admin Reply' if lang == 'en' else 'Deebii Admin' }}";
+  const awaitingResponseText = "{{ 'Awaiting Admin Response' if lang == 'en' else 'Deebii Admin Eeggachaa Jira' }}";
+  const feedbackReceivedText = "{{ 'Your feedback has been received and is awaiting admin review.' if lang == 'en' else 'Yaada kee fudhatameera fi eegaa admin ilaaluu jira.' }}";
+  const noFeedbackText = "{{ 'No feedback submitted yet.' if lang == 'en' else 'Yaada hin ergamne.' }}";
+  const errorLoadingFeedbackText = "{{ 'Error loading feedback history.' if lang == 'en' else 'Dogoggora yeroo yaada darbee laaduu.' }}";
+  const justNowText = "{{ 'Just now' if lang == 'en' else 'Ammaa' }}";
+  const minAgoText = "{{ 'min ago' if lang == 'en' else 'daqiiqaa dura' }}";
+  const hourAgoText = "{{ 'hour ago' if lang == 'en' else 'sa\'aatii dura' }}";
+  const dayAgoText = "{{ 'day ago' if lang == 'en' else 'guyyaa dura' }}";
+  const notificationsText = "{{ 'Notifications' if lang == 'en' else 'Beekumsa' }}";
+  const markAllReadText = "{{ 'Mark all as read' if lang == 'en' else 'Hundaa akka dubbistanii galmeessi' }}";
+  const clearAllText = "{{ 'Clear All' if lang == 'en' else 'Hunda Haaquu' }}";
+  const noNotificationsText = "{{ 'No notifications yet' if lang == 'en' else 'Beekumsa hin jiru' }}";
+  const allNotificationsClearedText = "{{ 'All notifications cleared!' if lang == 'en' else 'Beekumsi hundi haqame!' }}";
+  const failedToClearNotificationsText = "{{ 'Failed to clear notifications' if lang == 'en' else 'Beekumsa haquu hin milkoofne' }}";
+  const showingAllNotificationsText = "{{ 'Showing all notifications' if lang == 'en' else 'Beekumsa hunda agarsiisaa jira' }}";
+  const pleaseEnterFeedbackText = "{{ 'Please enter your feedback message!' if lang == 'en' else 'Maaloo yaada kee barreessi!' }}";
+  const sendingText = "{{ 'Sending...' if lang == 'en' else 'Ergaa...' }}";
+  const feedbackSubmittedText = "{{ 'Feedback submitted successfully!' if lang == 'en' else 'Yaada milkaa\'inaan ergame!' }}";
+  const failedToSubmitFeedbackText = "{{ 'Failed to submit feedback!' if lang == 'en' else 'Yaada erguu hin milkoofne!' }}";
+  const errorSubmittingFeedbackText = "{{ 'An error occurred while submitting feedback!' if lang == 'en' else 'Dogoggorri uumame yeroo yaada erguu!' }}";
+  const dateLocale = "{{ 'en-US' if lang == 'en' else 'om-ET' }}";
+  const profilePictureUpdatedText = "{% if lang == 'or' %}Suuraa profaayilii haaromfame!{% else %}Profile picture updated!{% endif %}";
+  const errorOccurredText = "{% if lang == 'or' %}Dogoggorri uumame!{% else %}An error occurred!{% endif %}";
+  const passwordsDoNotMatchText = "{% if lang == 'or' %}Jecha darbii haaraa fi mirkaneessaa wal hin siman!{% else %}New passwords do not match!{% endif %}";
+  const passwordTooShortText = "{% if lang == 'or' %}Jecha darbii haaraa lakkoofsa herregaa 6 ol qabaachuu qaba!{% else %}New password should be at least 6 characters!{% endif %}";
+  const passwordUpdatedText = "{% if lang == 'or' %}Jecha darbii milkaa'inaan haaromfame!{% else %}Password updated successfully!{% endif %}";
+
+  // CSRF Token
+  var csrfToken = "{{ csrf_token() }}";
+
+  // ==================== SESSION SECURITY ====================
+  // Prevent back button access after logout
+  (function() {
+    // Check if user is authenticated
+    const isAuthenticated = true; // Will be set by server-side rendering
+
+    if (!isAuthenticated) {
+      // If not authenticated, redirect to login
+      window.location.replace("{{ url_for('login') }}");
+      return;
+    }
+
+    // Prevent caching
+    window.history.pushState(null, "", window.location.href);
+    window.onpopstate = function() {
+      window.history.pushState(null, "", window.location.href);
+    };
+
+    // Detect page visibility changes (when user navigates away and back)
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden) {
+        // Page became visible again - verify session is still valid
+        fetch("{{ url_for('dashboard_xray') }}", {
+          method: 'HEAD',
+          cache: 'no-cache'
+        }).catch(() => {
+          // If request fails, redirect to login
+          window.location.replace("{{ url_for('login') }}");
+        });
+      }
+    });
+  })();
+
+  // Mobile sidebar functionality
+  const sidebar = document.getElementById('sidebar');
+  const toggleBtn = document.querySelector('.sidebar-toggle-btn');
+  const overlay = document.getElementById('sidebarOverlay');
+  
+  // Toggle sidebar function
+  function toggleSidebar() {
+    const isActive = sidebar.classList.toggle('mobile-active');
+    overlay.classList.toggle('active', isActive);
+    toggleBtn.setAttribute('aria-expanded', isActive);
+    
+    // Prevent body scrolling when sidebar is open
+    document.body.style.overflow = isActive ? 'hidden' : '';
+  }
+  
+  // Event listeners for toggle button
+  toggleBtn.addEventListener('click', toggleSidebar);
+  
+  // Close sidebar when clicking overlay
+  overlay.addEventListener('click', toggleSidebar);
+  
+  // Close sidebar when pressing Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && sidebar.classList.contains('mobile-active')) {
+      toggleSidebar();
+    }
+  });
+
+  // ASSIGNED PATIENTS SYSTEM
+  let assignedPatients = [];
+  
+  // Load assigned patients from server
+  async function loadAssignedPatients() {
+    const loadingElement = document.getElementById('assignedPatientsLoading');
+    const emptyElement = document.getElementById('assignedPatientsEmpty');
+    const tableBody = document.getElementById('assignedPatientsTableBody');
+    
+    // Show loading state
+    loadingElement.style.display = 'block';
+    emptyElement.style.display = 'none';
+    
+    try {
+      const response = await fetch('/xray/get_assigned_patients');
+      if (!response.ok) {
+        throw new Error('Failed to fetch assigned patients');
+      }
+      
+      const data = await response.json();
+      assignedPatients = data;
+      
+      // Hide loading
+      loadingElement.style.display = 'none';
+      
+      if (assignedPatients.length === 0) {
+        // Show empty state
+        emptyElement.style.display = 'block';
+        document.getElementById('assignedPatientsTable').style.display = 'none';
+      } else {
+        // Show table and populate data
+        emptyElement.style.display = 'none';
+        document.getElementById('assignedPatientsTable').style.display = 'table';
+        displayAssignedPatients();
+      }
+      
+      // Statistics removed - no longer needed
+      
+    } catch (error) {
+      console.error('Error loading assigned patients:', error);
+      loadingElement.style.display = 'none';
+      
+      // Show error message
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="5" style="text-align: center; color: #dc3545; padding: 40px;">
+            <i class="fas fa-exclamation-triangle"></i>
+            ${currentLang === 'or' ? 'Dogoggora dhukkubsattoota ramadaman laaduu keessatti uumame' : 'Error loading assigned patients'}
+          </td>
+        </tr>
+      `;
+    }
+  }
+  
+  // Display assigned patients in table
+  function displayAssignedPatients() {
+    const tableBody = document.getElementById('assignedPatientsTableBody');
+    
+    if (assignedPatients.length === 0) {
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="5" style="text-align: center; color: #6c757d; padding: 40px;">
+            ${currentLang === 'or' ? 'Dhukkubsataan hin ramadamne' : 'No patients assigned'}
+          </td>
+        </tr>
+      `;
+      return;
+    }
+    
+    tableBody.innerHTML = assignedPatients.map(patient => {
+      const statusColor = getStatusColor(patient.status);
+      const statusText = getStatusText(patient.status);
+      
+      return `
+        <tr>
+          <td>
+            <strong>${patient.patient_name}</strong>
+            ${patient.patient_id ? `<br><small style="color: #6c757d;">ID: ${patient.patient_id}</small>` : ''}
+          </td>
+          <td>${patient.patient_phone || 'N/A'}</td>
+          <td>${formatAssignmentDate(patient.assignment_date)}</td>
+          <td>
+            <span style="
+              background: ${statusColor}; 
+              color: white; 
+              padding: 4px 12px; 
+              border-radius: 12px; 
+              font-size: 12px; 
+              font-weight: 600;
+              text-transform: uppercase;
+            ">
+              ${statusText}
+            </span>
+          </td>
+          <td>
+            ${patient.status === 'assigned' ? `
+              <button onclick="showCompleteModal(${patient.id}, '${patient.patient_name}')" 
+                      style="
+                        background: #28a745; 
+                        color: white; 
+                        border: none; 
+                        padding: 6px 12px; 
+                        border-radius: 6px; 
+                        font-size: 12px; 
+                        cursor: pointer;
+                      ">
+                <i class="fas fa-check"></i> ${currentLang === 'or' ? 'Xumuri' : 'Complete'}
+              </button>
+            ` : '<span style="color: #6c757d; font-style: italic;">Finished X-ray Scan</span>'}
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+  
+  // Update assigned patients statistics - REMOVED
+  // Statistics display removed from UI, function no longer needed
+  /*
+  function updateAssignedPatientsStats() {
+    const total = assignedPatients.length;
+    const pending = assignedPatients.filter(p => p.status === 'assigned').length;
+    const completed = assignedPatients.filter(p => p.status === 'completed').length;
+    
+    document.getElementById('totalAssignedCount').textContent = total;
+    document.getElementById('pendingAssignedCount').textContent = pending;
+    document.getElementById('completedAssignedCount').textContent = completed;
+  }
+  */
+  
+  // Get status color
+  function getStatusColor(status) {
+    switch (status) {
+      case 'assigned': return '#ffc107';
+      case 'completed': return '#28a745';
+      case 'cancelled': return '#dc3545';
+      default: return '#6c757d';
+    }
+  }
+  
+  // Get status text
+  function getStatusText(status) {
+    if (currentLang === 'or') {
+      switch (status) {
+        case 'assigned': return 'Ramadame';
+        case 'completed': return 'Xumurameera';
+        case 'cancelled': return 'Dhiifame';
+        default: return 'Hin beekamne';
+      }
+    } else {
+      switch (status) {
+        case 'assigned': return 'Assigned';
+        case 'completed': return 'Completed';
+        case 'cancelled': return 'Cancelled';
+        default: return 'Unknown';
+      }
+    }
+  }
+  
+  // Format assignment date
+  function formatAssignmentDate(dateString) {
+    if (!dateString) return 'N/A';
+    
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString(dateLocale, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      return dateString;
+    }
+  }
+  
+
+  
+  // Modal functions for completing assignments
+  let currentAssignmentId = null;
+  
+  function showCompleteModal(assignmentId, patientName) {
+    currentAssignmentId = assignmentId;
+    document.getElementById('patientNameModal').textContent = patientName;
+    document.getElementById('completionNotes').value = '';
+    document.getElementById('completeModal').style.display = 'block';
+  }
+  
+  function closeCompleteModal() {
+    document.getElementById('completeModal').style.display = 'none';
+    currentAssignmentId = null;
+  }
+  
+  // Close modal when clicking outside
+  window.onclick = function(event) {
+    const modal = document.getElementById('completeModal');
+    if (event.target === modal) {
+      closeCompleteModal();
+    }
+  }
+  
+  // Close modal with Escape key
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+      closeCompleteModal();
+    }
+  });
+  
+  async function confirmComplete() {
+    if (!currentAssignmentId) return;
+    
+    const notes = document.getElementById('completionNotes').value.trim();
+    
+    try {
+      const response = await fetch('/xray/complete_assignment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ 
+          assignment_id: currentAssignmentId,
+          notes: notes
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to complete assignment');
+      }
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Close modal
+        closeCompleteModal();
+        
+        // Show success toast
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: currentLang === 'or' ? 
+            'Ramadamni milkaa\'inaan xumurameera!' : 
+            'Assignment completed successfully!',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          customClass: {
+            popup: 'colored-toast'
+          }
+        });
+        
+        // Reload assigned patients
+        loadAssignedPatients();
+      } else {
+        throw new Error(result.message || 'Failed to complete assignment');
+      }
+      
+    } catch (error) {
+      console.error('Error completing assignment:', error);
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: currentLang === 'or' ? 
+          'Dogoggora ramadamni xumuruu keessatti uumame!' : 
+          'Error completing assignment!',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+    }
+  }
+
+  // NOTIFICATION SYSTEM
+  let notifications = [];
+  let unreadCount = 0;
+  let notificationInterval;
+
+  // Legacy toggleNotifications function removed - using universal notification system
+
+  // Legacy loadNotifications function removed - using universal notification system
+
+  // Update notification UI with current notifications
+  function updateNotificationUI() {
+    const notificationList = document.getElementById('notificationList');
+    const notificationBadge = document.getElementById('notificationBadge');
+    
+    // Calculate unread count
+    unreadCount = notifications.filter(n => !n.is_read).length;
+    
+    // Update badge
+    if (unreadCount > 0) {
+      notificationBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+      notificationBadge.style.display = 'flex';
+    } else {
+      notificationBadge.style.display = 'none';
+    }
+    
+    // Update notification list
+    if (notifications.length === 0) {
+      notificationList.innerHTML = `
+        <div class="notification-empty">
+          <i class="fas fa-bell-slash"></i>
+          <p>{{ 'No notifications yet' if lang == 'en' else 'Beekumsa hin jiru' }}</p>
+        </div>
+      `;
+    } else {
+      notificationList.innerHTML = '';
+      notifications.forEach(notification => {
+        const notificationItem = document.createElement('div');
+        notificationItem.className = `notification-item ${notification.is_read ? '' : 'unread'}`;
+        
+        // Create title based on notification type
+        let title = notification.patient_name || 'Notification';
+        if (notification.notification_type === 'feedback_reply') {
+          title = '{{ "Admin Reply" if lang == "en" else "Deebii Admin" }}';
+        } else if (notification.notification_type === 'health_officer_feedback') {
+          title = '{{ "Health Officer Feedback" if lang == "en" else "Yaada Ogeessa Fayyaa" }}';
+        }
+        
+        notificationItem.innerHTML = `
+          <div class="notification-title">${title}</div>
+          <div class="notification-message">${notification.message}</div>
+          <div class="notification-time">${formatTime(notification.created_at)}</div>
+        `;
+        
+        // Add click handler to mark as read
+        notificationItem.addEventListener('click', () => {
+          markAsRead(notification.id);
+          
+          // Navigate based on notification type
+          if (notification.notification_type === 'feedback_reply') {
+            // Find the feedback sidebar item
+            const feedbackSidebarItem = document.querySelector('.nav-item[data-tab="feedback"]');
+            
+            // Show the feedback tab and activate the sidebar item
+            if (feedbackSidebarItem) {
+              feedbackSidebarItem.click();
+            }
+            
+            // Switch to admin feedback section
+            setTimeout(() => {
+              showFeedbackSection('send-to-admin');
+            }, 100);
+          } else if (notification.notification_type === 'health_officer_feedback') {
+            // Navigate to health officer feedback section
+            const feedbackSidebarItem = document.querySelector('.nav-item[data-tab="feedback"]');
+            
+            if (feedbackSidebarItem) {
+              feedbackSidebarItem.click();
+            }
+            
+            // Switch to health officer feedback section
+            setTimeout(() => {
+              showFeedbackSection('health-officer-feedback');
+            }, 100);
+          }
+          
+          // Close notification panel
+          document.getElementById('notificationPanel').classList.remove('active');
+        });
+        
+        notificationList.appendChild(notificationItem);
+      });
+    }
+  }
+
+  // Mark a specific notification as read
+  async function markAsRead(notificationId) {
+    try {
+      const response = await fetch(`/xray/mark_notification_read/${notificationId}`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken
+        }
+      });
+      
+      if (response.ok) {
+        // Update local state
+        const notification = notifications.find(n => n.id === notificationId);
+        if (notification) {
+          notification.is_read = true;
+          updateNotificationUI();
+        }
+      }
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  }
+
+  // Mark all notifications as read
+  async function markAllAsRead() {
+    try {
+      const response = await fetch('/xray/mark_all_notifications_read', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken
+        }
+      });
+      
+      if (response.ok) {
+        // Update local state
+        notifications.forEach(n => n.is_read = true);
+        updateNotificationUI();
+      }
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
+  }
+
+  // Format time for display
+  function formatTime(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) {
+      return justNowText;
+    } else if (diffMins < 60) {
+      return `${diffMins} ${minAgoText}`;
+    } else if (diffHours < 24) {
+      return `${diffHours} ${hourAgoText}`;
+    } else if (diffDays < 7) {
+      return `${diffDays} ${dayAgoText}`;
+    } else {
+      return date.toLocaleDateString();
+    }
+  }
+
+  // Close notification panel when clicking outside - Fallback if Universal System doesn't handle it
+  document.addEventListener('click', (e) => {
+    const panel = document.getElementById('notificationPanel');
+    const bell = document.getElementById('notificationBell');
+    
+    if (panel && bell && panel.classList.contains('active') && 
+        !panel.contains(e.target) && 
+        !bell.contains(e.target)) {
+      panel.classList.remove('active');
+    }
+  });
+
+  // Legacy notification polling removed - using universal notification system
+
+  // Clear all notifications (delete them permanently)
+  async function clearAllNotifications() {
+    try {
+      const response = await fetch('/xray/clear_all_notifications', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken
+        }
+      });
+      
+      if (response.ok) {
+        // Clear local notifications
+        notifications = [];
+        updateNotificationUI();
+        
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: "{{ 'All notifications cleared!' if lang == 'en' else 'Beekumsi hundi haqame!' }}",
+          background: '#4CAF50',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+      }
+    } catch (error) {
+      console.error('Error clearing notifications:', error);
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'Failed to clear notifications' if lang == 'en' else 'Beekumsa haquu hin milkoofne' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+    }
+  }
+
+  // View all notifications (just close panel and show all in list)
+  function viewAllNotifications() {
+    // Reload notifications to show all
+    loadNotifications();
+    
+    Swal.fire({
+      toast: true,
+      position: 'top-end',
+      icon: 'info',
+      title: "{{ 'Showing all notifications' if lang == 'en' else 'Beekumsa hunda agarsiisaa jira' }}",
+      background: '#2196f3',
+      color: '#fff',
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true
+    });
+  }
+
+  // Add event listener to notification bell - Using legacy system only
+  // Let the universal notification system handle the notification bell
+  console.log('🔔 X-ray: Universal notification system will handle notification bell events');
+  
+  // Test universal notification system
+  setTimeout(() => {
+    console.log('🧪 Testing universal notification system...');
+    console.log('- Universal notifications object:', window.universalNotifications);
+    console.log('- Is initialized:', window.universalNotifications?.isInitialized);
+    
+    if (window.universalNotifications) {
+      console.log('✅ Universal notification system is available');
+      // Test refresh
+      window.universalNotifications.refresh();
+    } else {
+      console.error('❌ Universal notification system not found');
+    }
+  }, 2000);
+  
+  // Add event listeners for panel buttons
+  const markAllReadBtn = document.getElementById('markAllReadBtn');
+  const clearAllBtn = document.getElementById('clearAllBtn');
+  const viewAllBtn = document.getElementById('viewAllBtn');
+  
+  if (markAllReadBtn) {
+    markAllReadBtn.addEventListener('click', function() {
+      if (window.universalNotifications && typeof window.universalNotifications.markAllAsRead === 'function') {
+        window.universalNotifications.markAllAsRead();
+      } else {
+        markAllAsRead();
+      }
+    });
+  }
+  
+  if (clearAllBtn) {
+    clearAllBtn.addEventListener('click', function() {
+      if (window.universalNotifications && typeof window.universalNotifications.clearAllNotifications === 'function') {
+        window.universalNotifications.clearAllNotifications();
+      } else {
+        clearAllNotifications();
+      }
+    });
+  }
+  
+  if (viewAllBtn) {
+    viewAllBtn.addEventListener('click', viewAllNotifications);
+  }
+
+  // Initialize notifications - Using legacy system only for X-ray dashboard
+  setTimeout(() => {
+    console.log('🔄 X-ray Dashboard: Using universal notification system...');
+    
+    // Clean up any duplicate notification bells
+    cleanupXrayNotifications();
+    
+    // The universal notification system will handle everything
+    console.log('✅ X-ray: Universal notification system will handle notifications');
+  }, 500); // Short delay to ensure DOM is ready
+
+  // Function to clean up duplicate notification elements (comprehensive)
+  function cleanupXrayNotifications() {
+    console.log('🧹 X-ray Dashboard: Cleaning up duplicate notification elements...');
+    
+    // Clean up duplicate notification bells
+    const allBells = document.querySelectorAll('.notification-bell');
+    const mainBell = document.getElementById('notificationBell');
+    
+    console.log(`🔍 Found ${allBells.length} notification bell(s)`);
+    
+    if (allBells.length > 1) {
+      allBells.forEach((bell, index) => {
+        if (bell !== mainBell && bell.id !== 'notificationBell') {
+          console.log(`🗑️ Removing duplicate bell #${index}:`, bell);
+          bell.remove();
+        }
+      });
+    }
+    
+    // Clean up duplicate notification panels
+    const allPanels = document.querySelectorAll('.notification-panel');
+    const mainPanel = document.getElementById('notificationPanel');
+    
+    console.log(`🔍 Found ${allPanels.length} notification panel(s)`);
+    
+    if (allPanels.length > 1) {
+      allPanels.forEach((panel, index) => {
+        if (panel !== mainPanel && panel.id !== 'notificationPanel') {
+          console.log(`🗑️ Removing duplicate panel #${index}:`, panel);
+          panel.remove();
+        }
+      });
+    }
+    
+    // Ensure the main bell is properly configured
+    if (mainBell) {
+      mainBell.style.pointerEvents = 'auto';
+      mainBell.style.cursor = 'pointer';
+      mainBell.style.zIndex = '1002';
+      console.log('✅ Main notification bell configured properly');
+    }
+    
+    console.log('✅ X-ray notification cleanup completed');
+  }
+
+  // Function to clean up duplicate notification bells (legacy fallback)
+  function cleanupDuplicateNotificationBells() {
+    cleanupXrayNotifications();
+  }
+
+  // Test function for notification bell
+  window.testNotificationBell = function() {
+    console.log('🧪 X-ray: Testing notification bell...');
+    const bell = document.getElementById('notificationBell');
+    if (bell) {
+      console.log('✅ Notification bell element found');
+      console.log('🔍 Bell styles:', {
+        pointerEvents: getComputedStyle(bell).pointerEvents,
+        cursor: getComputedStyle(bell).cursor,
+        zIndex: getComputedStyle(bell).zIndex,
+        display: getComputedStyle(bell).display
+      });
+      
+      // Simulate click
+      bell.click();
+      console.log('🔔 Simulated click on notification bell');
+    } else {
+      console.error('❌ Notification bell element not found');
+    }
+  };
+
+  // Debug function for X-ray notifications
+  window.debugXrayNotifications = function() {
+    console.log('🔍 X-ray Notification Debug Info:');
+    
+    const bells = document.querySelectorAll('.notification-bell');
+    const panels = document.querySelectorAll('.notification-panel');
+    
+    console.log(`- Notification bells: ${bells.length}`);
+    bells.forEach((bell, index) => {
+      console.log(`  ${index + 1}. ID: ${bell.id || 'no-id'}, Classes: ${bell.className}`);
+    });
+    
+    console.log(`- Notification panels: ${panels.length}`);
+    panels.forEach((panel, index) => {
+      console.log(`  ${index + 1}. ID: ${panel.id || 'no-id'}, Classes: ${panel.className}`);
+    });
+    
+    console.log('- Universal notifications:', window.universalNotifications);
+    console.log('- Universal notifications initialized:', window.universalNotifications?.isInitialized);
+    
+    // Test cleanup
+    console.log('🧪 Running cleanup test...');
+    cleanupXrayNotifications();
+    
+    // Test click handler
+    console.log('🧪 Testing click handler...');
+    const bell = document.getElementById('notificationBell');
+    if (bell) {
+      bell.click();
+    }
+  };
+
+  // Debug function to check notification system status
+  window.debugNotificationBell = function() {
+    console.log('🔍 Notification Bell Debug Info:');
+    
+    const bell = document.getElementById('notificationBell');
+    console.log('- Bell element:', bell);
+    
+    if (bell) {
+      const styles = getComputedStyle(bell);
+      console.log('- Bell computed styles:', {
+        pointerEvents: styles.pointerEvents,
+        cursor: styles.cursor,
+        zIndex: styles.zIndex,
+        display: styles.display,
+        position: styles.position
+      });
+    }
+    
+    const allBells = document.querySelectorAll('.notification-bell');
+    console.log(`- Total notification bells: ${allBells.length}`);
+    
+    const panel = document.getElementById('notificationPanel');
+    console.log('- Panel element:', panel);
+    
+    console.log('- Universal notifications:', window.universalNotifications);
+    console.log('- Universal notifications initialized:', window.universalNotifications?.isInitialized);
+    
+    // Test click handler
+    if (bell) {
+      console.log('🧪 Testing click handler...');
+      bell.click();
+    }
+  };
+
+  // Function to show validation error
+  function showValidationError(message) {
+    const container = document.getElementById('validationErrorContainer');
+    if (!container) return;
+    
+    const errorDiv = document.createElement('div');
+    errorDiv.id = 'validationError';
+    errorDiv.style.cssText = `
+      background-color: #dc3545;
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+      font-weight: 600;
+      font-size: 14px;
+      border-left: 5px solid #a71e2a;
+      animation: slideInRight 0.5s ease-out;
+      margin-bottom: 10px;
+    `;
+    
+    errorDiv.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-exclamation-triangle" style="font-size: 18px;"></i>
+        <span>${message}</span>
+        <button onclick="closeValidationError(this)" style="
+          background: none;
+          border: none;
+          color: white;
+          font-size: 18px;
+          cursor: pointer;
+          margin-left: auto;
+          padding: 0;
+          width: 20px;
+          height: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        ">×</button>
+      </div>
+    `;
+    
+    container.appendChild(errorDiv);
+    
+    // Auto-hide after 8 seconds
+    setTimeout(() => {
+      closeValidationError(errorDiv.querySelector('button'));
+    }, 8000);
+  }
+  
+  // Function to close validation error
+  function closeValidationError(button) {
+    const errorDiv = button.closest('#validationError');
+    if (errorDiv) {
+      errorDiv.style.animation = 'slideOutRight 0.3s ease-in';
+      setTimeout(() => {
+        errorDiv.remove();
+      }, 300);
+    }
+  }
+
+  // Initialize dashboard when DOM is ready
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔄 DOM Content Loaded - X-ray Dashboard');
+    
+    // Ensure overview is active on page load/refresh
+    const overviewTab = document.querySelector('.nav-item[data-tab="overview"]');
+    const overviewContent = document.getElementById('overview');
+    
+    if (overviewTab && overviewContent) {
+      // Remove active class from all nav items and content
+      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      
+      // Set overview as active
+      overviewTab.classList.add('active');
+      overviewContent.classList.add('active');
+      
+      console.log('🏠 X-ray Dashboard defaulted to Overview section');
+    }
+    
+    // Ensure notification bell is ready
+    setTimeout(() => {
+      // Make sure notification bell is clickable
+      const bell = document.getElementById('notificationBell');
+      if (bell) {
+        bell.style.pointerEvents = 'auto';
+        bell.style.cursor = 'pointer';
+        bell.style.zIndex = '1002';
+        console.log('🔔 X-ray: Notification bell made clickable');
+      }
+      
+      cleanupXrayNotifications();
+      console.log('🔔 X-ray notification bell setup completed');
+    }, 500);
+    
+    // Set current date
+    const dateElement = document.getElementById("currentDate");
+    if (dateElement) {
+      const today = new Date();
+      dateElement.textContent = today.toLocaleDateString('{{ "en-US" if lang == "en" else "om-ET" }}', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    }
+
+    // Tab switching with event listeners
+    const navItems = document.querySelectorAll('.nav-item[data-tab]');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    navItems.forEach(item => {
+      item.addEventListener('click', function() {
+        const tabId = this.getAttribute('data-tab');
+
+        // Remove active class from all nav items
+        navItems.forEach(nav => nav.classList.remove('active'));
+
+        // Hide all tab contents
+        tabContents.forEach(tab => tab.classList.remove('active'));
+
+        // Add active class to clicked item
+        this.classList.add('active');
+
+        // Show selected tab
+        const selectedTab = document.getElementById(tabId);
+        if (selectedTab) {
+          selectedTab.classList.add('active');
+        }
+
+        // Close sidebar on mobile after selecting a tab
+        if (window.innerWidth <= 480) {
+          toggleSidebar();
+        }
+
+        // Load feedback data when feedback tab is selected
+        if (tabId === 'feedback') {
+          // Initialize with health officer feedback tab
+          showFeedbackSection('health-officer-feedback');
+        }
+        
+        // Load assigned patients when assigned-patients tab is selected
+        if (tabId === 'assigned-patients') {
+          loadAssignedPatients();
+        }
+
+        console.log('Switched to tab:', tabId);
+      });
+    });
+
+    // Settings submenu toggle
+    const settingsToggle = document.getElementById('settingsToggle');
+    const settingsSubmenu = document.getElementById('settingsSubmenu');
+
+    if (settingsToggle && settingsSubmenu) {
+      settingsToggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        settingsSubmenu.classList.toggle('show');
+        const isShown = settingsSubmenu.classList.contains('show');
+        this.setAttribute('aria-expanded', isShown);
+        console.log('Settings menu toggled');
+      });
+    }
+
+    // Initialize feedback form event listeners
+    const feedbackForm = document.getElementById('feedbackForm');
+    if (feedbackForm) {
+      feedbackForm.addEventListener('submit', submitFeedback);
+    }
+
+    const adminFeedbackForm = document.getElementById('adminFeedbackForm');
+    if (adminFeedbackForm) {
+      adminFeedbackForm.addEventListener('submit', submitAdminFeedback);
+    }
+    
+    const doctorFeedbackForm = document.getElementById('doctorFeedbackForm');
+    if (doctorFeedbackForm) {
+      doctorFeedbackForm.addEventListener('submit', submitDoctorFeedback);
+    }
+    
+    // Add client-side validation for X-ray upload form
+    const xrayUploadForm = document.querySelector('form[action="/xray/upload"]');
+    if (xrayUploadForm) {
+      xrayUploadForm.addEventListener('submit', function(e) {
+        const fileInput = document.getElementById('xray_file');
+        if (fileInput && fileInput.files.length > 0) {
+          const file = fileInput.files[0];
+          
+          // Check file extension
+          const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+          const fileExtension = file.name.split('.').pop().toLowerCase();
+          
+          if (!allowedExtensions.includes(fileExtension)) {
+            e.preventDefault();
+            showValidationError('Invalid file type. Only JPG, PNG, JPEG, and GIF files are allowed.');
+            return false;
+          }
+          
+          // Check file size (optional - 16MB limit)
+          const maxSize = 16 * 1024 * 1024; // 16MB
+          if (file.size > maxSize) {
+            e.preventDefault();
+            showValidationError('File size too large. Maximum size is 16MB.');
+            return false;
+          }
+        }
+      });
+    }
+
+    // Profile picture preview
+    const profilePictureInput = document.getElementById('profilePictureInput');
+    if (profilePictureInput) {
+      profilePictureInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            document.getElementById('previewImg').src = e.target.result;
+            document.getElementById('imagePreview').style.display = 'block';
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
+    // Profile picture form submission
+    const profilePictureForm = document.getElementById('profilePictureForm');
+    if (profilePictureForm) {
+      profilePictureForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        try {
+          const response = await fetch("{{ url_for('upload_profile_picture') }}", {
+            method: 'POST',
+            body: formData
+          });
+          
+          const contentType = response.headers.get('content-type');
+          if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Server returned non-JSON response. You may need to login again.');
+          }
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'success',
+              title: "{% if lang == 'or' %}Suuraa profaayilii haaromfame!{% else %}Profile picture updated!{% endif %}",
+              background: 'var(--primary)',
+              color: '#fff',
+              iconColor: 'white',
+              showConfirmButton: false,
+              timer: 3000,
+              timerProgressBar: true
+            });
+            
+            // Update sidebar image
+            document.querySelector('.profile img').src = data.profile_picture_url;
+            document.getElementById('currentProfilePic').src = data.profile_picture_url;
+            document.getElementById('imagePreview').style.display = 'none';
+            this.reset();
+          } else {
+            throw new Error(data.message);
+          }
+        } catch (error) {
+          console.error('Profile picture error:', error);
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: error.message || "{% if lang == 'or' %}Dogoggorri uumame!{% else %}An error occurred!{% endif %}",
+            background: '#f44336',
+            color: '#fff',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+          });
+        }
+      });
+    }
+
+    // Change password form submission
+    const changePasswordForm = document.getElementById('changePasswordForm');
+    if (changePasswordForm) {
+      changePasswordForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (newPassword !== confirmPassword) {
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: "{% if lang == 'or' %}Jecha darbii haaraa fi mirkaneessaa wal hin siman!{% else %}New passwords do not match!{% endif %}",
+            background: '#f44336',
+            color: '#fff',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+          });
+          return;
+        }
+
+        if (newPassword.length < 6) {
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'warning',
+            title: "{% if lang == 'or' %}Jecha darbii haaraa lakkoofsa herregaa 6 ol qabaachuu qaba!{% else %}New password should be at least 6 characters!{% endif %}",
+            background: '#ff9800',
+            color: '#fff',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+          });
+          return;
+        }
+
+        try {
+          const response = await fetch("{{ url_for('change_password') }}", {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+              current_password: currentPassword,
+              new_password: newPassword,
+              confirm_password: confirmPassword
+            })
+          });
+
+          const contentType = response.headers.get('content-type');
+          if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Server returned non-JSON response. You may need to login again.');
+          }
+
+          const data = await response.json();
+
+          if (data.success) {
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'success',
+              title: "{% if lang == 'or' %}Jecha darbii milkaa'inaan haaromfame!{% else %}Password updated successfully!{% endif %}",
+              background: '#4CAF50',
+              color: '#fff',
+              showConfirmButton: false,
+              timer: 3000,
+              timerProgressBar: true
+            });
+            this.reset();
+          } else {
+            throw new Error(data.message);
+          }
+        } catch (error) {
+          console.error('Change password error:', error);
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: error.message || "{% if lang == 'or' %}Dogoggorri uumame!{% else %}An error occurred!{% endif %}",
+            background: '#f44336',
+            color: '#fff',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+          });
+        }
+      });
+    }
+  });
+
+
+
+  // FEEDBACK TAB FUNCTIONS
+  function showFeedbackSection(sectionId) {
+    console.log('Switching to feedback section:', sectionId);
+    
+    // Hide all sections
+    document.querySelectorAll('.feedback-section').forEach(section => {
+      section.style.display = 'none';
+    });
+
+    // Remove active class from all tabs
+    document.querySelectorAll('.feedback-tab-btn').forEach(btn => {
+      btn.classList.remove('active');
+      btn.style.background = 'transparent';
+      btn.style.color = '#666';
+    });
+
+    // Show selected section
+    const targetSection = document.getElementById(sectionId);
+    if (targetSection) {
+      targetSection.style.display = 'block';
+      console.log('Section displayed:', sectionId);
+    } else {
+      console.error('Section not found:', sectionId);
+    }
+
+    // Add active class to clicked tab
+    const activeBtn = document.querySelector(`[onclick="showFeedbackSection('${sectionId}')"]`);
+    if (activeBtn) {
+      activeBtn.classList.add('active');
+      activeBtn.style.background = '#0078D4';
+      activeBtn.style.color = 'white';
+    }
+
+    // Load section-specific data
+    if (sectionId === 'health-officer-feedback') {
+      loadHealthOfficerFeedback();
+    } else if (sectionId === 'send-to-admin') {
+      loadAdminReplies();
+    } else if (sectionId === 'doctor-feedback') {
+      loadDoctors();
+      loadDoctorReplies();
+    }
+  }
+
+  // Load Health Officer feedback
+  async function loadHealthOfficerFeedback() {
+    console.log('Loading Health Officer feedback...');
+    
+    const container = document.getElementById('healthOfficerFeedbackList');
+    
+    // Show loading state
+    container.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;"><i class="fas fa-spinner fa-spin" style="font-size: 32px; margin-bottom: 15px;"></i><p>Loading feedback...</p></div>';
+    
+    try {
+      const response = await fetch('/xray/get_health_officer_feedback');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        const feedbacks = data.feedbacks;
+        let html = '';
+        
+        if (feedbacks.length === 0) {
+          html = '<div style="text-align: center; padding: 40px; color: #999;"><i class="fas fa-comment-slash" style="font-size: 48px; margin-bottom: 15px; opacity: 0.5;"></i><p>No feedback from health officers yet.</p></div>';
+        } else {
+          feedbacks.forEach((f) => {
+            const dateFormatted = f.date_sent ? new Date(f.date_sent).toLocaleString() : 'Unknown date';
+            const hasReply = f.reply && f.reply.trim() !== '';
+            
+            html += `
+              <div class="feedback-reply-card" style="margin-bottom: 20px; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background: #f9f9f9;">
+                <div style="margin-bottom: 15px;">
+                  <p style="margin: 0 0 10px 0;"><strong>From:</strong> ${f.sender_name || 'Health Officer'}</p>
+                  <p style="margin: 0 0 10px 0;"><strong>Message:</strong> ${f.message || 'No message'}</p>
+                  <p style="margin: 0; color: #666; font-size: 0.9em;"><em>Received on: ${dateFormatted}</em></p>
+                </div>
+                
+                ${hasReply ? `
+                  <div style="margin-top: 15px; padding: 15px; background: #e8f5e8; border-left: 4px solid #28a745; border-radius: 4px;">
+                    <p style="margin: 0 0 5px 0; font-weight: 600; color: #155724;">Your Reply:</p>
+                    <p style="margin: 0 0 5px 0;">${f.reply}</p>
+                    <p style="margin: 0; color: #666; font-size: 0.9em;"><em>Replied on: ${new Date(f.reply_date).toLocaleString()}</em></p>
+                  </div>
+                ` : `
+                  <div style="margin-top: 15px;">
+                    <textarea id="reply-${f.id}" placeholder="Type your reply here..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; resize: vertical; min-height: 80px;"></textarea>
+                    <button onclick="replyToHealthOfficerFeedback(${f.id})" style="margin-top: 10px; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                      <i class="fas fa-reply"></i> Send Reply
+                    </button>
+                  </div>
+                `}
+              </div>
+            `;
+          });
+        }
+        
+        container.innerHTML = html;
+        console.log(`✅ Successfully rendered ${feedbacks.length} health officer feedback messages`);
+      } else {
+        const errorMsg = data.message || 'Unknown error';
+        container.innerHTML = `<div style="text-align: center; padding: 40px; color: #dc3545;"><p>Error loading feedback: ${errorMsg}</p></div>`;
+        console.error('❌ API returned error:', errorMsg);
+      }
+    } catch (error) {
+      console.error('Error loading Health Officer feedback:', error);
+      container.innerHTML = `<div style="text-align: center; padding: 40px; color: #dc3545;">
+        <p>Error loading feedback. Please try again.</p>
+      </div>`;
+    }
+  }
+
+  // Reply to health officer feedback
+  async function replyToHealthOfficerFeedback(feedbackId) {
+    console.log('🔄 Replying to health officer feedback, ID:', feedbackId);
+    
+    const replyText = document.getElementById(`reply-${feedbackId}`).value.trim();
+    console.log('📝 Reply text:', replyText);
+    
+    if (!replyText) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'warning',
+        title: 'Please enter a reply message',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+      return;
+    }
+    
+    try {
+      console.log('📤 Sending reply request...');
+      const response = await fetch('/xray/reply_to_health_officer_feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          feedback_id: feedbackId,
+          reply: replyText
+        })
+      });
+      
+      console.log('📡 Response status:', response.status);
+      const data = await response.json();
+      console.log('📋 Response data:', data);
+      
+      if (data.success) {
+        // Show success toast in top-right corner with blue background
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: 'Reply sent successfully!',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          background: '#0078D4',
+          color: 'white',
+          customClass: {
+            popup: 'colored-toast'
+          }
+        });
+        
+        // Clear the reply text area
+        document.getElementById(`reply-${feedbackId}`).value = '';
+        
+        // Reload the feedback to show the reply
+        loadHealthOfficerFeedback();
+      } else {
+        console.error('❌ Reply failed:', data.message);
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: 'Error sending reply',
+          text: data.message,
+          showConfirmButton: false,
+          timer: 4000,
+          timerProgressBar: true
+        });
+      }
+    } catch (error) {
+      console.error('Error sending reply:', error);
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: 'Error sending reply',
+        text: 'Please try again.',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true
+      });
+    }
+  }
+
+  // Load Admin replies
+  async function loadAdminReplies() {
+    console.log('Loading Admin replies...');
+    
+    const container = document.getElementById('adminRepliesList');
+    
+    // Show loading state
+    container.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;"><i class="fas fa-spinner fa-spin" style="font-size: 32px; margin-bottom: 15px;"></i><p>Loading your feedback...</p></div>';
+    
+    try {
+      const response = await fetch("{{ url_for('xray_get_feedbacks') }}");
+      
+      if (response.ok) {
+        const feedbacks = await response.json();
+        let html = '';
+        
+        if (feedbacks.length === 0) {
+          html = '<div style="text-align: center; padding: 40px; color: #999;"><i class="fas fa-comment-slash" style="font-size: 48px; margin-bottom: 15px; opacity: 0.5;"></i><p>No feedback sent yet.</p></div>';
+        } else {
+          feedbacks.forEach(feedback => {
+            const dateFormatted = new Date(feedback.date_submitted).toLocaleString();
+            const hasReply = feedback.reply && feedback.reply.trim() !== '';
+            
+            html += `
+              <div class="feedback-reply-card">
+                <div style="margin-bottom: 15px;">
+                  <p style="margin: 0 0 10px 0;"><strong>To:</strong> Administrator</p>
+                  <p style="margin: 0 0 10px 0;"><strong>Your Message:</strong> ${feedback.feedback}</p>
+                  <p style="margin: 0; color: #666; font-size: 0.9em;"><em>Sent on: ${dateFormatted}</em></p>
+                </div>
+                
+                ${hasReply ? `
+                  <div style="margin-top: 15px; padding: 15px; background: #e8f5e8; border-left: 4px solid #28a745; border-radius: 4px;">
+                    <p style="margin: 0 0 5px 0; font-weight: 600; color: #155724;">Admin Reply:</p>
+                    <p style="margin: 0 0 5px 0;">${feedback.reply}</p>
+                    <p style="margin: 0; color: #666; font-size: 0.9em;"><em>Replied on: ${new Date(feedback.reply_date).toLocaleString()}</em></p>
+                  </div>
+                ` : `
+                  <div style="margin-top: 15px; padding: 10px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+                    <p style="margin: 0; color: #856404; font-weight: 600;">Awaiting Admin Response</p>
+                  </div>
+                `}
+              </div>
+            `;
+          });
+        }
+        
+        container.innerHTML = html;
+        console.log(`Admin replies loaded: ${feedbacks.length} items`);
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Error loading Admin replies:', error);
+      container.innerHTML = '<div style="text-align: center; padding: 40px; color: #dc3545;"><p>Error loading feedback. Please try again.</p></div>';
+    }
+  }
+
+  // Submit admin feedback
+  async function submitAdminFeedback(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const message = form.feedback_message.value.trim();
+    
+    if (!message) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Message',
+        text: 'Please enter your feedback message.'
+      });
+      return;
+    }
+    
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    submitBtn.disabled = true;
+    
+    try {
+      const response = await fetch("{{ url_for('xray_submit_feedback') }}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          'csrf_token': form.csrf_token.value,
+          'feedback_message': message
+        })
+      });
+      
+      if (response.ok) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: 'Feedback sent successfully!',
+          showConfirmButton: false,
+          timer: 3000
+        });
+        
+        form.reset();
+        
+        // Reload admin replies in the same section to show the sent message
+        setTimeout(() => {
+          loadAdminReplies();
+        }, 1000);
+        
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Error sending admin feedback:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to send feedback. Please try again.'
+      });
+    } finally {
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+    }
+  }
+
+  // DOCTOR FEEDBACK FUNCTIONS
+  
+  // Load doctors for selection
+  async function loadDoctors() {
+    console.log('Loading doctors...');
+    
+    const doctorSelect = document.getElementById('doctorSelect');
+    
+    try {
+      const response = await fetch('/xray/get_doctors');
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.success && data.doctors) {
+          // Clear existing options except the first one
+          doctorSelect.innerHTML = '<option value="">{{ "Choose a doctor..." if lang == "en" else "Doktora filadhu..." }}</option>';
+          
+          data.doctors.forEach(doctor => {
+            const option = document.createElement('option');
+            option.value = doctor.id;
+            option.textContent = doctor.name; // Use doctor.name instead of doctor.username
+            doctorSelect.appendChild(option);
+          });
+          
+          console.log(`Loaded ${data.doctors.length} doctors`);
+        } else {
+          throw new Error(data.message || 'Failed to load doctors');
+        }
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Error loading doctors:', error);
+      doctorSelect.innerHTML = '<option value="">{{ "Error loading doctors" if lang == "en" else "Dogoggora doktora laaduu" }}</option>';
+    }
+  }
+
+  // Load doctor replies
+  async function loadDoctorReplies() {
+    console.log('Loading Doctor replies...');
+    
+    const container = document.getElementById('doctorRepliesList');
+    
+    // Show loading state
+    container.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;"><i class="fas fa-spinner fa-spin" style="font-size: 32px; margin-bottom: 15px;"></i><p>{{ "Loading your feedback..." if lang == "en" else "Yaada kee laadaa jira..." }}</p></div>';
+    
+    try {
+      const response = await fetch('/xray/get_doctor_feedbacks');
+      
+      if (response.ok) {
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('Not authenticated or invalid response');
+        }
+        const feedbacks = await response.json();
+        let html = '';
+        
+        if (feedbacks.length === 0) {
+          html = '<div style="text-align: center; padding: 40px; color: #999;"><i class="fas fa-comment-slash" style="font-size: 48px; margin-bottom: 15px; opacity: 0.5;"></i><p>{{ "No feedback sent to doctors yet." if lang == "en" else "Doktoraaf yaadni hin ergamne." }}</p></div>';
+        } else {
+          feedbacks.forEach(feedback => {
+            const dateFormatted = new Date(feedback.date_submitted).toLocaleString();
+            const hasReply = feedback.reply && feedback.reply.trim() !== '';
+            
+            html += `
+              <div class="feedback-reply-card">
+                <div style="margin-bottom: 15px;">
+                  <p style="margin: 0 0 10px 0;"><strong>{{ "To:" if lang == "en" else "Gara:" }}</strong> Dr. ${feedback.doctor_name || 'Unknown'}</p>
+                  <p style="margin: 0 0 10px 0;"><strong>{{ "Your Message:" if lang == "en" else "Ergaa Kee:" }}</strong> ${feedback.feedback}</p>
+                  <p style="margin: 0; color: #666; font-size: 0.9em;"><em>{{ "Sent on:" if lang == "en" else "Ergame:" }} ${dateFormatted}</em></p>
+                </div>
+                
+                ${hasReply ? `
+                  <div style="margin-top: 15px; padding: 15px; background: #e8f5e8; border-left: 4px solid #28a745; border-radius: 4px;">
+                    <p style="margin: 0 0 5px 0; font-weight: 600; color: #155724;">{{ "Doctor Reply:" if lang == "en" else "Deebii Doktora:" }}</p>
+                    <p style="margin: 0 0 5px 0;">${feedback.reply}</p>
+                    <p style="margin: 0; color: #666; font-size: 0.9em;"><em>{{ "Replied on:" if lang == "en" else "Deebise:" }} ${new Date(feedback.reply_date).toLocaleString()}</em></p>
+                  </div>
+                ` : `
+                  <div style="margin-top: 15px; padding: 10px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+                    <p style="margin: 0; color: #856404; font-weight: 600;">{{ "Awaiting Doctor Response" if lang == "en" else "Deebii Doktora Eeggachaa" }}</p>
+                  </div>
+                `}
+              </div>
+            `;
+          });
+        }
+        
+        container.innerHTML = html;
+        console.log(`Doctor replies loaded: ${feedbacks.length} items`);
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Error loading Doctor replies:', error);
+      container.innerHTML = '<div style="text-align: center; padding: 40px; color: #dc3545;"><p>{{ "Error loading feedback. Please try again." if lang == "en" else "Dogoggora yaada laaduu. Irra deebi\'ii yaali." }}</p></div>';
+    }
+  }
+
+  // Submit doctor feedback
+  async function submitDoctorFeedback(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const doctorId = form.doctor_id.value;
+    const message = form.feedback_message.value.trim();
+    
+    if (!doctorId) {
+      Swal.fire({
+        icon: 'warning',
+        title: '{{ "Doctor Required" if lang == "en" else "Doktora Barbaachisa" }}',
+        text: '{{ "Please select a doctor." if lang == "en" else "Maaloo doktora filadhu." }}'
+      });
+      return;
+    }
+    
+    if (!message) {
+      Swal.fire({
+        icon: 'warning',
+        title: '{{ "Missing Message" if lang == "en" else "Ergaa Hin Jiru" }}',
+        text: '{{ "Please enter your feedback message." if lang == "en" else "Maaloo yaada kee barreessi." }}'
+      });
+      return;
+    }
+    
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> {{ "Sending..." if lang == "en" else "Ergaa jira..." }}';
+    submitBtn.disabled = true;
+    
+    try {
+      const formData = new FormData();
+      formData.append('doctor_id', doctorId);
+      formData.append('feedback_message', message);
+      
+      const csrfToken = form.querySelector('input[name="csrf_token"]');
+      if (!csrfToken) {
+        throw new Error('CSRF token not found');
+      }
+      formData.append('csrf_token', csrfToken.value);
+      
+      const response = await fetch('/xray/submit_doctor_feedback', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        showToastNotification('{{ "Feedback sent to doctor successfully" if lang == "en" else "Yaadni doktoraaf milkaa\'inaan ergame" }}', '', 'success');
+        
+        // Clear form
+        form.reset();
+        
+        // Reload doctor replies to show the sent message
+        setTimeout(() => {
+          loadDoctorReplies();
+        }, 1000);
+      } else {
+        throw new Error(data.message || 'Failed to send feedback');
+      }
+    } catch (error) {
+      console.error('Error sending doctor feedback:', error);
+      showToastNotification('{{ "Failed to send feedback. Please try again." if lang == "en" else "Yaada erguu dadhabde. Irra deebi\'ii yaali." }}', '', 'error');
+    } finally {
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+    }
+  }
+
+  // TOAST NOTIFICATION FUNCTION - Using SweetAlert2 for consistency
+  function showToastNotification(title, message, type = 'success') {
+    // Define colors and icons based on type
+    const typeConfig = {
+      success: {
+        background: '#0078D4',
+        icon: 'success'
+      },
+      error: {
+        background: '#dc3545',
+        icon: 'error'
+      },
+      warning: {
+        background: '#ffc107',
+        icon: 'warning'
+      }
+    };
+
+    const config = typeConfig[type] || typeConfig.success;
+
+    // Use SweetAlert2 toast like the login page
+    Swal.fire({
+      toast: true,
+      position: 'top-end',
+      icon: config.icon,
+      title: title,
+      showConfirmButton: false,
+      timer: 4000,
+      timerProgressBar: true,
+      background: config.background,
+      color: '#fff',
+      customClass: {
+        popup: 'colored-toast'
+      }
+    });
+  }
+
+  // FEEDBACK SYSTEM FUNCTIONS - CORRECTED VERSION
+  async function submitFeedback(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const message = form.feedback_message.value.trim();
+    
+    if (!message) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'warning',
+        title: "{{ 'Please enter your feedback message!' if lang == 'en' else 'Maaloo yaada kee barreessi!' }}",
+        background: '#ff9800',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+      return false;
+    }
+
+    // Show loading state
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = "{{ 'Sending...' if lang == 'en' else 'Ergaa...' }} <i class='fas fa-spinner fa-spin'></i>";
+    submitBtn.disabled = true;
+
+    try {
+      console.log('📤 Sending feedback to admin...', { message, csrfToken });
+      
+      const url = "{{ url_for('xray_submit_feedback_test') }}";
+      console.log('🌐 Request URL:', url);
+      console.log('🌐 Current location:', window.location.href);
+      
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken
+        },
+        body: JSON.stringify({ 
+          message: message,
+          feedback_type: 'general'
+        })
+      });
+
+      console.log('📡 Response status:', response.status);
+      
+      let result;
+      const responseText = await response.text();
+      console.log('📋 Raw response:', responseText);
+      
+      try {
+        result = JSON.parse(responseText);
+        console.log('📋 Parsed JSON:', result);
+      } catch (parseError) {
+        console.error('❌ Failed to parse JSON:', parseError);
+        throw new Error(`Server returned HTML instead of JSON: ${responseText.substring(0, 100)}...`);
+      }
+      
+      // Restore button state
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+
+      if (result.success) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: result.message || "{{ 'Feedback submitted successfully!' if lang == 'en' else 'Yaada milkaa\'inaan ergame!' }}",
+          background: '#4CAF50',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+        form.reset();
+        loadDoctorReplies(); // Reload feedback history
+      } else {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: result.message || "{{ 'Failed to submit feedback!' if lang == 'en' else 'Yaada erguu hin milkoofne!' }}",
+          background: '#f44336',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+      }
+    } catch (err) {
+      console.error('Feedback submission error:', err);
+      
+      // Restore button state
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+      
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'An error occurred while submitting feedback!' if lang == 'en' else 'Dogoggorri uumame yeroo yaada erguu!' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+    }
+    return false;
+  }
+
+
+
+  // Handle window resize
+  window.addEventListener('resize', function() {
+    // If window is resized to desktop size, ensure sidebar is visible
+    if (window.innerWidth > 480) {
+      sidebar.classList.remove('mobile-active');
+      overlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  });
+</script>
+
+<!-- SweetAlert2 for toast messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <script>
+      {% for category, message in messages %}
+        let iconType = 'info';
+        let bgColor = '';
+        if ("{{ category }}" === 'success') {
+          iconType = 'success';
+          bgColor = 'var(--primary)';
+        } else if ("{{ category }}" === 'danger') {
+          iconType = 'error';
+          bgColor = '#f44336';
+        } else if ("{{ category }}" === 'warning') {
+          iconType = 'warning';
+          bgColor = 'var(--accent)';
+        }
+
+        // Show SweetAlert2 toast
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: iconType,
+          title: "{{ message|escape }}",
+          background: bgColor,
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+        
+        // Also show validation errors in top-right corner if it's a validation error
+        const message = "{{ message|escape }}";
+        if (("{{ category }}" === 'danger' || "{{ category }}" === 'warning') && 
+            (message.includes('not an X-ray') || message.includes('Invalid file type'))) {
+          showValidationError(message);
+        }
+      {% endfor %}
+    </script>
+  {% endif %}
+{% endwith %}
+
+</body>
+</html>

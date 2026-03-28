@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Verify Code - Breast Cancer Detection System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}" />
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0078D4 0%, #0063B1 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+            color: #333;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 120, 212, 0.3);
+            padding: 30px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .login-card h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #0078D4 0%, #0063B1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+            font-size: 24px;
+        }
+
+        .login-card p {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .login-card label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #0078D4;
+            font-size: 0.9rem;
+        }
+
+        .login-card input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 2px solid #E1E1E1;
+            border-radius: 8px;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            font-family: 'Roboto', sans-serif;
+            background: #F9F9F9;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+
+        .login-card input:focus {
+            border-color: #0078D4;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+            background: white;
+        }
+
+        .login-card button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #0078D4 0%, #0063B1 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Roboto', sans-serif;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(0, 120, 212, 0.3);
+        }
+
+        .login-card button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 120, 212, 0.4);
+        }
+
+        .links {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .links a {
+            color: #0078D4;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            margin: 0 10px;
+        }
+
+        .links a:hover {
+            color: #005A9E;
+            text-decoration: underline;
+        }
+
+        .alert {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .email-info {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            color: #0056b3;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="login-card">
+            <h1>Enter Verification Code</h1>
+            <p>We've sent a 6-digit verification code to your email address. The code will expire in 15 minutes.</p>
+            
+            <div class="email-info">
+                <strong>Email:</strong> {{ email }}
+            </div>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <label for="code">Verification Code:</label>
+                <input type="text" id="code" name="code" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required />
+                
+                <button type="submit">Verify Code</button>
+            </form>
+
+            <div class="links">
+                <a href="{{ url_for('forgot_password', lang=lang) }}">Request New Code</a>
+                <a href="{{ url_for('login', lang=lang) }}">Back to Login</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-format verification code input
+        document.getElementById('code').addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, '').substring(0, 6);
+        });
+    </script>
+</body>
+</html>

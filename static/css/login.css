@@ -1,0 +1,762 @@
+/* General */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', sans-serif;
+    background: #f4f6f8;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    height: 100vh;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* Container */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    min-height: 100vh;
+    padding-top: 60px;
+}
+
+/* Login Card */
+.login-card {
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 8px 18px rgba(57, 73, 171, 0.15);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.login-card h1 {
+    margin-bottom: 30px;
+    font-weight: 700;
+    font-size: 28px;
+    color: #1a237e;
+}
+
+/* Form */
+.login-card form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.login-card label {
+    text-align: left;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #1a237e;
+    font-size: 14px;
+}
+
+.login-card input {
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    border: 1.5px solid #c5cae9;
+    border-radius: 12px;
+    background: #ffffff;
+    font-size: 16px;
+    outline: none;
+    transition: all 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: 'Roboto', sans-serif;
+    color: #1a237e;
+}
+
+.login-card input:focus {
+    border-color: #283593;
+    box-shadow: 0 0 0 3px rgba(40, 53, 147, 0.1);
+}
+
+.login-card input::placeholder {
+    color: #9fa8da;
+}
+
+/* Button */
+.login-card button {
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #283593 0%, #3949ab 100%);
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    color: #ffffff;
+    font-family: 'Roboto', sans-serif;
+    box-sizing: border-box;
+    box-shadow: 0 4px 12px rgba(40, 53, 147, 0.3);
+    margin-top: 10px;
+}
+
+.login-card button:hover {
+    background: linear-gradient(135deg, #3949ab 0%, #283593 100%);
+    box-shadow: 0 6px 20px rgba(40, 53, 147, 0.4);
+    transform: translateY(-2px);
+}
+
+.login-card button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(40, 53, 147, 0.3);
+}
+
+/* Links */
+.login-card .links {
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.login-card .links a {
+    color: #283593;
+    text-decoration: none;
+    transition: 0.3s;
+    font-weight: 600;
+}
+
+.login-card .links a:hover {
+    color: #1a237e;
+    text-decoration: underline;
+}
+
+/* Forgot Password Link */
+.forgot-password a {
+    color: #283593;
+    font-weight: 600;
+}
+
+.forgot-password a:hover {
+    color: #1a237e;
+}
+
+/* Password Toggle Icon */
+.password-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.password-wrapper input {
+    padding-right: 45px;
+    margin-bottom: 0;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #9fa8da;
+    transition: color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    user-select: none;
+    z-index: 10;
+}
+
+.password-toggle:hover {
+    color: #283593;
+}
+
+.password-toggle:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.password-toggle svg {
+    width: 20px;
+    height: 20px;
+    pointer-events: none;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    body {
+        padding: 0;
+        align-items: flex-start;
+        justify-content: center;
+        min-height: 100vh;
+        height: 100vh;
+    }
+
+    .container {
+        padding: 20px 15px;
+        padding-top: 50px;
+        align-items: flex-start;
+        justify-content: center;
+        width: 100%;
+        min-height: 100vh;
+    }
+
+    .login-card {
+        padding: 30px 20px;
+        border-radius: 15px;
+        max-width: 100%;
+        margin: 0;
+        max-height: calc(100vh - 100px);
+        overflow-y: auto;
+    }
+
+    .login-card h1 {
+        font-size: 24px;
+        margin-bottom: 25px;
+    }
+
+    .login-card input {
+        padding: 14px 15px;
+        font-size: 16px;
+        margin-bottom: 18px;
+    }
+
+    .login-card button {
+        padding: 14px;
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 0;
+        align-items: flex-start;
+        justify-content: center;
+        min-height: 100vh;
+        height: 100vh;
+    }
+
+    .container {
+        padding: 15px 10px;
+        padding-top: 25vh;
+        padding-bottom: 0;
+        align-items: flex-start;
+        justify-content: center;
+        width: 100%;
+        min-height: 100vh;
+    }
+
+    .login-card {
+        padding: 25px 18px;
+        border-radius: 12px;
+        max-width: 100%;
+        max-height: 75vh;
+        overflow-y: auto;
+    }
+
+    .password-toggle {
+        right: 12px;
+    }
+
+    .password-wrapper input {
+        padding-right: 42px;
+    }
+
+    .login-card h1 {
+        font-size: 22px;
+        margin-bottom: 20px;
+    }
+
+    .login-card input {
+        padding: 12px 14px;
+        font-size: 16px;
+        margin-bottom: 16px;
+        border-radius: 10px;
+    }
+
+    .login-card button {
+        padding: 13px;
+        font-size: 16px;
+        border-radius: 10px;
+    }
+
+    .login-card label {
+        font-size: 13px;
+        margin-bottom: 6px;
+    }
+
+    .forgot-password {
+        margin-top: 12px;
+    }
+
+    .links {
+        margin-top: 12px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 360px) {
+    body {
+        padding: 0;
+        align-items: flex-start;
+        justify-content: center;
+        min-height: 100vh;
+        height: 100vh;
+    }
+
+    .container {
+        padding: 12px 8px;
+        padding-top: 25vh;
+        padding-bottom: 0;
+        align-items: flex-start;
+        justify-content: center;
+        width: 100%;
+        min-height: 100vh;
+    }
+
+    .login-card {
+        padding: 20px 15px;
+        max-width: 100%;
+        max-height: 75vh;
+        overflow-y: auto;
+    }
+
+    .password-toggle {
+        right: 10px;
+    }
+
+    .password-wrapper input {
+        padding-right: 40px;
+    }
+
+    .login-card h1 {
+        font-size: 20px;
+        margin-bottom: 18px;
+    }
+
+    .login-card input {
+        padding: 11px 12px;
+        margin-bottom: 14px;
+    }
+
+    .login-card button {
+        padding: 12px;
+    }
+
+    .login-card label {
+        font-size: 12px;
+    }
+
+    .links {
+        font-size: 12px;
+    }
+}
+
+/* Prevent horizontal scroll */
+html {
+    overflow-x: hidden;
+    width: 100%;
+    height: 100%;
+}
+
+/* Ensure inputs don't zoom on iOS Safari */
+@media screen and (max-width: 768px) {
+    input[type="text"],
+    input[type="password"],
+    input[type="email"],
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+}
+
+/* Fix for mobile viewport height */
+@supports (-webkit-touch-callout: none) {
+    body {
+        min-height: -webkit-fill-available;
+    }
+}
+/* General */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', sans-serif;
+    background: #f4f6f8;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    height: 100vh;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* Container */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    min-height: 100vh;
+    padding-top: 60px;
+}
+
+/* Login Card */
+.login-card {
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 8px 18px rgba(57, 73, 171, 0.15);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.login-card h1 {
+    margin-bottom: 30px;
+    font-weight: 700;
+    font-size: 28px;
+    color: #1a237e;
+}
+
+/* Form */
+.login-card form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.login-card label {
+    text-align: left;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #1a237e;
+    font-size: 14px;
+}
+
+.login-card input {
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    border: 1.5px solid #c5cae9;
+    border-radius: 12px;
+    background: #ffffff;
+    font-size: 16px;
+    outline: none;
+    transition: all 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: 'Roboto', sans-serif;
+    color: #1a237e;
+}
+
+.login-card input:focus {
+    border-color: #283593;
+    box-shadow: 0 0 0 3px rgba(40, 53, 147, 0.1);
+}
+
+.login-card input::placeholder {
+    color: #9fa8da;
+}
+
+/* Button */
+.login-card button {
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #283593 0%, #3949ab 100%);
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    color: #ffffff;
+    font-family: 'Roboto', sans-serif;
+    box-sizing: border-box;
+    box-shadow: 0 4px 12px rgba(40, 53, 147, 0.3);
+    margin-top: 10px;
+}
+
+.login-card button:hover {
+    background: linear-gradient(135deg, #3949ab 0%, #283593 100%);
+    box-shadow: 0 6px 20px rgba(40, 53, 147, 0.4);
+    transform: translateY(-2px);
+}
+
+.login-card button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(40, 53, 147, 0.3);
+}
+
+/* Links */
+.login-card .links {
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.login-card .links a {
+    color: #283593;
+    text-decoration: none;
+    transition: 0.3s;
+    font-weight: 600;
+}
+
+.login-card .links a:hover {
+    color: #1a237e;
+    text-decoration: underline;
+}
+
+/* Forgot Password Link */
+.forgot-password a {
+    color: #283593;
+    font-weight: 600;
+}
+
+.forgot-password a:hover {
+    color: #1a237e;
+}
+
+/* Password Toggle Icon */
+.password-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.password-wrapper input {
+    padding-right: 45px;
+    margin-bottom: 0;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #9fa8da;
+    transition: color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    user-select: none;
+    z-index: 10;
+}
+
+.password-toggle:hover {
+    color: #283593;
+}
+
+.password-toggle:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.password-toggle svg {
+    width: 20px;
+    height: 20px;
+    pointer-events: none;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    body {
+        padding: 0;
+        align-items: flex-start;
+        justify-content: center;
+        min-height: 100vh;
+        height: 100vh;
+    }
+
+    .container {
+        padding: 20px 15px;
+        padding-top: 50px;
+        align-items: flex-start;
+        justify-content: center;
+        width: 100%;
+        min-height: 100vh;
+    }
+
+    .login-card {
+        padding: 30px 20px;
+        border-radius: 15px;
+        max-width: 100%;
+        margin: 0;
+        max-height: calc(100vh - 100px);
+        overflow-y: auto;
+    }
+
+    .login-card h1 {
+        font-size: 24px;
+        margin-bottom: 25px;
+    }
+
+    .login-card input {
+        padding: 14px 15px;
+        font-size: 16px;
+        margin-bottom: 18px;
+    }
+
+    .login-card button {
+        padding: 14px;
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 0;
+        align-items: flex-start;
+        justify-content: center;
+        min-height: 100vh;
+        height: 100vh;
+    }
+
+    .container {
+        padding: 15px 10px;
+        padding-top: 25vh;
+        padding-bottom: 0;
+        align-items: flex-start;
+        justify-content: center;
+        width: 100%;
+        min-height: 100vh;
+    }
+
+    .login-card {
+        padding: 25px 18px;
+        border-radius: 12px;
+        max-width: 100%;
+        max-height: 75vh;
+        overflow-y: auto;
+    }
+
+    .password-toggle {
+        right: 12px;
+    }
+
+    .password-wrapper input {
+        padding-right: 42px;
+    }
+
+    .login-card h1 {
+        font-size: 22px;
+        margin-bottom: 20px;
+    }
+
+    .login-card input {
+        padding: 12px 14px;
+        font-size: 16px;
+        margin-bottom: 16px;
+        border-radius: 10px;
+    }
+
+    .login-card button {
+        padding: 13px;
+        font-size: 16px;
+        border-radius: 10px;
+    }
+
+    .login-card label {
+        font-size: 13px;
+        margin-bottom: 6px;
+    }
+
+    .forgot-password {
+        margin-top: 12px;
+    }
+
+    .links {
+        margin-top: 12px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 360px) {
+    body {
+        padding: 0;
+        align-items: flex-start;
+        justify-content: center;
+        min-height: 100vh;
+        height: 100vh;
+    }
+
+    .container {
+        padding: 12px 8px;
+        padding-top: 25vh;
+        padding-bottom: 0;
+        align-items: flex-start;
+        justify-content: center;
+        width: 100%;
+        min-height: 100vh;
+    }
+
+    .login-card {
+        padding: 20px 15px;
+        max-width: 100%;
+        max-height: 75vh;
+        overflow-y: auto;
+    }
+
+    .password-toggle {
+        right: 10px;
+    }
+
+    .password-wrapper input {
+        padding-right: 40px;
+    }
+
+    .login-card h1 {
+        font-size: 20px;
+        margin-bottom: 18px;
+    }
+
+    .login-card input {
+        padding: 11px 12px;
+        margin-bottom: 14px;
+    }
+
+    .login-card button {
+        padding: 12px;
+    }
+
+    .login-card label {
+        font-size: 12px;
+    }
+
+    .links {
+        font-size: 12px;
+    }
+}
+
+/* Prevent horizontal scroll */
+html {
+    overflow-x: hidden;
+    width: 100%;
+    height: 100%;
+}
+
+/* Ensure inputs don't zoom on iOS Safari */
+@media screen and (max-width: 768px) {
+    input[type="text"],
+    input[type="password"],
+    input[type="email"],
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+}
+
+/* Fix for mobile viewport height */
+@supports (-webkit-touch-callout: none) {
+    body {
+        min-height: -webkit-fill-available;
+    }
+}

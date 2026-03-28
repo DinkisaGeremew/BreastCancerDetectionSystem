@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+instance/
+users.db
+uploads/*
+!uploads/.gitkeep
+static/uploads/*
+!static/uploads/.gitkeep
+.env
+*.h5

@@ -1,0 +1,3501 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{{ texts.page_title }} - Breast Cancer Detection System</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/universal-notifications.css') }}" />
+<script src="{{ url_for('static', filename='js/universal-notifications.js') }}"></script>
+<style>
+  :root {
+    --primary: #0078D4;
+    --primary-dark: #005A9E;
+    --primary-light: #4A9EFF;
+    --secondary: #0063B1;
+    --accent: #fbc02d;
+    --accent-light: #f9a825;
+    --dark: #1F1F1F;
+    --light: #F3F3F3;
+    --gray: #6c757d;
+    --success: #107C10;
+    --card-bg: rgba(255, 255, 255, 0.98);
+    --shadow: 0 10px 30px rgba(0, 120, 212, 0.15);
+    --gradient: linear-gradient(135deg, #0078D4 0%, #0063B1 100%);
+    --medical-gradient: linear-gradient(135deg, #0078D4 0%, #0063B1 100%);
+    --sidebar-width: 280px;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--light);
+    color: var(--dark);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  input, textarea, select, .user-select-text {
+    user-select: text !important;
+  }
+
+  /* SweetAlert2 Toast Customization */
+  .swal-toast-popup {
+    font-size: 16px !important;
+    padding: 16px 20px !important;
+    min-width: 300px !important;
+  }
+  
+  .swal2-toast .swal2-title {
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+  }
+  
+  .swal2-toast .swal2-icon {
+    margin: 0 10px 0 0 !important;
+  }
+  
+  /* Dashboard container */
+  .dashboard-container {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+  
+  /* Sidebar styles */
+  .sidebar {
+    width: var(--sidebar-width);
+    background: var(--medical-gradient);
+    color: white;
+    padding: 25px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.1);
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+  
+  /* Mobile sidebar toggle button */
+  .sidebar-toggle-btn {
+    display: none;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: #fbc02d;
+    border: 2px dashed #f9a825;
+    color: #1a237e;
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 16px;
+    cursor: pointer;
+    z-index: 1100;
+    user-select: none;
+    transition: background-color 0.3s, color 0.3s;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .sidebar-toggle-btn:hover,
+  .sidebar-toggle-btn:focus {
+    background-color: #f9a825;
+    color: #fff;
+    outline: none;
+  }
+  
+  /* Overlay for mobile when sidebar is open */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+  }
+  
+  .profile {
+    text-align: center;
+    margin-bottom: 35px;
+    flex-shrink: 0;
+    margin-top: 10px;
+    padding: 0 25px;
+  }
+  
+  .profile img {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    object-fit: cover;
+    pointer-events: none;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  }
+  
+  .profile h3 {
+    margin-top: 15px;
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+  }
+  
+  .profile p {
+    margin: 8px 0 0;
+    font-weight: 500;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.15);
+    padding: 8px 16px;
+    border-radius: 20px;
+    display: inline-block;
+  }
+  
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+    width: 100%;
+    margin: 0;
+    flex-shrink: 0;
+  }
+  
+  .sidebar ul li {
+    padding: 16px 28px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-left: 4px solid transparent;
+    margin: 5px 0;
+    position: relative;
+    pointer-events: auto !important;
+    user-select: none;
+    -webkit-tap-highlight-color: rgba(255, 255, 255, 0.2);
+    touch-action: manipulation;
+  }
+  
+  .sidebar ul li a {
+    color: inherit;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+  }
+  
+  .sidebar ul li:hover,
+  .sidebar ul li.active {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-left-color: var(--accent);
+    transform: translateX(5px);
+  }
+  
+  .sidebar ul li:active {
+    background-color: rgba(255, 255, 255, 0.3) !important;
+  }
+  
+  .submenu {
+    display: none;
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+  
+  .submenu li {
+    padding-left: 50px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+    border-left: none;
+    pointer-events: auto !important;
+    -webkit-tap-highlight-color: rgba(255, 255, 255, 0.2);
+    touch-action: manipulation;
+  }
+  
+  .submenu li:hover,
+  .submenu li.active {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+  
+  .submenu li:active {
+    background-color: rgba(255, 255, 255, 0.3) !important;
+  }
+  
+  .submenu.show {
+    display: block;
+  }
+  
+  .logout-btn {
+    margin-top: auto;
+    width: 100%;
+    padding: 16px 28px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-weight: 600;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+  }
+  
+  .logout-btn a {
+    color: inherit;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    cursor: pointer;
+  }
+  
+  .logout-btn:hover,
+  .logout-btn:focus {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Main content */
+  .main-content {
+    flex: 1;
+    padding: 35px;
+    overflow-y: auto;
+    position: relative;
+    color: var(--dark);
+    min-height: 100vh;
+    box-sizing: border-box;
+    margin-left: var(--sidebar-width);
+    transition: margin-left 0.3s ease;
+    background: var(--light);
+  }
+  
+  .main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 35px;
+    padding-bottom: 25px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    position: relative;
+  }
+  
+  .main-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--dark);
+    background: var(--medical-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    flex: 1;
+  }
+  
+  .current-date {
+    background: var(--medical-gradient);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 15px;
+    font-size: 14px;
+    font-weight: 600;
+    pointer-events: none;
+    user-select: none;
+    white-space: nowrap;
+    box-shadow: 0 5px 15px rgba(46, 139, 87, 0.3);
+    margin-left: 15px;
+  }
+  
+  /* Stats container */
+  .stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+    margin-top: 35px;
+  }
+  
+  .stat-box {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    transition: all 0.3s ease;
+    border-left: 5px solid var(--primary);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .stat-box:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+  }
+  
+  .stat-box h3 {
+    font-size: 16px;
+    margin-bottom: 15px;
+    color: var(--gray);
+    font-weight: 600;
+  }
+  
+  .stat-box p {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--primary);
+  }
+  
+  .stat-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: var(--medical-gradient);
+  }
+  
+  /* Overview content - Split into two sections */
+  .overview-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-top: 35px;
+  }
+  
+  .overview-section {
+    background: var(--card-bg);
+    padding: 35px;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    border-left: 5px solid var(--secondary);
+  }
+  
+  .overview-section h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .overview-section h2 i {
+    color: var(--accent);
+  }
+  
+  .overview-section p {
+    color: var(--gray);
+    line-height: 1.7;
+    font-size: 16px;
+    margin-bottom: 0;
+  }
+  
+  .overview-section:first-child {
+    border-left-color: var(--primary);
+  }
+  
+  .overview-section:last-child {
+    border-left-color: var(--accent);
+  }
+  
+  /* Section management */
+  .section {
+    display: none;
+  }
+  .section.active {
+    display: block;
+  }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin-top: 30px;
+    color: var(--dark);
+  }
+  
+  th, td {
+    text-align: left;
+    padding: 18px 22px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+  
+  th {
+    background: var(--medical-gradient);
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  
+  tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+  
+  tr:hover {
+    background-color: rgba(70, 130, 180, 0.1);
+    cursor: default;
+  }
+  
+  /* Buttons */
+  button {
+    background: var(--medical-gradient);
+    border: none;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    margin-right: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(46, 139, 87, 0.3);
+  }
+  
+  button:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(46, 139, 87, 0.4);
+  }
+  
+  button:disabled {
+    opacity: 0.6;
+    cursor: default;
+    transform: none;
+  }
+  
+  /* Search Bar */
+  .search-bar {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 12px;
+  }
+  
+  .search-bar input {
+    flex: 1;
+    padding: 14px 18px;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    user-select: text;
+  }
+  
+  .search-bar input:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.1);
+  }
+  
+  /* Inputs inside table */
+  input.reply-input {
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    width: 100%;
+    font-size: 14px;
+    transition: all 0.3s ease;
+  }
+  
+  input.reply-input:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.1);
+  }
+  
+  /* Change Password Form Styling */
+  .change-password-form,
+  .profile-picture-form,
+  .add-user-form {
+    background: var(--card-bg);
+    max-width: 500px;
+    padding: 35px;
+    margin: 40px auto;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    color: var(--dark);
+    border-left: 5px solid var(--primary);
+  }
+  
+  .change-password-form h2,
+  .profile-picture-form h2,
+  .add-user-form h2 {
+    margin-bottom: 25px;
+    text-align: center;
+    color: var(--primary);
+    font-weight: 700;
+  }
+  
+  .change-password-form label,
+  .profile-picture-form label,
+  .add-user-form label {
+    display: block;
+    margin-bottom: 12px;
+    font-weight: 600;
+    color: var(--dark);
+  }
+  
+  .change-password-form input[type="password"],
+  .profile-picture-form input[type="file"],
+  .add-user-form input[type="text"],
+  .add-user-form input[type="password"],
+  .add-user-form select {
+    width: 100%;
+    padding: 14px 18px;
+    margin-bottom: 25px;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+  }
+  
+  .change-password-form input[type="password"]:focus,
+  .profile-picture-form input[type="file"]:focus,
+  .add-user-form input[type="text"]:focus,
+  .add-user-form input[type="password"]:focus,
+  .add-user-form select:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.1);
+  }
+  
+  .change-password-form button,
+  .profile-picture-form button,
+  .add-user-form button {
+    width: 100%;
+    padding: 16px;
+    font-weight: 700;
+    font-size: 16px;
+    margin-top: 15px;
+  }
+
+  /* Edit User Form Styling */
+  .edit-user-form {
+    background: var(--card-bg);
+    max-width: 500px;
+    padding: 35px;
+    margin: 40px auto;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    color: var(--dark);
+    border-left: 5px solid var(--primary);
+  }
+  
+  .edit-user-form h2 {
+    margin-bottom: 25px;
+    text-align: center;
+    color: var(--primary);
+    font-weight: 700;
+  }
+  
+  .edit-user-form label {
+    display: block;
+    margin-bottom: 12px;
+    font-weight: 600;
+    color: var(--dark);
+  }
+  
+  .edit-user-form input[type="text"],
+  .edit-user-form select {
+    width: 100%;
+    padding: 14px 18px;
+    margin-bottom: 25px;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    font-size: 15px;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+  }
+  
+  .edit-user-form input[type="text"]:focus,
+  .edit-user-form select:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.1);
+  }
+  
+  .edit-user-form button {
+    width: 100%;
+    padding: 16px;
+    font-weight: 700;
+    font-size: 16px;
+    margin-top: 15px;
+  }
+
+  /* Notification Bell - FIXED POSITIONING */
+  .notification-bell {
+    position: relative;
+    cursor: pointer;
+    margin-left: 15px;
+    margin-right: 15px;
+    color: white;
+    font-size: 20px;
+    padding: 12px;
+    border-radius: 50%;
+    background: var(--medical-gradient);
+    transition: all 0.3s ease;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 45px;
+    height: 45px;
+    box-shadow: 0 4px 12px rgba(0, 120, 212, 0.3);
+    z-index: 10;
+  }
+  
+  .notification-bell:hover {
+    background: var(--primary-dark);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(46, 139, 87, 0.4);
+  }
+  
+  .notification-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: var(--accent);
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    animation: pulse 2s infinite;
+    border: 2px solid white;
+  }
+  
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(255, 107, 107, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
+    }
+  }
+  
+  /* Notification Panel */
+  .notification-panel {
+    position: fixed;
+    top: 100px;
+    right: 35px;
+    width: 350px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    z-index: 1001;
+    display: none;
+    overflow: hidden;
+    max-height: 80vh;
+    border: 1px solid #e9ecef;
+  }
+  
+  .notification-panel.active {
+    display: block;
+  }
+  
+  .notification-header {
+    padding: 20px;
+    background: var(--medical-gradient);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .notification-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  
+  .notification-header button {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 14px;
+    padding: 5px 10px;
+    box-shadow: none;
+    margin: 0;
+  }
+  
+  .notification-header button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: none;
+  }
+  
+  .notification-list {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  
+  .notification-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  
+  .notification-item:hover {
+    background: #f9f9f9;
+  }
+  
+  .notification-item.unread {
+    background: #f0f7ff;
+    border-left: 3px solid var(--primary);
+  }
+  
+  .notification-title {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: var(--dark);
+    font-size: 14px;
+  }
+  
+  .notification-message {
+    font-size: 13px;
+    color: var(--gray);
+    margin-bottom: 5px;
+    line-height: 1.4;
+  }
+  
+  .notification-time {
+    font-size: 11px;
+    color: #aaa;
+  }
+  
+  .notification-empty {
+    padding: 30px 20px;
+    text-align: center;
+    color: var(--gray);
+  }
+  
+  .notification-empty i {
+    font-size: 40px;
+    margin-bottom: 15px;
+    opacity: 0.5;
+  }
+  
+  /* Notification Footer */
+  .notification-footer {
+    padding: 15px 20px;
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+    text-align: center;
+  }
+  
+  .notification-footer button {
+    background: var(--medical-gradient);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+  }
+  
+  .notification-footer button:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 120, 212, 0.3);
+  }
+  
+  .clear-all-btn {
+    background: transparent !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    padding: 6px 12px !important;
+    border-radius: 6px !important;
+    font-size: 13px !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+  
+  .clear-all-btn:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    transform: none !important;
+  }
+
+  /* Feedback sender role badge */
+  .sender-role {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 8px;
+    text-transform: uppercase;
+  }
+  
+  .sender-role.patient {
+    background: #4CAF50;
+    color: white;
+  }
+  
+  .sender-role.doctor {
+    background: #2196F3;
+    color: white;
+  }
+  
+  .sender-role.xray {
+    background: #FF9800;
+    color: white;
+  }
+  
+  .sender-role.reception {
+    background: #9C27B0;
+    color: white;
+  }
+  
+  .sender-role.healthofficer {
+    background: #00BCD4;
+    color: white;
+  }
+  
+  /* Mobile-specific styles */
+  @media (max-width: 1024px) {
+    .sidebar {
+      width: 240px;
+    }
+    .main-content {
+      margin-left: 240px;
+      padding: 30px;
+    }
+    .overview-content {
+      grid-template-columns: 1fr;
+      gap: 25px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .sidebar {
+      width: 240px;
+    }
+    .main-content {
+      margin-left: 0;
+      padding: 25px;
+    }
+    .main-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 20px;
+    }
+    .current-date {
+      align-self: flex-start;
+      margin-left: 0;
+    }
+    .stats-container {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .notification-panel {
+      right: 20px;
+      width: 300px;
+      top: 120px;
+    }
+    .notification-bell {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      margin: 0;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    /* Show mobile toggle button */
+    .sidebar-toggle-btn {
+      display: flex;
+    }
+    
+    /* Sidebar hidden by default on mobile */
+    .sidebar {
+      transform: translateX(-100%);
+    }
+    
+    /* Sidebar visible when active */
+    .sidebar.mobile-active {
+      transform: translateX(0);
+    }
+    
+    /* Show overlay when sidebar is active */
+    .sidebar-overlay.active {
+      display: block;
+    }
+    
+    .main-content {
+      padding: 20px;
+      margin-left: 0;
+    }
+    
+    .main-header h1 {
+      font-size: 26px;
+      margin-top: 50px;
+    }
+    
+    .current-date {
+      font-size: 13px;
+      padding: 10px 16px;
+    }
+    
+    .stats-container {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    
+    .stat-box {
+      padding: 25px;
+    }
+    
+    .stat-box h3 {
+      font-size: 15px;
+    }
+    
+    .stat-box p {
+      font-size: 32px;
+    }
+    
+    .overview-content {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    
+    .overview-section {
+      padding: 25px;
+    }
+    
+    table {
+      font-size: 14px;
+    }
+    
+    th, td {
+      padding: 14px 16px;
+    }
+    
+    .search-bar input,
+    input.reply-input {
+      font-size: 14px;
+      padding: 12px 14px;
+    }
+    
+    button {
+      font-size: 14px;
+      padding: 10px 14px;
+    }
+    
+    .change-password-form,
+    .profile-picture-form,
+    .add-user-form,
+    .edit-user-form {
+      padding: 25px;
+      margin: 20px auto;
+    }
+    
+    .change-password-form input[type="password"],
+    .profile-picture-form input[type="file"],
+    .add-user-form input[type="text"],
+    .add-user-form input[type="password"],
+    .add-user-form select,
+    .edit-user-form input[type="text"],
+    .edit-user-form select {
+      font-size: 14px;
+      padding: 12px 14px;
+    }
+    
+    .change-password-form button,
+    .profile-picture-form button,
+    .add-user-form button,
+    .edit-user-form button {
+      font-size: 14px;
+      padding: 14px;
+    }
+    
+    .notification-panel {
+      width: calc(100% - 40px);
+      right: 20px;
+      top: 100px;
+    }
+    
+    .notification-bell {
+      width: 45px;
+      height: 45px;
+      font-size: 20px;
+      top: 15px;
+      right: 15px;
+    }
+    
+    /* Stack table columns on very small screens */
+    @media (max-width: 360px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+      
+      thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+      }
+      
+      tr {
+        margin-bottom: 20px;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 18px;
+      }
+      
+      td {
+        border: none;
+        position: relative;
+        padding-left: 50%;
+      }
+      
+      td:before {
+        position: absolute;
+        top: 14px;
+        left: 14px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        font-weight: bold;
+        color: var(--primary);
+      }
+      
+      /* Label each cell based on table context */
+      #feedbackTable td:nth-of-type(1):before { content: "#:"; }
+      #feedbackTable td:nth-of-type(2):before { content: "{{ texts.user_username }}:"; }
+      #feedbackTable td:nth-of-type(3):before { content: "{{ texts.user_role }}:"; }
+      #feedbackTable td:nth-of-type(4):before { content: "{{ texts.feedback_content }}:"; }
+      #feedbackTable td:nth-of-type(5):before { content: "{{ texts.feedback_content }} {{ 'Reply' if lang == 'en' else 'Deebii' }}:"; }
+      #feedbackTable td:nth-of-type(6):before { content: "{{ texts.sidebar.settings }}:"; }
+      #feedbackTable td:nth-of-type(7):before { content: "{{ texts.feedback_date }}:"; }
+      
+      #approveTable td:nth-of-type(1):before { content: "#:"; }
+      #approveTable td:nth-of-type(2):before { content: "{{ texts.user_username }}:"; }
+      #approveTable td:nth-of-type(3):before { content: "{{ texts.user_role }}:"; }
+      #approveTable td:nth-of-type(4):before { content: "{{ 'Registered At' if lang == 'en' else 'Galmee Guyyaa' }}:"; }
+      #approveTable td:nth-of-type(5):before { content: "{{ 'Approve' if lang == 'en' else 'Eeggachi' }}:"; }
+    }
+  }
+
+  /* For desktop - hide toggle button */
+  @media (min-width: 481px) {
+    .sidebar-toggle-btn {
+      display: none;
+    }
+  }
+
+  /* Header layout fixes */
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    flex: 1;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+</style>
+</head>
+<body data-user-role="admin">
+
+<!-- Mobile sidebar toggle button -->
+<button class="sidebar-toggle-btn" aria-label="Toggle sidebar" aria-expanded="false" aria-controls="sidebar">☰</button>
+
+<!-- Overlay for mobile sidebar -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="dashboard-container">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" role="navigation" aria-label="{{ texts.sidebar.overview }} navigation" id="sidebar">
+    <div class="profile" aria-label="{{ texts.profile_role }} profile">
+      {% if current_user.profile_picture and current_user.profile_picture != 'default_avatar.png' %}
+        <img src="{{ url_for('profile_picture', filename=current_user.profile_picture) }}" alt="{{ texts.profile_role }} Profile" />
+      {% else %}
+        <img src="{{ url_for('static', filename='images/default_avatar.png') }}" alt="{{ texts.profile_role }} Profile" />
+      {% endif %}
+      <h3>{{ current_user.username }}</h3>
+      <p>{{ texts.profile_role }}</p>
+    </div>
+
+    <ul>
+      <li class="active" onclick="showSection('overview', this)" role="button" tabindex="0" onkeydown="if(event.key==='Enter'){showSection('overview', this)}">
+        <i class="fas fa-home"></i> {{ texts.sidebar.overview }}
+      </li>
+      <li id="manageAccountBtn" role="button" tabindex="0" aria-expanded="false" aria-controls="manageAccountSubmenu" onkeydown="if(event.key==='Enter'){this.click()}">
+        <i class="fas fa-users"></i> {{ texts.sidebar.users }} <i class="fas fa-chevron-down" style="margin-left: auto; font-size: 12px;"></i>
+      </li>
+      <ul class="submenu" id="manageAccountSubmenu" aria-label="{{ texts.sidebar.users }} submenu" role="menu">
+        <li role="menuitem" tabindex="0" onclick="showUserSection('patient', this)" onkeydown="if(event.key==='Enter'){this.click()}">
+          <i class="fas fa-user-injured"></i> {{ texts.sidebar.users == 'Users' and 'Patient' or 'Dhukkubsattootaa' }}
+        </li>
+        <li role="menuitem" tabindex="0" onclick="showUserSection('doctor', this)" onkeydown="if(event.key==='Enter'){this.click()}">
+          <i class="fas fa-user-md"></i> {{ texts.sidebar.users == 'Users' and 'Doctor' or 'Ogeessa Fayyaa' }}
+        </li>
+        <li role="menuitem" tabindex="0" onclick="showUserSection('xrayspecialist', this)" onkeydown="if(event.key==='Enter'){this.click()}">
+          <i class="fas fa-x-ray"></i> {{ texts.sidebar.users == 'Users' and 'X-ray Specialist' or 'Ogeessa X-ray' }}
+        </li>
+        <li role="menuitem" tabindex="0" onclick="showUserSection('reception', this)" onkeydown="if(event.key==='Enter'){this.click()}">
+          <i class="fas fa-user-tie"></i> {{ texts.sidebar.users == 'Users' and 'Reception' or 'Mana Galmee' }}
+        </li>
+        <li role="menuitem" tabindex="0" onclick="showUserSection('healthofficer', this)" onkeydown="if(event.key==='Enter'){this.click()}">
+          <i class="fas fa-user-nurse"></i> {{ texts.sidebar.users == 'Users' and 'Health Officer' or 'Ogeessa Fayyaa' }}
+        </li>
+      </ul>
+      <li onclick="showSection('feedback', this)" role="button" tabindex="0" onkeydown="if(event.key==='Enter'){showSection('feedback', this)}">
+        <i class="fas fa-comment-medical"></i> {{ texts.sidebar.feedback }}
+      </li>
+      <li id="approveUserBtn" role="button" tabindex="0" onkeydown="if(event.key==='Enter'){this.click()}">
+        <i class="fas fa-user-check"></i> {{ texts.sidebar.users }} {{ "Approve" if lang == "en" else "Mirkaneessa" }}
+      </li>
+      <li id="settingsBtn" role="button" tabindex="0" aria-expanded="false" aria-controls="settingsSubmenu" onkeydown="if(event.key==='Enter'){this.click()}">
+        <i class="fas fa-cog"></i> {{ texts.sidebar.settings }} <i class="fas fa-chevron-down" style="margin-left: auto; font-size: 12px;"></i>
+      </li>
+      <ul class="submenu" id="settingsSubmenu" aria-label="{{ texts.sidebar.settings }} submenu" role="menu">
+        <li role="menuitem" tabindex="0" onclick="loadProfilePicture()" onkeydown="if(event.key==='Enter'){this.click()}">
+          <i class="fas fa-user-circle"></i> {% if lang == 'or' %}Suuraa Profaayilii{% else %}Profile Picture{% endif %}
+        </li>
+        <li role="menuitem" tabindex="0" onclick="loadChangePassword()" onkeydown="if(event.key==='Enter'){this.click()}">
+          <i class="fas fa-key"></i> {{ texts.sidebar.change_password }}
+        </li>
+        <li role="menuitem" tabindex="0" onclick="loadAddUser()" onkeydown="if(event.key==='Enter'){this.click()}">
+          <i class="fas fa-user-plus"></i> {{ "Add User" if lang == "en" else "Fayyadamaa Galmeessuu" }}
+        </li>
+        <li role="menuitem" tabindex="0" onclick="loadSecurityManagement()" onkeydown="if(event.key==='Enter'){this.click()}">
+          <i class="fas fa-shield-alt"></i> {{ "Security Management" if lang == "en" else "Bulchiinsa Nageenyaa" }}
+        </li>
+      </ul>
+      <li class="logout-btn" role="listitem">
+        <a href="{{ url_for('logout') }}" role="link" tabindex="0" aria-label="{{ texts.sidebar.logout }}">
+          <i class="fas fa-sign-out-alt"></i> {{ texts.sidebar.logout }}
+        </a>
+      </li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content" id="mainContent" role="main">
+    <div class="main-header">
+      <div class="header-content">
+        <div class="header-left">
+          <h1>{{ texts.welcome.format(current_user.username) }}</h1>
+        </div>
+        <div class="header-right">
+          <div class="notification-bell" id="notificationBell" aria-label="Notifications" role="button" tabindex="0">
+            <i class="fas fa-bell"></i>
+            <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+          </div>
+          <span class="current-date" id="currentDate" aria-live="polite" aria-atomic="true" aria-label="{{ texts.current_date_aria }}"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Panel -->
+    <div class="notification-panel" id="notificationPanel" role="dialog" aria-label="Notifications" aria-modal="true">
+      <div class="notification-header">
+        <h3>{{ 'Notifications' if lang == 'en' else 'Beekumsa' }}</h3>
+        <div style="display: flex; gap: 10px;">
+          <button id="markAllReadBtn">{{ 'Mark all as read' if lang == 'en' else 'Hundaa akka dubbifametti galmeessi' }}</button>
+          <button class="clear-all-btn" id="clearAllBtn">{{ 'Clear All' if lang == 'en' else 'Hunda Hsaquu' }}</button>
+        </div>
+      </div>
+      <div class="notification-list" id="notificationList">
+        <!-- Notifications will be loaded here -->
+      </div>
+      <div class="notification-footer">
+        <button id="viewAllBtn">{{ 'View All Notifications' if lang == 'en' else 'yaadannoo Hunda Ilaali' }}</button>
+      </div>
+    </div>
+
+    <!-- Overview Section -->
+    <div id="overview" class="section active" role="region" aria-label="{{ texts.sidebar.overview }}">
+      <div class="stats-container">
+        <div class="stat-box" role="group" aria-label="{{ texts.total_patients }}">
+          <h3>{{ texts.total_patients }}</h3>
+          <p>{{ total_patients }}</p>
+        </div>
+
+        <div class="stat-box" role="group" aria-label="{{ texts.total_doctors }}">
+          <h3>{{ texts.total_doctors }}</h3>
+          <p>{{ total_doctors }}</p>
+        </div>
+
+        <div class="stat-box" role="group" aria-label="{{ texts.total_xrayspecialists }}">
+          <h3>{{ texts.total_xrayspecialists }}</h3>
+          <p>{{ total_xrayspecialists }}</p>
+        </div>
+        <div class="stat-box" role="group" aria-label="{{ texts.total_reception }}">
+          <h3>{{ texts.total_reception }}</h3>
+          <p>{{ total_reception }}</p>
+        </div>
+        <div class="stat-box" role="group" aria-label="{{ texts.total_healthofficer }}">
+          <h3>{{ texts.total_healthofficer }}</h3>
+          <p>{{ total_healthofficer }}</p>
+        </div>
+      </div>
+
+      <!-- Split overview text into two sections -->
+      <div class="overview-content">
+        <div class="overview-section">
+          <h2><i class="fas fa-chart-line"></i> {% if lang == 'or' %}Waliigala Sirna{% else %}System Overview{% endif %}</h2>
+          <p>{% if lang == 'or' %}Baga nagaan dhuftan gara Fuula Admin Sirna Qorannoo Kaansarii Harmaa. Waltajjiin kun fayyadamtoota hunda bulchuuf, yaada hordofuuf, fi hojii sirna irratti ilaaluuf si dandeessisa. Fuulli kun odeeffannoo yeroo qabatamaa waa'ee lakkoofsa fayyadamtootaa fi raawwii sirna ni kenna.{% else %}Welcome to the Breast Cancer Detection System Admin Dashboard. This comprehensive platform allows you to efficiently manage all users, monitor feedback, and oversee system operations. The dashboard provides real-time insights into user statistics and system performance metrics.{% endif %}</p>
+        </div>
+        
+        <div class="overview-section">
+          <h2><i class="fas fa-tasks"></i> {% if lang == 'or' %}Meeshaalee Bulchiinsa{% else %}Management Tools{% endif %}</h2>
+          <p>{% if lang == 'or' %}Kutaalee bulchiinsa adda addaa seenuuf baafata navigeeshinii fayyadami. Akkaawuntii fayyadamtootaa bulchuu, galmee haaraa mirkaneessuu, yaada dhukkubsattootaaf deebii kennuu, fi qindaa'inoota sirna sirreessuu dandeessa. Hojiin bulchiinsa hundi gahumsa fi salphina fayyadamaaf qophaa'eera.{% else %}Use the navigation menu to access different administrative sections. You can manage user accounts, approve new registrations, respond to patient feedback, and adjust system settings. All management functions are designed for efficiency and ease of use.{% endif %}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feedback Section -->
+    <div id="feedback" class="section" role="region" aria-label="{{ texts.sidebar.feedback }}">
+      <h2>{{ texts.feedback_list }}</h2>
+      <table id="feedbackTable" aria-describedby="feedbackDescription">
+        <caption id="feedbackDescription" class="sr-only">{{ texts.feedback_list }}</caption>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>{{ texts.user_username }}</th>
+            <th>{{ texts.user_role }}</th>
+            <th>{{ texts.feedback_content }}</th>
+            <th>{{ texts.feedback_content }} {{ 'Reply' if lang == 'en' else 'Deebii' }}</th>
+            <th>{{ texts.sidebar.settings }}</th>
+            <th>{{ texts.feedback_date }}</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- Dynamic Content Section (Manage Users, Change Password, etc.) -->
+    <div id="dynamicContent" role="region" aria-live="polite" aria-atomic="true"></div>
+  </main>
+</div>
+
+<script>
+  // ==================== SESSION SECURITY ====================
+  // Prevent back button access after logout
+  (function() {
+    // Check if user is authenticated
+    const isAuthenticated = {{ 'true' if current_user.is_authenticated else 'false' }};
+    
+    if (!isAuthenticated) {
+      // If not authenticated, redirect to login
+      window.location.replace("{{ url_for('login') }}");
+      return;
+    }
+    
+    // Prevent caching
+    window.history.pushState(null, "", window.location.href);
+    window.onpopstate = function() {
+      window.history.pushState(null, "", window.location.href);
+    };
+    
+    // Detect page visibility changes (when user navigates away and back)
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden) {
+        // Page became visible again - verify session is still valid
+        fetch("{{ url_for('dashboard_admin') }}", {
+          method: 'HEAD',
+          cache: 'no-cache'
+        }).catch(() => {
+          // If request fails, redirect to login
+          window.location.replace("{{ url_for('login') }}");
+        });
+      }
+    });
+  })();
+  
+  const csrfToken = "{{ csrf_token() }}";
+  let notifications = [];
+  let unreadCount = 0;
+  let notificationInterval;
+
+  // Mobile sidebar functionality
+  const sidebar = document.getElementById('sidebar');
+  const toggleBtn = document.querySelector('.sidebar-toggle-btn');
+  const overlay = document.getElementById('sidebarOverlay');
+  
+  // Toggle sidebar function
+  function toggleSidebar() {
+    const isActive = sidebar.classList.toggle('mobile-active');
+    overlay.classList.toggle('active', isActive);
+    toggleBtn.setAttribute('aria-expanded', isActive);
+    
+    // Prevent body scrolling when sidebar is open
+    document.body.style.overflow = isActive ? 'hidden' : '';
+    
+    // Close notification panel if open
+    document.getElementById('notificationPanel').classList.remove('active');
+  }
+  
+  // Event listeners for toggle button
+  toggleBtn.addEventListener('click', toggleSidebar);
+  
+  // Close sidebar when clicking overlay
+  overlay.addEventListener('click', toggleSidebar);
+  
+  // Close sidebar when pressing Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && sidebar.classList.contains('mobile-active')) {
+      toggleSidebar();
+    }
+  });
+
+  // Show today's date
+  document.getElementById("currentDate").textContent = new Date().toLocaleDateString("{{ 'en-US' if lang == 'en' else 'om-ET' }}", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  // Sidebar toggles
+  const manageAccountBtn = document.getElementById("manageAccountBtn");
+  const manageAccountSubmenu = document.getElementById("manageAccountSubmenu");
+  manageAccountBtn.addEventListener("click", () => {
+    const isShown = manageAccountSubmenu.classList.toggle("show");
+    manageAccountBtn.setAttribute("aria-expanded", isShown);
+  });
+
+  const settingsBtn = document.getElementById("settingsBtn");
+  const settingsSubmenu = document.getElementById("settingsSubmenu");
+  settingsBtn.addEventListener("click", () => {
+    const isShown = settingsSubmenu.classList.toggle("show");
+    settingsBtn.setAttribute("aria-expanded", isShown);
+  });
+
+  // Helper: Remove active class from all sidebar li's except those not clickable (like submenu items)
+  function clearActiveSidebar() {
+    const sidebarItems = document.querySelectorAll('.sidebar > ul > li:not(.logout-btn)');
+    sidebarItems.forEach(li => {
+      li.classList.remove('active');
+    });
+  }
+
+  // Show sections and update active class properly
+  function showSection(sectionId, clickedElement) {
+    // Clear dynamic content and hide all main sections
+    document.getElementById("dynamicContent").innerHTML = "";
+    document.querySelectorAll(".section").forEach(sec => sec.classList.remove('active'));
+
+    // Show requested section
+    const section = document.getElementById(sectionId);
+    if (section) section.classList.add('active');
+
+    // Load feedback data if needed
+    if (sectionId === "feedback") loadFeedbacks();
+
+    // Manage active class on sidebar items
+    clearActiveSidebar();
+    if (clickedElement) clickedElement.classList.add('active');
+    
+    // Close sidebar on mobile after selecting a section
+    if (window.innerWidth <= 480) {
+      toggleSidebar();
+    }
+  }
+
+  // Load Profile Picture upload form
+  function loadProfilePicture() {
+    clearActiveSidebar();
+    settingsBtn.classList.add('active');
+    document.querySelectorAll(".section").forEach(sec => sec.classList.remove('active'));
+    
+    const currentPicture = "{{ current_user.profile_picture or 'default_avatar.png' }}";
+    const pictureUrl = currentPicture === 'default_avatar.png' ? '/static/images/default_avatar.png' : '/uploads/profile_pictures/' + currentPicture;
+    
+    const titleText = "{{ 'Suuraa Profaayilii Jijjiiruu' if lang == 'or' else 'Change Profile Picture' }}";
+    const labelText = "{{ 'Suuraa Haaraa Filadhu' if lang == 'or' else 'Select New Picture' }}";
+    const buttonText = "{{ 'Suuraa Haaromsi' if lang == 'or' else 'Update Picture' }}";
+    
+    document.getElementById("dynamicContent").innerHTML = `
+      <div class="profile-picture-form">
+        <h2>${titleText}</h2>
+        
+        <div style="text-align: center; margin: 20px 0;">
+          <img id="currentProfilePic" src="${pictureUrl}" alt="Current profile picture" 
+               style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary);" />
+        </div>
+        
+        <form id="profilePictureForm" onsubmit="return submitProfilePicture(event)" enctype="multipart/form-data">
+          <input type="hidden" name="csrf_token" value="${csrfToken}" />
+          <label for="profilePictureInput">${labelText}</label>
+          <input type="file" id="profilePictureInput" name="profile_picture" accept="image/*" required onchange="previewProfilePicture(event)" />
+          
+          <button type="submit">${buttonText}</button>
+        </form>
+      </div>
+    `;
+    
+    // Close sidebar on mobile after selecting settings
+    if (window.innerWidth <= 480) {
+      toggleSidebar();
+    }
+  }
+
+  // Preview profile picture before upload
+  function previewProfilePicture(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('currentProfilePic').src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  // Submit profile picture
+  async function submitProfilePicture(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    
+    const successMsg = "{{ 'Suuraa profaayilii haaromfame!' if lang == 'or' else 'Profile picture updated!' }}";
+    const failMsg = "{{ 'Suuraa haaromsuu hin milkoofne!' if lang == 'or' else 'Failed to update picture!' }}";
+    const errorMsg = "{{ 'Dogoggorri uumame!' if lang == 'or' else 'An error occurred!' }}";
+    
+    try {
+      const response = await fetch("{{ url_for('upload_profile_picture') }}", {
+        method: "POST",
+        body: formData
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Update the profile picture in the sidebar
+        document.querySelector('.profile img').src = data.profile_picture_url;
+        document.getElementById('currentProfilePic').src = data.profile_picture_url;
+        
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: successMsg,
+          background: 'var(--primary)',
+          color: '#fff',
+          iconColor: 'white',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+        
+        form.reset();
+      } else {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: data.message || failMsg,
+          background: '#f44336',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+      }
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: errorMsg,
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+    }
+    return false;
+  }
+
+  // Load change password: display only a form without extra content
+  function loadChangePassword() {
+    clearActiveSidebar();
+    settingsBtn.classList.add('active');
+    // Clear sections and dynamic content, no other content displayed
+    document.querySelectorAll(".section").forEach(sec => sec.classList.remove('active'));
+    document.getElementById("dynamicContent").innerHTML = `
+      <form class="change-password-form" aria-label="{{ texts.sidebar.change_password }} Form" onsubmit="return submitChangePassword(event)">
+          <h2>{{ texts.sidebar.change_password }}</h2>
+          <label for="currentPassword">{{ 'Current Password' if lang == 'en' else 'Jecha Darbii Ammaa' }}</label>
+          <input type="password" id="currentPassword" name="current_password" required autocomplete="current-password" />
+          <label for="newPassword">{{ 'New Password' if lang == 'en' else 'Jecha Darbii Haaraa' }}</label>
+          <input type="password" id="newPassword" name="new_password" required autocomplete="new-password" />
+          <label for="confirmPassword">{{ 'Confirm New Password' if lang == 'en' else 'Jecha Darbii Haaraa Mirkaneessi' }}</label>
+          <input type="password" id="confirmPassword" name="confirm_password" required autocomplete="new-password" />
+          <button type="submit">{{ texts.sidebar.change_password }}</button>
+      </form>
+    `;
+    
+    // Close sidebar on mobile after selecting settings
+    if (window.innerWidth <= 480) {
+      toggleSidebar();
+    }
+  }
+
+  // Load add user form with comprehensive validation (same as registration form)
+  function loadAddUser() {
+    clearActiveSidebar();
+    settingsBtn.classList.add('active');
+    // Clear sections and dynamic content, no other content displayed
+    document.querySelectorAll(".section").forEach(sec => sec.classList.remove('active'));
+    document.getElementById("dynamicContent").innerHTML = `
+      <div class="add-user-container">
+        <h2 style="text-align: center; margin-bottom: 20px; color: #0078D4;">{{ 'Add User' if lang == 'en' else 'Fayyadamaa Dabal' }}</h2>
+        <form class="add-user-form" aria-label="{{ 'Add User' if lang == 'en' else 'Fayyadamaa Dabal' }} Form" onsubmit="return submitAddUser(event)" novalidate autocomplete="off">
+          
+          <label for="addUsername">{{ 'Username' if lang == 'en' else 'Maqaa fayyadamaa' }}</label>
+          <input type="text" id="addUsername" name="username" placeholder="Enter username" value="" autocomplete="off" />
+          
+          <label for="addPhone">{{ 'Phone (+251...)' if lang == 'en' else 'Bilbila (+251...)' }}</label>
+          <div class="phone-wrapper">
+            <span>+251</span>
+            <input type="text" id="addPhone" name="phone" placeholder="912345678" maxlength="9" value="" autocomplete="off" />
+          </div>
+
+          <label for="addEmail">{{ 'Email' if lang == 'en' else 'Imeelii' }}</label>
+          <input type="email" id="addEmail" name="email" placeholder="yourname@gmail.com" value="" autocomplete="off" />
+
+          <label for="addPassword">{{ 'Password' if lang == 'en' else 'Jecha darbii' }}</label>
+          <div class="password-wrapper">
+            <input type="password" id="addPassword" name="password" placeholder="Enter password" value="" autocomplete="new-password" />
+            <span class="password-toggle" onclick="togglePasswordAdmin('addPassword')">
+              <i class="fas fa-eye" id="eyeIcon-addPassword"></i>
+              <i class="fas fa-eye-slash" id="eyeSlashIcon-addPassword" style="display: none;"></i>
+            </span>
+          </div>
+
+          <label for="addConfirmPassword">{{ 'Confirm Password' if lang == 'en' else 'Jecha darbii mirkaneessi' }}</label>
+          <div class="password-wrapper">
+            <input type="password" id="addConfirmPassword" name="confirm_password" placeholder="Confirm password" value="" autocomplete="new-password" />
+            <span class="password-toggle" onclick="togglePasswordAdmin('addConfirmPassword')">
+              <i class="fas fa-eye" id="eyeIcon-addConfirmPassword"></i>
+              <i class="fas fa-eye-slash" id="eyeSlashIcon-addConfirmPassword" style="display: none;"></i>
+            </span>
+          </div>
+
+          <label for="addRole">{{ 'Role' if lang == 'en' else 'Gahee' }}</label>
+          <select id="addRole" name="role">
+            <option value="">{{ 'Select Role' if lang == 'en' else 'Gahee Filadhu' }}</option>
+            <option value="patient">{{ 'Patient' if lang == 'en' else 'Dhukkubsataa' }}</option>
+            <option value="doctor">{{ 'Doctor' if lang == 'en' else 'Ogeessa Fayyaa(Dr)' }}</option>
+            <option value="xrayspecialist">{{ 'X-ray Specialist' if lang == 'en' else 'Ogeessa X-ray' }}</option>
+            <option value="reception">{{ 'Reception' if lang == 'en' else 'Simachuu' }}</option>
+            <option value="healthofficer">{{ 'Health Officer' if lang == 'en' else 'Ogeessa Fayyaa' }}</option>
+          </select>
+
+          <button type="submit" style="margin-top: 15px;">{{ 'Add User' if lang == 'en' else 'Fayyadamaa Dabal' }}</button>
+        </form>
+      </div>
+    `;
+    
+    // Add the same CSS styles as registration form
+    addRegistrationFormStyles();
+    
+    // Add input filtering (same as registration form)
+    addInputFiltering();
+    
+    // Close sidebar on mobile after selecting settings
+    if (window.innerWidth <= 480) {
+      toggleSidebar();
+    }
+  }
+
+  // Add registration form styles for admin add user form
+  function addRegistrationFormStyles() {
+    const existingStyle = document.getElementById('admin-add-user-styles');
+    if (existingStyle) existingStyle.remove();
+    
+    const style = document.createElement('style');
+    style.id = 'admin-add-user-styles';
+    style.textContent = '.add-user-container { max-width: 500px; margin: 0 auto; padding: 30px; background: rgba(255, 255, 255, 0.98); border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 120, 212, 0.3); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.5); }' +
+      '.add-user-form label { display: block; margin-bottom: 4px; font-weight: 600; color: #0078D4; font-size: 0.85rem; }' +
+      '.add-user-form input, .add-user-form select { width: 100%; padding: 10px; margin-bottom: 12px; border: 2px solid #E1E1E1; border-radius: 6px; font-size: 14px; transition: all 0.3s ease; font-family: "Inter", sans-serif; background: #F9F9F9; }' +
+      '.add-user-form input:focus, .add-user-form select:focus { border-color: #0078D4; outline: none; box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1); background: white; }' +
+      '.add-user-form button { width: 100%; padding: 12px; background: linear-gradient(135deg, #0078D4 0%, #0063B1 100%); color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; font-family: "Inter", sans-serif; box-shadow: 0 4px 15px rgba(0, 120, 212, 0.3); }' +
+      '.add-user-form button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 120, 212, 0.4); }' +
+      '.phone-wrapper { display: flex; align-items: stretch; margin-bottom: 12px; width: 100%; position: relative; border-radius: 6px; border: 2px solid #E1E1E1; background: #F9F9F9; overflow: hidden; transition: all 0.3s ease; }' +
+      '.phone-wrapper span { padding: 8px 10px; background: #E1E1E1; border: none; border-right: 2px solid #E1E1E1; border-radius: 0; font-weight: 600; font-size: 14px; color: #0078D4; display: flex; align-items: center; justify-content: center; min-width: 55px; box-sizing: border-box; transition: all 0.3s ease; white-space: nowrap; }' +
+      '.phone-wrapper input { flex: 1; border-radius: 0; border: none; padding: 8px 10px; margin-bottom: 0; box-sizing: border-box; background: #F9F9F9; font-size: 14px; outline: none; transition: all 0.3s ease; width: 100%; font-family: "Inter", sans-serif; color: #333; }' +
+      '.phone-wrapper:focus-within { border-color: #0078D4; box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1); background: white; }' +
+      '.phone-wrapper:focus-within span { border-right-color: #0078D4; background: #0078D4; color: white; }' +
+      '.phone-wrapper:focus-within input { background: white; }' +
+      '.password-wrapper { position: relative; width: 100%; margin-bottom: 12px; }' +
+      '.password-wrapper input { padding-right: 35px; }' +
+      '.password-toggle { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #0078D4; transition: color 0.3s ease; display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; }' +
+      '.password-toggle:hover { color: #005A9E; }';
+    document.head.appendChild(style);
+  }
+
+  // Add input filtering (same as registration form)
+  function addInputFiltering() {
+    // Username validation - only allow letters, spaces, apostrophes, and hyphens
+    const usernameInput = document.getElementById('addUsername');
+    if (usernameInput) {
+      usernameInput.addEventListener('input', function() {
+        const value = this.value;
+        this.value = value.replace(/[^a-zA-Z\s\'-]/g, '');
+      });
+    }
+
+    // Phone input restriction
+    const phoneInput = document.getElementById('addPhone');
+    if (phoneInput) {
+      phoneInput.addEventListener('input', function() {
+        // Only digits
+        this.value = this.value.replace(/\D/g,'');
+        // Limit to 9 digits
+        if(this.value.length > 9){
+          this.value = this.value.slice(0, 9);
+        }
+        // Must start with 7 or 9
+        if(this.value.length > 0 && !/^[79]/.test(this.value)) {
+          this.value = '';
+        }
+      });
+    }
+
+    // Email validation - only allow valid Gmail characters
+    const emailInput = document.getElementById('addEmail');
+    if (emailInput) {
+      emailInput.addEventListener('input', function() {
+        let value = this.value;
+        
+        // Allow only valid email characters: letters, numbers, dots, plus, hyphens, and @
+        value = value.replace(/[^a-zA-Z0-9._+-@]/g, '');
+        
+        // Ensure only one @ symbol (remove extra @)
+        const atIndex = value.indexOf('@');
+        if (atIndex !== -1) {
+          const beforeAt = value.substring(0, atIndex);
+          const afterAt = value.substring(atIndex + 1).replace(/@/g, '');
+          value = beforeAt + '@' + afterAt;
+        }
+        
+        // If @ exists, ensure domain part can only be gmail.com
+        if (value.includes('@')) {
+          const parts = value.split('@');
+          if (parts.length === 2) {
+            const localPart = parts[0];
+            let domainPart = parts[1];
+            
+            // Auto-complete gmail.com if user is typing it
+            if ('gmail.com'.startsWith(domainPart.toLowerCase()) && domainPart.length <= 9) {
+              // Allow partial typing of gmail.com
+            } else if (domainPart.toLowerCase() !== 'gmail.com') {
+              // If domain is not gmail.com or partial gmail.com, reset to just @
+              domainPart = '';
+            }
+            value = localPart + '@' + domainPart;
+          }
+        }
+        
+        this.value = value;
+      });
+    }
+  }
+
+  // Password toggle function for admin form
+  function togglePasswordAdmin(fieldId) {
+    const passwordInput = document.getElementById(fieldId);
+    const eyeIcon = document.getElementById('eyeIcon-' + fieldId);
+    const eyeSlashIcon = document.getElementById('eyeSlashIcon-' + fieldId);
+    
+    if (passwordInput.type === 'password') {
+      passwordInput.type = 'text';
+      eyeIcon.style.display = 'none';
+      eyeSlashIcon.style.display = 'block';
+    } else {
+      passwordInput.type = 'password';
+      eyeIcon.style.display = 'block';
+      eyeSlashIcon.style.display = 'none';
+    }
+  }
+
+  async function submitChangePassword(event) {
+    event.preventDefault();
+    const form = event.target;
+    const current_password = form.current_password.value.trim();
+    const new_password = form.new_password.value.trim();
+    const confirm_password = form.confirm_password.value.trim();
+
+    if (new_password !== confirm_password) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'New password and confirmation do not match!' if lang == 'en' else 'Jecha darbii haaraa fi mirkaneessaa wal hin siman!' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 5000,
+        timerProgressBar: true
+      });
+      return false;
+    }
+    if (new_password.length < 6) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'warning',
+        title: "{{ 'New password should be at least 6 characters!' if lang == 'en' else 'Jecha darbii haaraa lakkoofsa herregaa 6 ol qabaachuu qaba!' }}",
+        background: '#ff9800',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 5000,
+        timerProgressBar: true
+      });
+      return false;
+    }
+
+    try {
+      const response = await fetch("{{ url_for('change_password') }}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken
+        },
+        body: JSON.stringify({ 
+          current_password: current_password, 
+          new_password: new_password,
+          confirm_password: confirm_password
+        })
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: "{{ 'Password updated successfully!' if lang == 'en' else 'Jecha darbii milkaa\'inaan haaromfame!' }}",
+          background: '#4CAF50',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 5000,
+          timerProgressBar: true
+        });
+        form.reset();
+      } else {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: result.message || "{{ 'Failed to update password!' if lang == 'en' else 'Jecha darbii haaromsuu hin milkoofne!' }}",
+          background: '#f44336',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 5000,
+          timerProgressBar: true
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'An error occurred while updating password!' if lang == 'en' else 'Dogoggorri uumame yeroo jecha darbii haaromsuu!' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 5000,
+        timerProgressBar: true
+      });
+    }
+    return false;
+  }
+
+  // Add User function with comprehensive validation (same as registration form)
+  async function submitAddUser(event) {
+    event.preventDefault();
+    const form = event.target;
+    const username = form.username.value.trim();
+    const phone = form.phone.value.trim();
+    const email = form.email.value.trim();
+    const role = form.role.value;
+    const password = form.password.value.trim();
+    const confirm_password = form.confirm_password.value.trim();
+
+    // 1. VALIDATION: All fields cannot be empty
+    if (!username || !phone || !email || !password || !confirm_password || !role) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'warning',
+        title: "{{ 'All fields are required!' if lang == 'en' else 'Dirreewwan hundi guutamuu qabu!' }}",
+        background: '#ff9800',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true
+      });
+      return false;
+    }
+
+    // 2. Username validation - only letters, spaces, apostrophes, and hyphens
+    const usernameRegex = /^[a-zA-Z\s\'-]+$/;
+    const trimmedUsername = username.replace(/\s/g, '');
+    
+    if (trimmedUsername.length < 2) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'Username must contain at least 2 letters!' if lang == 'en' else 'Maqaan fayyadamaa yaayyuu qubee 2 of keessaa qabaachuu qaba!' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true
+      });
+      return false;
+    }
+    
+    if (!usernameRegex.test(username)) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'Username can only contain letters, spaces, apostrophes, and hyphens!' if lang == 'en' else 'Maqaan fayyadamaa qubee, iddoo, mallattoo fi daashii qofa qabaachuu dandaʼa!' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true
+      });
+      return false;
+    }
+
+    // 3. Phone validation
+    if (!/^[79]\d{8}$/.test(phone)) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'Invalid phone number! Must be 9 digits starting with 7 or 9' if lang == 'en' else 'Lakkoofsi bilbilaa sirrii miti! Lakkoofsa 9 7 ykn 9 jalqabu taʼuu qaba' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true
+      });
+      return false;
+    }
+
+    // 4. Comprehensive Email validation - must be valid Gmail
+    const atCount = (email.match(/@/g) || []).length;
+    if (atCount !== 1) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'Email must contain exactly one @ symbol!' if lang == 'en' else 'Imeeliin mallattoo @ tokko qofa qabaachuu qaba!' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true
+      });
+      return false;
+    }
+    
+    const emailParts = email.split('@');
+    if (emailParts.length !== 2) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'Invalid email format!' if lang == 'en' else 'Imeeliin sirrii miti!' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true
+      });
+      return false;
+    }
+    
+    const localPart = emailParts[0];
+    const domainPart = emailParts[1];
+    
+    if (domainPart.toLowerCase() !== 'gmail.com') {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'Email must be a Gmail address ending with @gmail.com!' if lang == 'en' else 'Imeeliin @gmail.com jedhuun xumuruu qaba!' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true
+      });
+      return false;
+    }
+    
+    if (localPart.length < 1 || localPart.length > 64) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'Gmail username must be 1-64 characters long!' if lang == 'en' else 'Maqaan Gmail arfii 1-64 gidduu taʼuu qaba!' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true
+      });
+      return false;
+    }
+    
+    if (!/^[a-zA-Z0-9._+-]+$/.test(localPart)) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'Gmail username contains invalid characters!' if lang == 'en' else 'Maqaan Gmail arfii sirrii hin taane qaba!' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true
+      });
+      return false;
+    }
+    
+    if (localPart.startsWith('.') || localPart.endsWith('.')) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'Gmail username cannot start or end with a dot!' if lang == 'en' else 'Maqaan Gmail tuqaadhaan jalqabuu ykn xumuruu hin dandaʼu!' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true
+      });
+      return false;
+    }
+    
+    if (localPart.includes('..')) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'Gmail username cannot contain consecutive dots!' if lang == 'en' else 'Maqaan Gmail tuqaa wal aanaa qabaachuu hin dandaʼu!' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true
+      });
+      return false;
+    }
+    
+    if (!/[a-zA-Z0-9]/.test(localPart)) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'Gmail username must contain at least one letter or number!' if lang == 'en' else 'Maqaan Gmail yaayyuu qubee ykn lakkoofsa tokko qabaachuu qaba!' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true
+      });
+      return false;
+    }
+
+    // 5. Password validation
+    if (password.length < 6) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'Password must be at least 6 characters long!' if lang == 'en' else 'Jecha darbii yaayyuu arfii 6 taʼuu qaba!' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true
+      });
+      return false;
+    }
+
+    if (password !== confirm_password) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'Passwords do not match!' if lang == 'en' else 'Jechoonni darbii wal hin siman!' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true
+      });
+      return false;
+    }
+
+    // Show loading state
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.innerHTML = "{{ 'Adding...' if lang == 'en' else 'Dabalamaa...' }} <i class='fas fa-spinner fa-spin'></i>";
+    submitBtn.disabled = true;
+
+    try {
+      const response = await fetch("{{ url_for('admin_add_user') }}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken
+        },
+        body: JSON.stringify({ 
+          username: username, 
+          phone: phone, 
+          email: email,
+          role: role, 
+          password: password,
+          confirm_password: confirm_password
+        })
+      });
+
+      // Check if response is OK
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      // Restore button state
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+
+      if (result.success) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: "{{ 'User added successfully!' if lang == 'en' else 'Fayyadamaa milkaa\'inaan dabalame!' }}",
+          background: '#4CAF50',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 5000,
+          timerProgressBar: true
+        });
+        form.reset();
+      } else {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: result.message || "{{ 'Failed to add user!' if lang == 'en' else 'Fayyadamaa dabalchuu hin milkoofne!' }}",
+          background: '#f44336',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 5000,
+          timerProgressBar: true
+        });
+      }
+    } catch (err) {
+      console.error('Error adding user:', err);
+      
+      // Restore button state
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+      
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'An error occurred while adding user!' if lang == 'en' else 'Dogoggorri uumame yeroo fayyadamaa dabalchuu!' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 5000,
+        timerProgressBar: true
+      });
+    }
+    return false;
+  }
+
+  // Load Security Management page
+  function loadSecurityManagement() {
+    clearActiveSidebar();
+    settingsBtn.classList.add('active');
+    
+    // Clear sections and show security management
+    document.querySelectorAll(".section").forEach(sec => sec.classList.remove('active'));
+    
+    // Redirect to security management page
+    window.location.href = '/admin/security/login-attempts';
+    
+    // Close sidebar on mobile after selecting security management
+    if (window.innerWidth <= 480) {
+      toggleSidebar();
+    }
+  }
+
+  // Manage Account submenu items: also highlight parent Manage Account
+  async function showUserSection(role, clickedElement) {
+    document.querySelectorAll(".section").forEach(sec => sec.classList.remove('active'));
+    
+    // Get role-specific information with Afan Oromo translations
+    const roleInfo = {
+      'patient': { 
+        icon: 'fas fa-user-injured', 
+        title: '{{ "Patient List" if lang == "en" else "Tarree Dhukkubsattootaa" }}',
+        idLabel: '{{ "Patient ID" if lang == "en" else "Eenyummaa Dhukkubsataa" }}'
+      },
+      'doctor': { 
+        icon: 'fas fa-user-md', 
+        title: '{{ "Doctor List" if lang == "en" else "Tarree Ogeessota Fayyaa" }}',
+        idLabel: '{{ "Doctor ID" if lang == "en" else "Eenyummaa Ogeessa Fayyaa" }}'
+      },
+      'xrayspecialist': { 
+        icon: 'fas fa-x-ray', 
+        title: '{{ "X-ray Specialist List" if lang == "en" else "Tarree Ogeessota X-ray" }}',
+        idLabel: '{{ "Specialist ID" if lang == "en" else "Eenyummaa Ogeessa" }}'
+      },
+      'healthofficer': { 
+        icon: 'fas fa-user-nurse', 
+        title: '{{ "Health Officer List" if lang == "en" else "Tarree Ogeessota Fayyaa" }}',
+        idLabel: '{{ "Officer ID" if lang == "en" else "Eenyummaa Ogeessa" }}'
+      },
+      'reception': { 
+        icon: 'fas fa-user-tie', 
+        title: '{{ "Reception List" if lang == "en" else "Tarree Mana Galmee" }}',
+        idLabel: '{{ "Reception ID" if lang == "en" else "Eenyummaa Mana Galmee" }}'
+      }
+    };
+    
+    const info = roleInfo[role] || { icon: 'fas fa-users', title: 'User List', idLabel: 'User ID' };
+    
+    // Enhanced table layout for all user types
+    document.getElementById("dynamicContent").innerHTML = `
+      <h2><i class="${info.icon}"></i> ${info.title}</h2>
+      <div class="search-bar">
+        <input type="text" id="${role}SearchInput" placeholder="{{ "Search by name, phone, or ID..." if lang == "en" else "Maqaa, bilbila, ykn eenyummaan barbaadi..." }}" onkeyup="searchAdmin${role.charAt(0).toUpperCase() + role.slice(1)}s()">
+        <button type="button" onclick="refreshAdmin${role.charAt(0).toUpperCase() + role.slice(1)}List()">
+          <i class="fas fa-refresh"></i> {{ "Refresh" if lang == "en" else "Haaromsi" }}
+        </button>
+      </div>
+      <div id="admin${role.charAt(0).toUpperCase() + role.slice(1)}ListContainer">
+        <table id="admin${role.charAt(0).toUpperCase() + role.slice(1)}sTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>{{ "Username" if lang == "en" else "Maqaa fayyadamaa" }}</th>
+              <th>{{ "Phone" if lang == "en" else "Bilbila" }}</th>
+              <th>{{ "Email" if lang == "en" else "Imeelii" }}</th>
+              <th>${info.idLabel}</th>
+              <th>{{ "Registration Date" if lang == "en" else "Guyyaa Galmaa'e" }}</th>
+              <th>{{ "Settings" if lang == "en" else "Qindaa'inoota" }}</th>
+            </tr>
+          </thead>
+          <tbody id="admin${role.charAt(0).toUpperCase() + role.slice(1)}sTableBody">
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 40px;">
+                <i class="fas fa-spinner fa-spin"></i> {{ "Loading..." if lang == "en" else "Fe'aa jira..." }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+    
+    // Load user list immediately based on role
+    loadAdminUserList(role);
+
+    // Highlight Manage Account parent and clicked submenu
+    clearActiveSidebar();
+    manageAccountBtn.classList.add('active');
+    
+    // Close sidebar on mobile after selecting user section
+    if (window.innerWidth <= 480) {
+      toggleSidebar();
+    }
+  }
+
+  async function fetchUsers(role, query) {
+    const res = await fetch(`/admin/get_users?type=${role}&search=${encodeURIComponent(query)}`);
+    const users = await res.json();
+    const container = document.getElementById("userResults");
+    container.innerHTML = "";
+
+    if (!users.length) {
+      container.innerHTML = "<p>{{ 'No users found.' if lang == 'en' else 'Fayyadamtoota hin argamne.' }}</p>";
+      return;
+    }
+
+    const table = document.createElement("table");
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>{{ texts.user_username }}</th>
+                <th>{{ texts.user_phone }}</th>
+                <th>{{ texts.sidebar.settings }}</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    `;
+    const tbody = table.querySelector("tbody");
+
+    users.forEach((user, index) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${user.username}</td>
+            <td>${user.phone || "-"}</td>
+            <td>
+                <button onclick="editUser(${user.id}, '${user.username}', '${role}')" aria-label="{{ 'Edit user' if lang == 'en' else 'Fayyadamaa gulaali' }} ${user.username}">{{ 'Edit' if lang == 'en' else 'Gulaali' }}</button>
+            </td>
+        `;
+      tbody.appendChild(tr);
+    });
+
+    container.appendChild(table);
+  }
+
+
+
+  function deleteUser(id, role, username) {
+    Swal.fire({
+      title: "{{ 'Are you sure?' if lang == 'en' else 'Mirkaneeffattanii?' }}",
+      text: `{{ 'Are you sure you want to delete user' if lang == 'en' else 'Fayyadamaa' }} "${username}"?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: "{{ 'Yes, delete!' if lang == 'en' else 'Eey, haqi!' }}",
+      cancelButtonText: "{{ 'Cancel' if lang == 'en' else 'Dhiisi' }}"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        console.log('Attempting to delete user:', id, role, username);
+        
+        fetch(`/admin/delete_user/${id}`, { 
+          method: "POST", 
+          headers: { 
+            "X-CSRFToken": csrfToken,
+            "Content-Type": "application/json"
+          } 
+        }).then(async (res) => {
+          console.log('Delete response status:', res.status);
+          
+          if (res.ok) {
+            const data = await res.json();
+            console.log('Delete response data:', data);
+            
+            // Show success popup
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'success',
+              title: `{{ 'User' if lang == 'en' else 'Fayyadamaa' }} "${username}" {{ 'deleted successfully!' if lang == 'en' else 'milkaa\'inaan haquame!' }}`,
+              background: '#4CAF50',
+              color: '#fff',
+              showConfirmButton: false,
+              timer: 5000,
+              timerProgressBar: true
+            });
+            
+            // Refresh the user list - use the new table-based approach
+            console.log('Refreshing user list for role:', role);
+            if (typeof loadAdminUserList === 'function') {
+              console.log('Using loadAdminUserList function');
+              loadAdminUserList(role);
+            } else {
+              console.log('Fallback: using showUserSection');
+              showUserSection(role);
+            }
+          } else {
+            const errorData = await res.json();
+            console.error('Delete error:', errorData);
+            
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: 'error',
+              title: errorData.message || "{{ 'Failed to delete user!' if lang == 'en' else 'Fayyadamaa haquu hin milkoofne!' }}",
+              background: '#f44336',
+              color: '#fff',
+              showConfirmButton: false,
+              timer: 5000,
+              timerProgressBar: true
+            });
+          }
+        }).catch(err => {
+          console.error('Delete request error:', err);
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: `{{ 'Network error while deleting user:' if lang == 'en' else 'Dogoggorri network yeroo fayyadamaa haquu:' }} ${err.message || err}`,
+            background: '#f44336',
+            color: '#fff',
+            showConfirmButton: false,
+            timer: 7000,
+            timerProgressBar: true
+          });
+        });
+      }
+    });
+  }
+
+  // ==================== ADMIN USER LIST FUNCTIONS ====================
+  async function loadAdminUserList(role) {
+    try {
+      const response = await fetch(`/admin/get_all_users/${role}`);
+      const users = await response.json();
+      
+      const tbody = document.getElementById(`admin${role.charAt(0).toUpperCase() + role.slice(1)}sTableBody`);
+      
+      // If the table body doesn't exist, the user is not currently viewing this section
+      if (!tbody) {
+        console.log(`Table body for ${role} not found - user not viewing this section`);
+        return;
+      }
+      
+      if (users.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 40px;">No ${role}s found.</td></tr>`;
+        return;
+      }
+      
+      let html = '';
+      users.forEach((user, index) => {
+        html += `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${user.username}</td>
+            <td>${user.phone}</td>
+            <td>${user.email || 'N/A'}</td>
+            <td>${user.user_id || 'N/A'}</td>
+            <td>${user.date_created}</td>
+            <td>
+              <button onclick="editUser(${user.id}, '${user.username}', '${role}')" 
+                      style="background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; margin-right: 5px;"
+                      aria-label="Edit ${role} ${user.username}">
+                <i class="fas fa-edit"></i> Edit
+              </button>
+
+            </td>
+          </tr>
+        `;
+      });
+      
+      tbody.innerHTML = html;
+    } catch (error) {
+      console.error(`Error loading ${role}s:`, error);
+      const tbody = document.getElementById(`admin${role.charAt(0).toUpperCase() + role.slice(1)}sTableBody`);
+      if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 40px; color: red;">Error loading ${role}s.</td></tr>`;
+      }
+    }
+  }
+
+  // Legacy function for backward compatibility
+  async function loadAdminPatientList() {
+    return loadAdminUserList('patient');
+  }
+
+  // Generic search function for all user types
+  function searchAdminUsers(role) {
+    const searchInput = document.getElementById(`${role}SearchInput`);
+    if (!searchInput) return;
+    
+    const searchTerm = searchInput.value.toLowerCase();
+    const rows = document.querySelectorAll(`#admin${role.charAt(0).toUpperCase() + role.slice(1)}sTableBody tr`);
+    
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+  }
+
+  // Generic refresh function for all user types
+  function refreshAdminUserList(role) {
+    const searchInput = document.getElementById(`${role}SearchInput`);
+    if (searchInput) {
+      searchInput.value = '';
+    }
+    loadAdminUserList(role);
+  }
+
+  // Specific functions for each user type
+  function searchAdminPatients() { searchAdminUsers('patient'); }
+  function refreshAdminPatientList() { refreshAdminUserList('patient'); }
+  
+  function searchAdminDoctors() { searchAdminUsers('doctor'); }
+  function refreshAdminDoctorList() { refreshAdminUserList('doctor'); }
+  
+  function searchAdminXrayspecialists() { searchAdminUsers('xrayspecialist'); }
+  function refreshAdminXrayspecialistList() { refreshAdminUserList('xrayspecialist'); }
+  
+  function searchAdminHealthofficers() { searchAdminUsers('healthofficer'); }
+  function refreshAdminHealthofficerList() { refreshAdminUserList('healthofficer'); }
+  
+  function searchAdminReceptions() { searchAdminUsers('reception'); }
+  function refreshAdminReceptionList() { refreshAdminUserList('reception'); }
+
+  // Generic edit function for all user types
+  function editUser(userId, username, role) {
+    fetch(`/admin/edit_user/${userId}`)
+      .then((r) => r.text())
+      .then((html) => {
+        document.getElementById("dynamicContent").innerHTML = html;
+        
+        // Add event listener for the update form (check for both possible form classes)
+        const updateForm = document.querySelector('.edit-form form') || document.querySelector('.edit-user-form form');
+        if (updateForm) {
+          // Remove any existing event listeners by cloning the form
+          const newForm = updateForm.cloneNode(true);
+          updateForm.parentNode.replaceChild(newForm, updateForm);
+          
+          // Add our event listener to the new form
+          newForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            updateUser(userId, role);
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Error loading edit form:', error);
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: 'Failed to load edit form!',
+          background: '#f44336',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+      });
+  }
+
+  // Legacy function for backward compatibility
+  function editPatient(patientId, patientUsername) {
+    editUser(patientId, patientUsername, 'patient');
+  }
+
+  // Generic update function for all user types
+  function updateUser(userId, role) {
+    const form = document.querySelector('.edit-form form') || document.querySelector('.edit-user-form form');
+    const formData = new FormData(form);
+    
+    fetch(`/admin/update_user/${userId}`, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": csrfToken
+      },
+      body: formData
+    })
+    .then(response => {
+      if (response.ok) {
+        return response.text();
+      } else {
+        throw new Error(`Failed to update ${role}`);
+      }
+    })
+    .then(() => {
+      // Show success popup
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: `${role.charAt(0).toUpperCase() + role.slice(1)} updated successfully!`,
+        background: '#4CAF50',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+      
+      // Go back to the user list
+      showUserSection(role);
+    })
+    .catch(err => {
+      console.error(err);
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: `Failed to update ${role}!`,
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+    });
+  }
+
+  // Legacy function for backward compatibility
+  function updatePatient(patientId) {
+    updateUser(patientId, 'patient');
+  }
+
+  // Generic delete function for all user types (this function is already generic)
+  // The existing deleteUser function handles all user types properly
+  
+  // Legacy function for backward compatibility
+  function deletePatient(patientId, patientUsername) {
+    deleteUser(patientId, 'patient', patientUsername);
+  }
+
+  // Approve Users Section
+  const approveUserBtn = document.getElementById("approveUserBtn");
+  approveUserBtn.addEventListener("click", () => showApproveUsers());
+  async function showApproveUsers() {
+    document.querySelectorAll(".section").forEach(sec => sec.classList.remove('active'));
+    document.getElementById("dynamicContent").innerHTML = `
+        <h2>{{ 'Approve Users' if lang == 'en' else 'Fayyadamtoota Eeggachaa' }}</h2>
+        <div class="search-bar">
+            <input type="text" id="approveSearchInput" placeholder="{{ 'Search by username or role...' if lang == 'en' else 'Maqaa fayyadamaa ykn gahee barbaadi...' }}" aria-label="{{ 'Search users to approve' if lang == 'en' else 'Fayyadamtoota eeggachaa barbaadi' }}" />
+        </div>
+        <table id="approveTable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>{{ texts.user_username }}</th>
+                    <th>{{ texts.user_role }}</th>
+                    <th>{{ 'Registered At' if lang == 'en' else 'Galmee Guyyaa' }}</th>
+                    <th>{{ 'Approve' if lang == 'en' else 'Eeggachi' }}</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    `;
+
+    clearActiveSidebar();
+    approveUserBtn.classList.add('active');
+
+    const res = await fetch(`/admin/get_users_to_approve`);
+    const approveData = await res.json();
+    const tbody = document.querySelector("#approveTable tbody");
+
+    function renderApproveTable(data) {
+      tbody.innerHTML = "";
+      if (!data.length) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">{{ 'No users pending approval' if lang == 'en' else 'Fayyadamtoota eeggachaa hin jiru' }}</td></tr>`;
+        return;
+      }
+      data.forEach((user, index) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${user.username}</td>
+                <td>${user.role}</td>
+                <td>${new Date(user.registered_at).toLocaleString()}</td>
+                <td><button onclick="approveUser.call(this, ${user.id}, '${user.username}')" aria-label="{{ 'Approve user' if lang == 'en' else 'Fayyadamaa eeggachaa' }} ${user.username}">{{ 'Approve' if lang == 'en' else 'Eeggachi' }}</button></td>
+            `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    renderApproveTable(approveData);
+
+    document.getElementById("approveSearchInput").addEventListener("input", () => {
+      const search = document.getElementById("approveSearchInput").value.toLowerCase();
+      const filtered = approveData.filter(u => u.username.toLowerCase().includes(search) || u.role.toLowerCase().includes(search));
+      renderApproveTable(filtered);
+    });
+    
+    // Close sidebar on mobile after selecting approve users
+    if (window.innerWidth <= 480) {
+      toggleSidebar();
+    }
+  }
+
+  function approveUser(id, username) {
+    // Find the button and row for immediate UI feedback
+    const button = this;
+    const row = button.closest('tr');
+    
+    // Disable button immediately to prevent double-clicks and show loading state
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> {{ "Approving..." if lang == "en" else "Eeggachaa jira..." }}';
+    button.style.opacity = '0.6';
+    
+    fetch(`/admin/approve_user/${id}`, {
+      method: "POST",
+      headers: { "X-CSRFToken": csrfToken },
+    })
+      .then(res => {
+        if (res.ok) {
+          return res.json();
+        } else {
+          throw new Error('Failed to approve user');
+        }
+      })
+      .then(result => {
+        // Show success popup with shorter timer for faster feedback
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: `{{ 'User' if lang == 'en' else 'Fayyadamaa' }} "${username}" {{ 'approved!' if lang == 'en' else 'eeggachame!' }}`,
+          background: '#4CAF50',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 1500,
+          timerProgressBar: true
+        });
+        
+        // Remove the row from the table immediately instead of refreshing entire page
+        if (row) {
+          row.style.transition = 'all 0.3s ease';
+          row.style.opacity = '0';
+          row.style.transform = 'translateX(100px)';
+          
+          setTimeout(() => {
+            row.remove();
+            
+            // Check if table is empty and show message
+            const tbody = document.querySelector('#approveTable tbody');
+            if (tbody && tbody.children.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: #666;">{{ "No users pending approval." if lang == "en" else "Fayyadamaan eeggachaa hin jiru." }}</td></tr>';
+            }
+          }, 300);
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        
+        // Re-enable button on error
+        button.disabled = false;
+        button.innerHTML = '{{ "Approve" if lang == "en" else "Eeggachi" }}';
+        button.style.opacity = '1';
+        
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: `{{ 'Failed to approve user' if lang == 'en' else 'Fayyadamaa eeggachaa hin milkoofne' }} "${username}"`,
+          background: '#f44336',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+      });
+  }
+
+  // Feedback section - FIXED VERSION
+  async function loadFeedbacks() {
+    try {
+      const res = await fetch("/admin/get_all_feedbacks?t=" + Date.now());
+      const result = await res.json();
+      
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to load feedbacks');
+      }
+      
+      const feedbacks = result.feedbacks || [];
+      const tbody = document.querySelector("#feedbackTable tbody");
+      tbody.innerHTML = "";
+
+      if (!feedbacks.length) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">{{ texts.no_feedback }}</td></tr>`;
+        return;
+      }
+
+      // Sort feedbacks by date (newest first)
+      feedbacks.sort((a, b) => new Date(b.date_submitted) - new Date(a.date_submitted));
+
+      feedbacks.forEach((f, idx) => {
+        const tr = document.createElement("tr");
+        
+        // Clean sender name - remove "Unknown" if present
+        let senderName = f.sender_name || '';
+        // Remove "Unknown" from the name if it's mixed
+        senderName = senderName.replace('Unknown', '').trim();
+        // If name is empty after cleaning, use a fallback
+        if (!senderName) {
+          senderName = f.sender_type === 'patient' ? 'Patient' : 
+                       f.sender_type === 'doctor' ? 'Doctor' : 
+                       f.sender_type === 'xray_specialist' ? 'X-ray Specialist' : 'User';
+        }
+        
+        let senderType = f.sender_type || 'unknown';
+        
+
+        
+        // Create role badge with proper styling
+        let roleDisplay = '';
+        let roleClass = '';
+        
+        if (senderType === 'patient') {
+          roleDisplay = '{{ "Patient" if lang == "en" else "Dhukkubsataa" }}';
+          roleClass = 'patient';
+        } else if (senderType === 'doctor') {
+          roleDisplay = '{{ "Doctor" if lang == "en" else "Ogeessa Fayyaa" }}';
+          roleClass = 'doctor';
+        } else if (senderType === 'xray_specialist') {
+          roleDisplay = '{{ "X-ray Specialist" if lang == "en" else "Ogeessa X-ray" }}';
+          roleClass = 'xray_specialist';
+        } else if (senderType === 'reception') {
+          roleDisplay = '{{ "Reception" if lang == "en" else "Simachuu" }}';
+          roleClass = 'reception';
+        } else if (senderType === 'healthofficer') {
+          roleDisplay = '{{ "Health Officer" if lang == "en" else "Ogeessa Fayyaa" }}';
+          roleClass = 'healthofficer';
+        } else {
+          roleDisplay = '{{ "User" if lang == "en" else "Fayyadamaa" }}';
+          roleClass = 'unknown';
+        }
+        
+        const roleBadge = `<span class="sender-role ${roleClass}">${roleDisplay}</span>`;
+
+        tr.innerHTML = `
+          <td>${idx + 1}</td>
+          <td>${senderName}</td>
+          <td>${roleBadge}</td>
+          <td>${f.feedback || f.message || 'No message'}</td>
+          <td>
+            ${f.reply ? 
+              `<span style="color: var(--primary);">${f.reply}</span>` : 
+              `<input type="text" class="reply-input" value="" placeholder="{{ 'Write reply...' if lang == 'en' else 'Deebii barreessi...' }}" aria-label="{{ 'Reply to feedback from' if lang == 'en' else 'Yaada deebisi' }} ${senderName}">`
+            }
+          </td>
+          <td>
+            ${f.reply ? 
+              '<span style="color: var(--success);">{{ "Replied" if lang == "en" else "Deebii kenname" }}</span>' : 
+              `<button class="reply-btn" data-feedback-id="${f.id}" aria-label="{{ 'Send reply to' if lang == 'en' else 'Deebii ergi' }} ${senderName}">{{ 'Send' if lang == 'en' else 'Ergi' }}</button>`
+            }
+          </td>
+          <td>${f.date_submitted ? new Date(f.date_submitted).toLocaleString() : 'N/A'}</td>
+        `;
+        tbody.appendChild(tr);
+
+        // Add event listener for reply button if not already replied
+        if (!f.reply) {
+          const btn = tr.querySelector(".reply-btn");
+          btn.addEventListener("click", async () => {
+            const input = tr.querySelector(".reply-input");
+            const reply = input.value.trim();
+            
+            if (!reply) {
+              Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'warning',
+                title: "{{ 'Reply cannot be empty!' if lang == 'en' else 'Deebiin duwwaa ta\'uu hin qabu!' }}",
+                background: '#ff9800',
+                color: '#fff',
+                showConfirmButton: false,
+                timer: 5000,
+                timerProgressBar: true
+              });
+              return;
+            }
+
+            try {
+              const response = await fetch(`/admin/reply_to_feedback`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "X-CSRFToken": csrfToken,
+                },
+                body: JSON.stringify({ 
+                  feedback_id: f.id, 
+                  reply: reply 
+                }),
+              });
+
+              const result = await response.json();
+              if (result.success) {
+                // Update the row to show the reply
+                const replyCell = tr.cells[4];  // Reply column (index 4)
+                const actionCell = tr.cells[5]; // Action column (index 5)
+                
+                replyCell.innerHTML = `<span style="color: var(--primary);">${reply}</span>`;
+                actionCell.innerHTML = '<span style="color: var(--success);">{{ "Replied" if lang == "en" else "Deebii kenname" }}</span>';
+                
+                // Show success popup
+                Swal.fire({
+                  toast: true,
+                  position: 'top-end',
+                  icon: 'success',
+                  title: "{{ 'Reply sent successfully!' if lang == 'en' else 'Deebiin milkaa\'inaan ergame!' }}",
+                  background: '#4CAF50',
+                  color: '#fff',
+                  showConfirmButton: false,
+                  timer: 5000,
+                  timerProgressBar: true
+                });
+                
+                // Refresh notifications after sending reply
+                loadNotifications();
+              } else {
+                Swal.fire({
+                  toast: true,
+                  position: 'top-end',
+                  icon: 'error',
+                  title: result.message || "{{ 'Failed to send reply.' if lang == 'en' else 'Deebii erguun hin milkoofne.' }}",
+                  background: '#f44336',
+                  color: '#fff',
+                  showConfirmButton: false,
+                  timer: 5000,
+                  timerProgressBar: true
+                });
+              }
+            } catch (err) {
+              console.error(err);
+              Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'error',
+                title: "{{ 'An error occurred while sending reply.' if lang == 'en' else 'Dogoggorri uumame yeroo deebii erguu.' }}",
+                background: '#f44336',
+                color: '#fff',
+                showConfirmButton: false,
+                timer: 5000,
+                timerProgressBar: true
+              });
+            }
+          });
+        }
+      });
+    } catch (error) {
+      console.error('Error loading feedbacks:', error);
+      const tbody = document.querySelector("#feedbackTable tbody");
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: var(--accent);">Error loading feedbacks. Please try again.</td></tr>`;
+    }
+  }
+
+  // NOTIFICATION SYSTEM FUNCTIONS
+
+  // Toggle notification panel visibility
+  function toggleNotifications() {
+    const panel = document.getElementById('notificationPanel');
+    const isActive = panel.classList.toggle('active');
+    
+    // If opening the panel, mark all notifications as read
+    if (isActive) {
+      markAllAsRead();
+    }
+    
+    // Close sidebar if open on mobile
+    if (window.innerWidth <= 480 && sidebar.classList.contains('mobile-active')) {
+      toggleSidebar();
+    }
+  }
+
+  // Load notifications from server
+  async function loadNotifications() {
+    try {
+      const response = await fetch('/admin/get_notifications');
+      if (!response.ok) {
+        throw new Error('Failed to fetch notifications');
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Sort notifications by date (newest first)
+        notifications = (data.notifications || []).sort((a, b) => 
+          new Date(b.created_at) - new Date(a.created_at)
+        );
+        updateNotificationUI();
+      } else {
+        console.error('Error loading notifications:', data.message);
+      }
+    } catch (error) {
+      console.error('Error loading notifications:', error);
+    }
+  }
+
+  // Update notification UI with current notifications
+  function updateNotificationUI() {
+    const notificationList = document.getElementById('notificationList');
+    const notificationBadge = document.getElementById('notificationBadge');
+    
+    // Calculate unread count
+    unreadCount = notifications.filter(n => !n.is_read).length;
+    
+    // Update badge
+    if (unreadCount > 0) {
+      notificationBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+      notificationBadge.style.display = 'flex';
+    } else {
+      notificationBadge.style.display = 'none';
+    }
+    
+    // Update notification list
+    if (notifications.length === 0) {
+      notificationList.innerHTML = `
+        <div class="notification-empty">
+          <i class="fas fa-bell-slash"></i>
+          <p>{{ 'No notifications yet' if lang == 'en' else 'Beekumsa hin jiru' }}</p>
+        </div>
+      `;
+    } else {
+      notificationList.innerHTML = '';
+      notifications.forEach(notification => {
+        const notificationItem = document.createElement('div');
+        notificationItem.className = `notification-item ${notification.is_read ? '' : 'unread'}`;
+        notificationItem.innerHTML = `
+          <div class="notification-title">${notification.title}</div>
+          <div class="notification-message">${notification.message}</div>
+          <div class="notification-time">${formatTime(notification.created_at)}</div>
+        `;
+        
+        // Add click handler to mark as read and potentially navigate
+        notificationItem.addEventListener('click', () => {
+          markAsRead(notification.id);
+          
+          // If it's a feedback notification, navigate to feedback section
+          if (notification.type === 'feedback') {
+            const feedbackItem = document.querySelector('.sidebar ul li:nth-child(3)');
+            showSection('feedback', feedbackItem);
+          }
+          // If it's a user approval notification, navigate to approve users section
+          else if (notification.type === 'user_approval') {
+            showApproveUsers();
+          }
+          
+          // Close notification panel
+          document.getElementById('notificationPanel').classList.remove('active');
+        });
+        
+        notificationList.appendChild(notificationItem);
+      });
+    }
+  }
+
+  // Mark a specific notification as read
+  async function markAsRead(notificationId) {
+    try {
+      const response = await fetch(`/admin/mark_notification_read/${notificationId}`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken
+        }
+      });
+      
+      if (response.ok) {
+        // Update local state
+        const notification = notifications.find(n => n.id === notificationId);
+        if (notification) {
+          notification.is_read = true;
+          updateNotificationUI();
+        }
+      }
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  }
+
+  // Mark all notifications as read
+  async function markAllAsRead() {
+    try {
+      const response = await fetch('/admin/mark_all_notifications_read', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken
+        }
+      });
+      
+      if (response.ok) {
+        // Update local state
+        notifications.forEach(n => n.is_read = true);
+        updateNotificationUI();
+      }
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
+  }
+
+  // Format time for display
+  function formatTime(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) {
+      return "{{ 'Just now' if lang == 'en' else 'Ammaa' }}";
+    } else if (diffMins < 60) {
+      return `${diffMins} {{ 'min ago' if lang == 'en' else 'daqiiqaa dura' }}`;
+    } else if (diffHours < 24) {
+      return `${diffHours} {{ 'hour ago' if lang == 'en' else 'sa\'aatii dura' }}`;
+    } else if (diffDays < 7) {
+      return `${diffDays} {{ 'day ago' if lang == 'en' else 'guyyaa dura' }}`;
+    } else {
+      return date.toLocaleDateString();
+    }
+  }
+
+  // Close notification panel when clicking outside
+  document.addEventListener('click', (e) => {
+    const panel = document.getElementById('notificationPanel');
+    const bell = document.getElementById('notificationBell');
+    
+    if (panel.classList.contains('active') && 
+        !panel.contains(e.target) && 
+        !bell.contains(e.target)) {
+      panel.classList.remove('active');
+    }
+  });
+
+  // Function to clean up duplicate notification elements
+  function cleanupDuplicateNotifications() {
+    console.log('🧹 Cleaning up duplicate notification elements...');
+    
+    // Clean up duplicate notification bells
+    const allBells = document.querySelectorAll('.notification-bell');
+    const mainBell = document.getElementById('notificationBell');
+    
+    console.log(`🔍 Found ${allBells.length} notification bell(s)`);
+    
+    if (allBells.length > 1) {
+      allBells.forEach((bell, index) => {
+        if (bell !== mainBell && bell.id !== 'notificationBell') {
+          console.log(`🗑️ Removing duplicate bell #${index}:`, bell);
+          bell.remove();
+        }
+      });
+    }
+    
+    // Clean up duplicate notification panels
+    const allPanels = document.querySelectorAll('.notification-panel');
+    const mainPanel = document.getElementById('notificationPanel');
+    
+    console.log(`🔍 Found ${allPanels.length} notification panel(s)`);
+    
+    if (allPanels.length > 1) {
+      allPanels.forEach((panel, index) => {
+        if (panel !== mainPanel && panel.id !== 'notificationPanel') {
+          console.log(`🗑️ Removing duplicate panel #${index}:`, panel);
+          panel.remove();
+        }
+      });
+    }
+    
+    // Ensure the main bell is properly configured
+    if (mainBell) {
+      mainBell.style.pointerEvents = 'auto';
+      mainBell.style.cursor = 'pointer';
+      mainBell.style.zIndex = '10';
+      console.log('✅ Main notification bell configured properly');
+    }
+    
+    console.log('✅ Notification cleanup completed');
+  }
+
+  // Debug function for troubleshooting notifications
+  window.debugAdminNotifications = function() {
+    console.log('🔍 Admin Notification Debug Info:');
+    
+    const bells = document.querySelectorAll('.notification-bell');
+    const panels = document.querySelectorAll('.notification-panel');
+    
+    console.log(`- Notification bells: ${bells.length}`);
+    bells.forEach((bell, index) => {
+      console.log(`  ${index + 1}. ID: ${bell.id || 'no-id'}, Classes: ${bell.className}`);
+    });
+    
+    console.log(`- Notification panels: ${panels.length}`);
+    panels.forEach((panel, index) => {
+      console.log(`  ${index + 1}. ID: ${panel.id || 'no-id'}, Classes: ${panel.className}`);
+    });
+    
+    console.log('- Universal notifications:', window.universalNotifications);
+    console.log('- Universal notifications initialized:', window.universalNotifications?.isInitialized);
+    
+    // Test cleanup
+    console.log('🧪 Running cleanup test...');
+    cleanupDuplicateNotifications();
+  };
+
+  // Initialize notification polling (legacy fallback)
+  function startNotificationPolling() {
+    // Check if Universal Notification System is handling notifications
+    if (window.universalNotifications && window.universalNotifications.isInitialized) {
+      console.log('🔄 Universal Notification System is active, skipping legacy polling');
+      return;
+    }
+    
+    console.log('🔄 Starting legacy notification polling');
+    
+    // Load notifications immediately
+    loadNotifications();
+    
+    // Then poll every 5 seconds for real-time updates
+    notificationInterval = setInterval(() => {
+      // Double-check Universal system isn't active before each poll
+      if (window.universalNotifications && window.universalNotifications.isInitialized) {
+        console.log('🔄 Universal Notification System now active, stopping legacy polling');
+        clearInterval(notificationInterval);
+        return;
+      }
+      loadNotifications();
+    }, 5000);
+  }
+
+  // Save and restore the current section state to persist on refresh/navigation
+  function saveCurrentSection(sectionId, extra = null) {
+    sessionStorage.setItem('currentSection', sectionId);
+    if(extra !== null) {
+      sessionStorage.setItem('currentSectionExtra', extra);
+    } else {
+      sessionStorage.removeItem('currentSectionExtra');
+    }
+  }
+
+  function restoreCurrentSection() {
+    const currentSection = sessionStorage.getItem('currentSection') || 'overview';
+    const extra = sessionStorage.getItem('currentSectionExtra');
+    if (currentSection === 'overview' || currentSection === 'feedback') {
+      // Show overview or feedback section normally
+      const sidebarItem = Array.from(document.querySelectorAll('.sidebar > ul > li')).find(li => li.textContent.trim() === (currentSection === 'overview' ? "{{ texts.sidebar.overview }}" : "{{ texts.sidebar.feedback }}"));
+      showSection(currentSection, sidebarItem);
+    } else if (currentSection === 'change_password') {
+      loadChangePassword();
+    } else if (currentSection === 'add_user') {
+      loadAddUser();
+    } else if (currentSection === 'approve_users') {
+      showApproveUsers();
+    } else if (currentSection === 'users' && extra) {
+      // extra stores the role to show
+      const sidebarItem = manageAccountSubmenu.querySelector(`li[role="menuitem"]:nth-child(${['patient','doctor','xrayspecialist','reception','healthofficer'].indexOf(extra)+1})`);
+      showUserSection(extra, sidebarItem);
+    } else {
+      // fallback to overview
+      const sidebarItem = Array.from(document.querySelectorAll('.sidebar > ul > li')).find(li => li.textContent.trim() === "{{ texts.sidebar.overview }}");
+      showSection('overview', sidebarItem);
+    }
+  }
+
+  // Override showSection and showUserSection to save current section
+  const originalShowSection = showSection;
+  showSection = function(sectionId, clickedElement) {
+    saveCurrentSection(sectionId);
+    originalShowSection(sectionId, clickedElement);
+  };
+
+  const originalShowUserSection = showUserSection;
+  showUserSection = function(role, clickedElement) {
+    saveCurrentSection('users', role);
+    originalShowUserSection(role, clickedElement);
+  };
+
+  const originalLoadChangePassword = loadChangePassword;
+  loadChangePassword = function() {
+    saveCurrentSection('change_password');
+    originalLoadChangePassword();
+  };
+
+  const originalLoadAddUser = loadAddUser;
+  loadAddUser = function() {
+    saveCurrentSection('add_user');
+    originalLoadAddUser();
+  };
+
+  const originalShowApproveUsers = showApproveUsers;
+  showApproveUsers = function() {
+    saveCurrentSection('approve_users');
+    originalShowApproveUsers();
+  };
+
+  // Handle window resize
+  window.addEventListener('resize', function() {
+    // If window is resized to desktop size, ensure sidebar is visible
+    if (window.innerWidth > 480) {
+      sidebar.classList.remove('mobile-active');
+      overlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  });
+
+  // Clear all notifications (delete them permanently)
+  async function clearAllNotifications() {
+    try {
+      const response = await fetch('/admin/clear_all_notifications', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken
+        }
+      });
+      
+      if (response.ok) {
+        // Clear local notifications
+        notifications = [];
+        updateNotificationUI();
+        
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: "{{ 'All notifications cleared!' if lang == 'en' else 'Beekumsi hundi haqame!' }}",
+          background: '#4CAF50',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+      }
+    } catch (error) {
+      console.error('Error clearing notifications:', error);
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'Failed to clear notifications' if lang == 'en' else 'Beekumsa haquu hin milkoofne' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+    }
+  }
+
+  // View all notifications
+  function viewAllNotifications() {
+    loadNotifications();
+    
+    Swal.fire({
+      toast: true,
+      position: 'top-end',
+      icon: 'info',
+      title: "{{ 'Showing all notifications' if lang == 'en' else 'Beekumsa hunda agarsiisaa jira' }}",
+      background: '#2196f3',
+      color: '#fff',
+      showConfirmButton: false,
+      timer: 2000,
+      timerProgressBar: true
+    });
+  }
+
+  // Initialize everything when DOM is loaded
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔄 Admin Dashboard initializing...');
+    
+    // Ensure overview is active on page load/refresh
+    const overviewSection = document.getElementById('overview');
+    const overviewNavItem = document.querySelector('.sidebar ul li.active');
+    
+    if (overviewSection && overviewNavItem) {
+      // Remove active class from all sections and nav items
+      document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
+      document.querySelectorAll('.sidebar ul li').forEach(item => item.classList.remove('active'));
+      
+      // Set overview as active
+      overviewSection.classList.add('active');
+      overviewNavItem.classList.add('active');
+      
+      console.log('🏠 Admin Dashboard defaulted to Overview section');
+    }
+    
+    // Wait for Universal Notification System to initialize
+    setTimeout(() => {
+      if (window.universalNotifications && window.universalNotifications.isInitialized) {
+        console.log('✅ Universal Notification System is active for admin dashboard');
+        
+        // Clean up duplicate notification bells and panels
+        cleanupDuplicateNotifications();
+        
+        // Set up periodic cleanup to prevent duplicates from reappearing
+        setInterval(() => {
+          const bellCount = document.querySelectorAll('.notification-bell').length;
+          const panelCount = document.querySelectorAll('.notification-panel').length;
+          
+          if (bellCount > 1 || panelCount > 1) {
+            console.log('🔄 Detected duplicate notifications, cleaning up...');
+            cleanupDuplicateNotifications();
+          }
+        }, 10000); // Check every 10 seconds
+        
+        // Disable legacy notification polling since Universal system handles it
+        console.log('🔄 Universal Notification System handling notifications, legacy polling disabled');
+      } else {
+        console.warn('⚠️ Universal Notification System not available, using fallback');
+        
+        // Fallback: Add event listener to notification bell
+        const notificationBell = document.getElementById('notificationBell');
+        if (notificationBell) {
+          notificationBell.addEventListener('click', toggleNotifications);
+        }
+        
+        const markAllReadBtn = document.getElementById('markAllReadBtn');
+        if (markAllReadBtn) {
+          markAllReadBtn.addEventListener('click', markAllAsRead);
+        }
+        
+        const clearAllBtn = document.getElementById('clearAllBtn');
+        if (clearAllBtn) {
+          clearAllBtn.addEventListener('click', clearAllNotifications);
+        }
+        
+        // Start legacy notification polling only if Universal system is not available
+        startNotificationPolling();
+      }
+    }, 1500); // Wait 1.5 seconds for Universal system to initialize
+    
+    // Restore last viewed section
+    restoreCurrentSection();
+  });
+
+  // On window load
+  window.onload = () => {
+    const url = new URL(window.location.href);
+    // Handle tab_session_id param as before (append if missing)
+    let tabSessionId = sessionStorage.getItem('tab_session_id');
+    if (!tabSessionId) {
+      tabSessionId = 'tab-' + Math.random().toString(36).substr(2, 9);
+      sessionStorage.setItem('tab_session_id', tabSessionId);
+    }
+    if (!url.searchParams.get('tab_session_id')) {
+      // Store flash messages in sessionStorage before redirect
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          const flashMessages = {{ messages | tojson }};
+          sessionStorage.setItem('pending_flash_messages', JSON.stringify(flashMessages));
+        {% endif %}
+      {% endwith %}
+      
+      url.searchParams.set('tab_session_id', tabSessionId);
+      window.location.replace(url.toString());
+      return; // stop further execution because page reloads
+    }
+    
+    // Check for pending flash messages after redirect
+    const pendingMessages = sessionStorage.getItem('pending_flash_messages');
+    if (pendingMessages) {
+      sessionStorage.removeItem('pending_flash_messages');
+      const messages = JSON.parse(pendingMessages);
+      
+      // Display each message
+      messages.forEach(([category, message]) => {
+        let iconType = 'info';
+        let bgColor = '#2196f3';
+        if (category === 'success') {
+          iconType = 'success';
+          bgColor = '#0078D4'; // dashboard blue for success
+        } else if (category === 'danger') {
+          iconType = 'error';
+          bgColor = '#f44336';
+        } else if (category === 'warning') {
+          iconType = 'warning';
+          bgColor = '#ff9800';
+        }
+        
+        setTimeout(() => {
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: iconType,
+            title: message,
+            background: bgColor,
+            color: '#fff',
+            showConfirmButton: false,
+            timer: 5000,
+            timerProgressBar: true,
+            customClass: {
+              popup: 'swal-toast-popup'
+            }
+          });
+        }, 200);
+      });
+    }
+  };
+
+
+</script>
+
+<!-- SweetAlert2 for toast messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <script>
+      // Wait for DOM and SweetAlert2 to be ready
+      document.addEventListener('DOMContentLoaded', function() {
+        // Small delay to ensure SweetAlert2 is fully loaded
+        setTimeout(function() {
+          {% for category, message in messages %}
+            let iconType = 'info';
+            let bgColor = '#2196f3'; // blue for info
+            if ("{{ category }}" === 'success') {
+              iconType = 'success';
+              bgColor = '#0078D4'; // dashboard blue for success
+            } else if ("{{ category }}" === 'danger') {
+              iconType = 'error';
+              bgColor = '#f44336'; // red for error
+            } else if ("{{ category }}" === 'warning') {
+              iconType = 'warning';
+              bgColor = '#ff9800'; // orange for warning
+            }
+
+            Swal.fire({
+              toast: true,
+              position: 'top-end',
+              icon: iconType,
+              title: "{{ message|escape }}",
+              background: bgColor,
+              color: '#fff',
+              showConfirmButton: false,
+              timer: 5000,
+              timerProgressBar: true,
+              customClass: {
+                popup: 'swal-toast-popup'
+              }
+            });
+          {% endfor %}
+        }, 100);
+      });
+    </script>
+  {% endif %}
+{% endwith %}
+
+</body>
+</html>

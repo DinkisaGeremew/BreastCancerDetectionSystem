@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View User</title>
+</head>
+<body>
+    <h1>User Details</h1>
+    <p>ID: {{ user.id }}</p>
+    <p>Username: {{ user.username }}</p>
+    <p>Phone: {{ user.phone }}</p>
+    <p>Role: {{ user.role }}</p>
+    <a href="{{ url_for('dashboard_admin') }}">Back to Dashboard</a>
+</body>
+</html>

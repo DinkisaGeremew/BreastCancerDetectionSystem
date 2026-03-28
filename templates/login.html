@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>{{ texts.title }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}" />
+    <style>
+        /* Reset and base styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0078D4 0%, #0063B1 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+            position: relative;
+            overflow: hidden;
+            /* Prevent text selection on all elements by default */
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.5;
+            z-index: 0;
+        }
+        
+        /* Allow text selection only in input fields */
+        input, textarea {
+            user-select: text !important;
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 120, 212, 0.3);
+            padding: 40px 30px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .login-card h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #0078D4 0%, #0063B1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+            font-size: 28px;
+        }
+
+        .login-card label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #0078D4;
+            font-size: 0.95rem;
+        }
+
+        .login-card input {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 2px solid #E1E1E1;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #F9F9F9;
+        }
+
+        .login-card input:focus {
+            border-color: #0078D4;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+            background: white;
+        }
+
+        .login-card button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #0078D4 0%, #0063B1 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 120, 212, 0.3);
+        }
+
+        .login-card button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 120, 212, 0.4);
+        }
+
+        /* Toast popup style */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            max-width: 90%;
+            margin-left: -125px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1000;
+            left: 50%;
+            bottom: 30px;
+            font-size: 17px;
+            opacity: 0;
+            transition: opacity 0.5s, bottom 0.5s;
+            word-wrap: break-word;
+            box-sizing: border-box;
+        }
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px;
+        }
+        #toast.success { background-color: #4CAF50; } /* Green for success */
+        #toast.danger { background-color: #f44336; }  /* Red for danger */
+        #toast.warning { background-color: #ff9800; } /* Orange for warning */
+        #toast.info { background-color: #2196F3; }    /* Blue for info */
+
+        /* Forgot Password link styling */
+        .forgot-password {
+            margin-top: 15px;
+            text-align: center;
+        }
+        .forgot-password a {
+            color: #0078D4;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: color 0.3s ease;
+            cursor: pointer;
+        }
+        .forgot-password a:hover {
+            color: #005A9E;
+            text-decoration: underline;
+        }
+
+        /* Links container styling */
+        .links {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.95rem;
+            font-weight: 400;
+            color: #6c757d;
+        }
+        .links span {
+            margin: 0 6px;
+        }
+        .links .static-text {
+            cursor: default;
+            color: inherit;
+        }
+        .links .static-text:hover {
+            color: inherit;
+            font-weight: normal;
+            text-decoration: none;
+        }
+        .links a {
+            color: #0078D4;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        .links a:hover {
+            color: #005A9E;
+            text-decoration: underline;
+        }
+        .back-to-home {
+            margin-top: 15px;
+        }
+
+        /* Password Toggle Icon */
+        .password-wrapper {
+            position: relative;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .password-wrapper input {
+            padding-right: 45px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #B0B0B0;
+            transition: color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+        }
+
+        .password-toggle:hover {
+            color: #0078D4;
+        }
+
+        .password-toggle svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            body {
+                padding: 0;
+                min-height: 100vh;
+                height: 100vh;
+            }
+
+            .container {
+                width: 100%;
+                padding: 20px 15px;
+                padding-top: 50px;
+            }
+
+            .login-card {
+                width: 100%;
+                max-width: 100%;
+                padding: 30px 20px;
+                margin: 0;
+                border-radius: 15px;
+                max-height: calc(100vh - 100px);
+                overflow-y: auto;
+            }
+
+            .login-card h1 {
+                font-size: 24px;
+                margin-bottom: 25px;
+            }
+
+            .login-card input {
+                padding: 14px 15px;
+                font-size: 16px; /* Prevents zoom on iOS */
+                margin-bottom: 18px;
+            }
+
+            .login-card button {
+                padding: 14px;
+                font-size: 16px;
+            }
+
+            .forgot-password {
+                margin-top: 12px;
+            }
+
+            .forgot-password a {
+                font-size: 0.9rem;
+            }
+
+            .links {
+                margin-top: 15px;
+                font-size: 0.85rem;
+            }
+
+            .links span {
+                margin: 0 4px;
+            }
+
+            #toast {
+                min-width: 200px;
+                max-width: 85%;
+                margin-left: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                font-size: 15px;
+                padding: 14px;
+                bottom: 20px;
+            }
+
+            #toast.show {
+                bottom: 30px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 0;
+                min-height: 100vh;
+                height: 100vh;
+            }
+
+            .container {
+                padding: 15px 10px;
+                padding-top: 25vh;
+                padding-bottom: 0;
+            }
+
+            .login-card {
+                padding: 25px 18px;
+                border-radius: 12px;
+                max-height: 75vh;
+                overflow-y: auto;
+            }
+
+            .login-card h1 {
+                font-size: 22px;
+                margin-bottom: 20px;
+            }
+
+            .login-card input {
+                padding: 12px 12px;
+                font-size: 16px;
+                margin-bottom: 15px;
+                border-radius: 12px;
+            }
+
+            .login-card button {
+                padding: 12px;
+                font-size: 16px;
+                border-radius: 12px;
+            }
+
+            .forgot-password {
+                margin-top: 10px;
+            }
+
+            .forgot-password a {
+                font-size: 0.85rem;
+            }
+
+            .links {
+                margin-top: 12px;
+                font-size: 0.8rem;
+            }
+
+            .links span {
+                margin: 0 3px;
+                display: inline-block;
+            }
+
+            #toast {
+                min-width: 180px;
+                max-width: 90%;
+                font-size: 14px;
+                padding: 12px;
+                bottom: 15px;
+            }
+
+            #toast.show {
+                bottom: 25px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            body {
+                padding: 0;
+                min-height: 100vh;
+                height: 100vh;
+            }
+
+            .container {
+                padding: 12px 8px;
+                padding-top: 25vh;
+                padding-bottom: 0;
+            }
+
+            .login-card {
+                padding: 20px 15px;
+                max-height: 75vh;
+                overflow-y: auto;
+            }
+
+            .login-card h1 {
+                font-size: 20px;
+                margin-bottom: 18px;
+            }
+
+            .links {
+                font-size: 0.75rem;
+            }
+
+            .links span {
+                display: block;
+                margin: 5px 0;
+            }
+        }
+
+        /* Prevent horizontal scroll on mobile */
+        html, body {
+            overflow-x: hidden;
+            width: 100%;
+        }
+
+        /* Ensure inputs don't zoom on iOS */
+        @media screen and (max-width: 768px) {
+            input[type="text"],
+            input[type="password"],
+            input[type="email"],
+            select,
+            textarea {
+                font-size: 16px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="login-card">
+            <h1>{{ texts.login_header }}</h1>
+            <form method="POST" action="/login?lang={{ lang }}">
+                {% if csrf_token %}
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                {% endif %}
+
+                <label for="username">{{ texts.username_label }}</label>
+                <input type="text" id="username" name="username" placeholder="{{ texts.username_placeholder }}" required />
+
+                <label for="password">{{ texts.password_label }}</label>
+                <div class="password-wrapper">
+                    <input type="password" id="password" name="password" placeholder="{{ texts.password_placeholder }}" required />
+                    <span class="password-toggle" id="passwordToggle" onclick="togglePassword()">
+                        <svg id="eyeIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle id="eyePupil" cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <svg id="eyeSlashIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none;">
+                            <path d="M17.94 17.94C16.2306 19.243 14.1491 19.9649 12 20C5 20 1 12 1 12C2.24389 9.68192 3.96914 7.65663 6.06 6.06M9.9 4.24C10.5883 4.0789 11.2931 3.99836 12 4C19 4 23 12 23 12C22.393 13.1356 21.6691 14.2048 20.84 15.19M14.12 14.12C13.8454 14.4148 13.5141 14.6512 13.1462 14.8151C12.7782 14.9791 12.3809 15.0673 11.9781 15.0744C11.5753 15.0815 11.1751 15.0074 10.8016 14.8565C10.4281 14.7056 10.0887 14.4811 9.80385 14.1962C9.51897 13.9113 9.29439 13.5719 9.14351 13.1984C8.99262 12.8249 8.91853 12.4247 8.92563 12.0219C8.93274 11.6191 9.02091 11.2218 9.18488 10.8538C9.34884 10.4859 9.58525 10.1546 9.88 9.88" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M1 1L23 23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                </div>
+
+                <button type="submit">{{ texts.signin_button }}</button>
+            </form>
+
+            <div class="forgot-password">
+                <a href="{{ url_for('forgot_password', lang=lang) }}">{{ texts.forgot_password }}</a>
+            </div>
+
+            <div class="links">
+                <span class="static-text">{{ texts.dont_have_account }}</span>
+                <a href="{{ url_for('register', lang=lang) }}">{{ texts.register }}</a>
+            </div>
+
+            <div class="links back-to-home">
+                <span class="static-text">{{ texts.back_to }}</span>
+                <a href="{{ url_for('home', lang=lang) }}">{{ texts.home }}</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div id="toast"></div>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+    // Password Toggle Function
+    function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const eyeIcon = document.getElementById('eyeIcon');
+        const eyeSlashIcon = document.getElementById('eyeSlashIcon');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            eyeIcon.style.display = 'none';
+            eyeSlashIcon.style.display = 'block';
+        } else {
+            passwordInput.type = 'password';
+            eyeIcon.style.display = 'block';
+            eyeSlashIcon.style.display = 'none';
+        }
+    }
+    </script>
+    <script>
+    (function() {
+        // Check if URL has ?logged_out=1
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('logged_out') === '1') {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'Logged out successfully!',
+                background: '#0078D4',
+                color: '#fff',
+                showConfirmButton: false,
+                timer: 5000,
+                timerProgressBar: true
+            });
+            // Remove the query parameter from URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        // Handle all messages on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            const toast = document.getElementById("toast");
+
+            // Handle registration success message via URL parameters
+            const urlRegistered = urlParams.get('registered');
+            const urlRole = urlParams.get('role');
+            if (urlRegistered === 'true' && urlRole) {
+                const message = `{{ texts.registration_success }}`.replace('{}', urlRole.replace('_', ' '));
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: message,
+                    background: '#0078D4', // dashboard blue
+                    color: '#fff',
+                    showConfirmButton: false,
+                    timer: 5000,
+                    timerProgressBar: true
+                });
+                return;
+            }
+
+            // Handle Flask flashed messages
+            const messages = {{ get_flashed_messages(with_categories=true) | tojson }};
+            if (messages.length > 0) {
+                // Use SweetAlert2 for better mobile experience
+                messages.forEach(([category, message]) => {
+                    let iconType = 'info';
+                    let bgColor = '#2196f3';
+                    
+                    if (category === 'success') {
+                        iconType = 'success';
+                        bgColor = '#0078D4'; // dashboard blue
+                    } else if (category === 'danger') {
+                        iconType = 'error';
+                        bgColor = '#f44336';
+                    } else if (category === 'warning') {
+                        iconType = 'warning';
+                        bgColor = '#ff9800';
+                    }
+
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: iconType,
+                        title: message,
+                        background: bgColor,
+                        color: '#fff',
+                        showConfirmButton: false,
+                        timer: 5000,
+                        timerProgressBar: true
+                    });
+                });
+            }
+
+            // Handle registration success from template variables (different from URL params)
+            const templateRegistered = "{{ registered }}";
+            const templateRole = "{{ role }}";
+            if (templateRegistered === "true") {
+                let titleText = "Registration Successful!";
+                if (templateRole) {
+                    titleText += " You registered as " + templateRole + ".";
+                }
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: titleText,
+                    showConfirmButton: false,
+                    timer: 5000,
+                    timerProgressBar: true,
+                    background: '#0078D4', // dashboard blue
+                    color: '#fff'
+                });
+            }
+        });
+    })();
+    </script>
+</body>
+</html>

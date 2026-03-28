@@ -1,0 +1,3006 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{{ texts.page_title if texts else 'Health Officer Dashboard' }} - Breast Cancer Detection System</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/universal-notifications.css') }}" />
+<script src="{{ url_for('static', filename='js/universal-notifications.js') }}"></script>
+<style>
+  :root {
+    --primary: #0078D4;
+    --primary-dark: #005A9E;
+    --primary-light: #4A9EFF;
+    --secondary: #0063B1;
+    --accent: #fbc02d;
+    --accent-light: #f9a825;
+    --dark: #1F1F1F;
+    --light: #F3F3F3;
+    --gray: #6c757d;
+    --success: #107C10;
+    --card-bg: rgba(255, 255, 255, 0.98);
+    --shadow: 0 10px 30px rgba(0, 120, 212, 0.15);
+    --gradient: linear-gradient(135deg, #0078D4 0%, #0063B1 100%);
+    --medical-gradient: linear-gradient(135deg, #0078D4 0%, #0063B1 100%);
+    --sidebar-width: 320px;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--light);
+    color: var(--dark);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  input, textarea, select, .user-select-text {
+    user-select: text !important;
+  }
+
+  /* Dashboard container */
+  .dashboard-container {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+  
+  /* Sidebar styles */
+  .sidebar {
+    width: var(--sidebar-width);
+    background: var(--medical-gradient);
+    color: white;
+    padding: 25px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.1);
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+  
+  .profile {
+    text-align: center;
+    margin-bottom: 35px;
+    flex-shrink: 0;
+    margin-top: 10px;
+    padding: 0 25px;
+  }
+  
+  .profile img {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    object-fit: cover;
+    pointer-events: none;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  }
+  
+  .profile h3 {
+    margin-top: 15px;
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+  }
+  
+  .profile p {
+    margin: 8px 0 0;
+    font-weight: 500;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.15);
+    padding: 8px 16px;
+    border-radius: 20px;
+    display: inline-block;
+  }
+  
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+    width: 100%;
+    margin: 0;
+    flex-shrink: 0;
+  }
+  
+  .sidebar ul li {
+    padding: 16px 28px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-left: 4px solid transparent;
+    margin: 5px 0;
+    position: relative;
+    min-height: 50px;
+    pointer-events: auto !important;
+    user-select: none;
+    -webkit-tap-highlight-color: rgba(255, 255, 255, 0.2);
+    touch-action: manipulation;
+  }
+  
+  .sidebar ul li:active {
+    background-color: rgba(255, 255, 255, 0.3) !important;
+  }
+  
+  .sidebar ul li .sidebar-text {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: white !important;
+    font-weight: 600;
+    display: block;
+    line-height: 1.2;
+    font-size: 15px;
+  }
+  
+  .sidebar ul li i {
+    flex-shrink: 0;
+    width: 20px;
+    text-align: center;
+  }
+  
+  .sidebar ul li:hover,
+  .sidebar ul li.active {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-left-color: var(--accent);
+    transform: translateX(5px);
+  }
+  
+  .logout-btn {
+    margin-top: auto;
+    width: 100%;
+    padding: 16px 28px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-weight: 600;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    cursor: pointer;
+  }
+  
+  .logout-btn:hover,
+  .logout-btn:focus {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Submenu styles */
+  .submenu {
+    display: none;
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+  
+  .submenu li {
+    padding-left: 50px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+    pointer-events: auto !important;
+    border-left: none;
+    -webkit-tap-highlight-color: rgba(255, 255, 255, 0.2);
+    touch-action: manipulation;
+  }
+  
+  .submenu li:hover,
+  .submenu li.active {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+  
+  .submenu li:active {
+    background-color: rgba(255, 255, 255, 0.3) !important;
+  }
+  
+  .submenu.show {
+    display: block;
+  }
+
+  /* Main content */
+  .main-content {
+    flex: 1;
+    padding: 35px;
+    overflow-y: auto;
+    position: relative;
+    color: var(--dark);
+    min-height: 100vh;
+    box-sizing: border-box;
+    margin-left: var(--sidebar-width);
+    transition: margin-left 0.3s ease;
+    background: var(--light);
+  }
+  
+  .main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 35px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid rgba(0, 120, 212, 0.1);
+  }
+  
+  .main-header h1 {
+    font-size: 32px;
+    font-weight: 800;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+  }
+  
+  .current-date {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gray);
+    background: var(--card-bg);
+    padding: 12px 20px;
+    border-radius: 25px;
+    box-shadow: var(--shadow);
+  }
+
+  /* Section styles */
+  .section {
+    display: none;
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  .section.active {
+    display: block;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Notification Bell - Override universal styles for consistency */
+  .notification-bell {
+    position: relative;
+    cursor: pointer;
+    margin-right: 15px;
+    color: white;
+    font-size: 20px;
+    padding: 12px;
+    border-radius: 50%;
+    background: var(--medical-gradient);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 45px;
+    height: 45px;
+    box-shadow: 0 4px 12px rgba(0, 120, 212, 0.3);
+    z-index: 1002;
+    pointer-events: auto;
+    user-select: none;
+  }
+  
+  .notification-bell:hover {
+    background: var(--primary-dark);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 120, 212, 0.4);
+  }
+
+
+
+  /* Overview content - Split into two sections */
+  .overview-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-top: 35px;
+  }
+  
+  .overview-section {
+    background: var(--card-bg);
+    padding: 35px;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    border-left: 5px solid var(--secondary);
+  }
+  
+  .overview-section h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .overview-section h2 i {
+    color: var(--accent);
+  }
+  
+  .overview-section p {
+    color: var(--gray);
+    line-height: 1.7;
+    font-size: 16px;
+    margin-bottom: 0;
+  }
+  
+  .overview-section:first-child {
+    border-left-color: var(--primary);
+  }
+  
+  .overview-section:last-child {
+    border-left-color: var(--accent);
+  }
+
+  /* Card styles */
+  .card {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 25px;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(0, 120, 212, 0.1);
+  }
+  
+  .card h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .card h2 i {
+    font-size: 28px;
+  }
+
+  /* Form styles */
+  .health-officer-form {
+    display: grid;
+    gap: 20px;
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .form-group label {
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+  
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 12px 16px;
+    border: 2px solid #E1E1E1;
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.3s ease;
+    background: #F9F9F9;
+  }
+  
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+    background: white;
+  }
+  
+  .form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+  
+  .btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  .btn-primary {
+    background: var(--gradient);
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 120, 212, 0.3);
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 120, 212, 0.4);
+  }
+
+  /* Table styles */
+  .table-container {
+    overflow-x: auto;
+    border-radius: 15px;
+    box-shadow: var(--shadow);
+    background: var(--card-bg);
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  
+  table th {
+    background: var(--gradient);
+    color: white;
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    border: none;
+  }
+  
+  table td {
+    padding: 15px;
+    border-bottom: 1px solid rgba(0, 120, 212, 0.1);
+  }
+  
+  table tr:hover {
+    background: rgba(0, 120, 212, 0.05);
+  }
+
+  /* Form styles - matching Patient dashboard Doctor feedback exactly */
+  form label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 12px;
+    user-select: text;
+    color: var(--dark);
+  }
+  
+  form select, form input[type="file"], form textarea {
+    width: 100%;
+    padding: 16px 18px;
+    margin-bottom: 25px;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    font-size: 15px;
+    box-sizing: border-box;
+    font-family: inherit;
+    user-select: text;
+    transition: all 0.3s ease;
+  }
+  
+  form select:focus, form input[type="file"]:focus, form textarea:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.1);
+  }
+  
+  /* Enhanced styling for recipient selection dropdown */
+  #recipientSelect {
+    background: white;
+    border: 2px solid var(--primary);
+    font-weight: 500;
+    color: var(--dark);
+  }
+  
+  #recipientSelect:focus {
+    border-color: var(--primary-dark);
+    box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+  }
+  
+  /* Style for the recipient selection label */
+  label[for="recipientSelect"] {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--primary);
+  }
+  
+  form textarea {
+    resize: vertical;
+    min-height: 130px;
+  }
+  
+  button {
+    background: var(--medical-gradient);
+    border: none;
+    color: white;
+    padding: 16px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    margin-top: 20px;
+    width: 100%;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(46, 139, 87, 0.3);
+  }
+  
+  button:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(46, 139, 87, 0.4);
+  }
+  
+  button:disabled {
+    opacity: 0.6;
+    cursor: default;
+    transform: none;
+  }
+
+  /* Feedback card styles - matching Doctor feedback design */
+  .feedback-card {
+    background: rgba(0, 120, 212, 0.08);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    color: var(--dark);
+    box-shadow: 0 4px 12px rgba(0, 120, 212, 0.15);
+    user-select: text;
+    border-left: 4px solid var(--primary);
+  }
+  
+  .feedback-card strong {
+    font-weight: 700;
+    color: var(--primary);
+  }
+  
+  .feedback-card em {
+    color: var(--gray);
+    font-style: italic;
+  }
+
+  /* Feedback tab styles */
+  .feedback-tab-btn.active {
+    background: var(--primary) !important;
+    color: white !important;
+  }
+  
+  .feedback-tab-btn:hover {
+    background: rgba(0, 120, 212, 0.1) !important;
+    color: var(--primary) !important;
+  }
+  
+  .feedback-section {
+    display: none;
+  }
+  
+  .feedback-section:first-child {
+    display: block;
+  }
+
+  /* Settings content styles */
+  .settings-content {
+    display: none;
+  }
+
+  .settings-content.active {
+    display: block;
+  }
+
+  /* Profile Picture Form Styling */
+  .profile-picture-form {
+    background: var(--card-bg);
+    max-width: 500px;
+    padding: 35px;
+    margin: 20px auto;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    color: var(--dark);
+    border-left: 5px solid var(--primary);
+  }
+
+  .profile-picture-form h2 {
+    margin-bottom: 25px;
+    text-align: center;
+    color: var(--primary);
+    font-weight: 700;
+  }
+
+  .profile-picture-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--dark);
+  }
+
+  .profile-picture-form input[type="file"] {
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    font-family: inherit;
+  }
+
+  .profile-picture-form input[type="file"]:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+  }
+
+  .profile-picture-form button {
+    width: 100%;
+    padding: 16px;
+    background: var(--medical-gradient) !important;
+    border: none !important;
+    color: white !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+    margin-top: 15px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 15px rgba(0, 120, 212, 0.3) !important;
+  }
+
+  .profile-picture-form button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(0, 120, 212, 0.4) !important;
+  }
+
+  /* Change Password Form Styling */
+  .change-password-form {
+    background: var(--card-bg);
+    max-width: 500px;
+    padding: 35px;
+    margin: 20px auto;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    color: var(--dark);
+    border-left: 5px solid var(--primary);
+  }
+
+  .change-password-form h2 {
+    margin-bottom: 25px;
+    text-align: center;
+    color: var(--primary);
+    font-weight: 700;
+  }
+
+  .change-password-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--dark);
+  }
+
+  .change-password-form input[type="password"] {
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    font-family: inherit;
+    margin-bottom: 15px;
+  }
+
+  .change-password-form input[type="password"]:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+  }
+
+  .change-password-form button {
+    width: 100%;
+    padding: 16px;
+    background: var(--medical-gradient) !important;
+    border: none !important;
+    color: white !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+    margin-top: 15px !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 15px rgba(0, 120, 212, 0.3) !important;
+  }
+
+  .change-password-form button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(0, 120, 212, 0.4) !important;
+  }
+
+  /* Status and Priority indicators */
+  .status-pending {
+    background: #fff3cd;
+    color: #856404;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .status-answered {
+    background: #d4edda;
+    color: #155724;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .status-closed {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .priority-normal {
+    background: #e2e3e5;
+    color: #383d41;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .priority-high {
+    background: #ffeaa7;
+    color: #d63031;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .priority-urgent {
+    background: #ff7675;
+    color: #ffffff;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* Mobile sidebar toggle button */
+  .sidebar-toggle-btn {
+    display: none;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: var(--accent);
+    border: none;
+    color: var(--dark);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 18px;
+    cursor: pointer;
+    z-index: 1100;
+    box-shadow: 0 4px 12px rgba(251, 192, 45, 0.3);
+    transition: all 0.3s ease;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .sidebar-toggle-btn:hover,
+  .sidebar-toggle-btn:focus {
+    background-color: var(--accent-light);
+    transform: scale(1.05);
+    outline: none;
+  }
+  
+  /* Overlay for mobile when sidebar is open */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+  }
+  
+  .sidebar-overlay.active {
+    display: block;
+  }
+
+  /* Mobile responsive */
+  @media (max-width: 768px) {
+    .sidebar {
+      width: 260px;
+    }
+    
+    .main-content {
+      margin-left: 0;
+      padding: 20px;
+    }
+    
+    .overview-content {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    
+    .overview-section {
+      padding: 25px;
+    }
+    
+    .main-header {
+      flex-direction: column;
+      gap: 15px;
+      text-align: center;
+    }
+  }
+
+  @media (max-width: 480px) {
+    /* Show mobile toggle button */
+    .sidebar-toggle-btn {
+      display: flex !important;
+    }
+    
+    /* Sidebar hidden by default on mobile */
+    .sidebar {
+      transform: translateX(-100%);
+    }
+    
+    /* Sidebar visible when active */
+    .sidebar.mobile-active {
+      transform: translateX(0);
+    }
+    
+    .main-content {
+      padding: 15px;
+    }
+    
+    .main-header h1 {
+      font-size: 24px;
+      margin-top: 50px;
+    }
+  }
+
+  /* For desktop - hide toggle button */
+  @media (min-width: 481px) {
+    .sidebar-toggle-btn {
+      display: none !important;
+    }
+  }
+</style>
+</head>
+
+<body data-user-role="healthofficer">
+
+<!-- Mobile sidebar toggle button -->
+<button class="sidebar-toggle-btn" aria-label="Toggle sidebar" aria-expanded="false" aria-controls="sidebar">☰</button>
+
+<!-- Overlay for mobile sidebar -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar" role="navigation" aria-label="{{ texts.sidebar.overview if texts else 'Health Officer' }} navigation" id="sidebar">
+      <div class="profile" aria-label="{{ texts.profile_role if texts else 'Health Officer' }} profile">
+        {% if current_user.profile_picture and current_user.profile_picture != 'default_avatar.png' %}
+          <img src="{{ url_for('profile_picture', filename=current_user.profile_picture) }}" alt="Health Officer Profile" />
+        {% else %}
+          <img src="{{ url_for('static', filename='images/default_avatar.png') }}" alt="Health Officer Profile" />
+        {% endif %}
+        <h3>{{ current_user.username }}</h3>
+        <p>{{ texts.profile_role if texts else 'Health Officer' }}</p>
+      </div>
+      
+      <ul>
+        <li class="active" onclick="showSection('overview', this)" role="button" tabindex="0" onkeydown="if(event.key==='Enter'){showSection('overview', this)}">
+          <i class="fas fa-home"></i> 
+          <span class="sidebar-text">{{ texts.sidebar.overview if texts else 'Overview' }}</span>
+        </li>
+        <li onclick="showSection('assigned-patients', this)" role="button" tabindex="0" onkeydown="if(event.key==='Enter'){showSection('assigned-patients', this)}">
+          <i class="fas fa-users"></i> 
+          <span class="sidebar-text">{{ texts.sidebar.assigned_patients if texts else 'Assigned Patients' }}</span>
+        </li>
+        <li onclick="showSection('assign-xray', this)" role="button" tabindex="0" onkeydown="if(event.key==='Enter'){showSection('assign-xray', this)}">
+          <i class="fas fa-x-ray"></i> 
+          <span class="sidebar-text">{{ texts.sidebar.assign_xray if texts else 'Assign X-ray Specialist' }}</span>
+        </li>
+
+        <li onclick="showSection('clinical-interview', this)" role="button" tabindex="0" onkeydown="if(event.key==='Enter'){showSection('clinical-interview', this)}">
+          <i class="fas fa-user-md"></i> 
+          <span class="sidebar-text">{{ texts.sidebar.clinical_interview if texts else 'Patient Clinical Interview' }}</span>
+        </li>
+        <li onclick="showSection('feedback', this)" role="button" tabindex="0" onkeydown="if(event.key==='Enter'){showSection('feedback', this)}">
+          <i class="fas fa-comments"></i> 
+          <span class="sidebar-text">{{ texts.sidebar.feedback if texts else 'Feedback' }}</span>
+        </li>
+        <li class="nav-item" role="button" tabindex="0" id="settingsToggle" aria-expanded="false" aria-haspopup="true" aria-controls="settingsSubmenu">
+          <i class="fas fa-cog"></i> 
+          <span class="sidebar-text">{{ texts.sidebar.settings if texts else 'Settings' }} <i class="fas fa-chevron-down" style="margin-left: auto; font-size: 12px;"></i></span>
+        </li>
+        <ul class="submenu" id="settingsSubmenu" aria-label="{{ texts.sidebar.settings if texts else 'Settings' }} submenu" role="menu">
+          <li class="nav-item" role="menuitem" tabindex="0" onclick="showSettingsSubsection('profile-picture', this)">
+            <i class="fas fa-user-circle"></i> 
+            <span class="sidebar-text">{{ texts.sidebar.profile_picture if texts else 'Profile Picture' }}</span>
+          </li>
+          <li class="nav-item" role="menuitem" tabindex="0" onclick="showSettingsSubsection('change-password', this)">
+            <i class="fas fa-key"></i> 
+            <span class="sidebar-text">{{ texts.sidebar.change_password if texts else 'Change Password' }}</span>
+          </li>
+        </ul>
+        <li class="logout-btn" role="listitem" onclick="logout()">
+          <i class="fas fa-sign-out-alt"></i> 
+          <span class="sidebar-text">{{ texts.sidebar.logout if texts else 'Logout' }}</span>
+        </li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent" role="main">
+      <div class="main-header">
+        <h1>{{ 'Welcome, ' + current_user.username + '!' }}</h1>
+        <div style="display: flex; align-items: center; gap: 15px;">
+          <!-- Notification Bell -->
+          <div class="notification-bell" id="notificationBell" aria-label="Notifications" role="button" tabindex="0">
+            <i class="fas fa-bell"></i>
+            <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+          </div>
+          <span class="current-date" id="currentDate" aria-live="polite" aria-atomic="true" aria-label="{{ texts.current_date_aria if texts else 'Current date' }}"></span>
+        </div>
+      </div>
+
+      <!-- Notification Panel -->
+      <div class="notification-panel" id="notificationPanel" role="dialog" aria-label="Notifications" aria-modal="true">
+        <div class="notification-header">
+          <h3>Notifications</h3>
+          <div style="display: flex; gap: 10px;">
+            <button id="markAllReadBtn" class="notification-action-btn">Mark all as read</button>
+            <button id="clearAllBtn" class="notification-action-btn clear-all-btn">Clear All</button>
+          </div>
+        </div>
+        <div class="notification-list" id="universalNotificationList">
+          <div class="notification-loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Loading notifications...</span>
+          </div>
+        </div>
+        <div class="notification-footer">
+          <button id="refreshNotificationsBtn" class="notification-refresh-btn">
+            <i class="fas fa-sync-alt"></i> Refresh
+          </button>
+        </div>
+      </div>
+
+      <!-- Overview Section -->
+      <div id="overview" class="section active" role="region" aria-label="{{ texts.sidebar.overview if texts else 'Overview' }}">
+        <!-- Split overview text into two sections -->
+        <div class="overview-content">
+          <div class="overview-section">
+            <h2><i class="fas fa-user-md"></i> {{ texts.overview.health_officer_overview if texts else 'Health Officer Overview' }}</h2>
+            <p>{{ texts.overview.overview_text if texts else 'Welcome to the Health Officer Dashboard.' }}</p>
+          </div>
+          
+          <div class="overview-section">
+            <h2><i class="fas fa-stethoscope"></i> {{ texts.overview.health_officer_tools if texts else 'Clinical Tools' }}</h2>
+            <p>{{ texts.overview.tools_text if texts else 'Access your clinical workflow tools through the navigation menu.' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Assigned Patients Section -->
+      <div id="assigned-patients" class="section" role="region" aria-label="{{ texts.sidebar.assigned_patients if texts else 'Assigned Patients' }}">
+        <div class="card">
+          <h2><i class="fas fa-users"></i> {{ texts.assigned_patients_list if texts else 'Assigned Patients' }}</h2>
+          {% if assigned_patients %}
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Patient ID</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Assigned Date</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for patient in assigned_patients %}
+                  <tr>
+                    <td>{{ patient.patient_unique_id }}</td>
+                    <td>{{ patient.username }}</td>
+                    <td>{{ patient.phone }}</td>
+                    <td>{{ patient.assigned_date.strftime('%Y-%m-%d') if patient.assigned_date else 'N/A' }}</td>
+                    <td>{{ patient.status or 'Active' }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <p>{{ texts.no_assigned_patients if texts else 'No patients assigned.' }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Assign X-ray Specialist Section -->
+      <div id="assign-xray" class="section" role="region" aria-label="{{ texts.sidebar.assign_xray if texts else 'Assign X-ray Specialist' }}">
+        <div class="card">
+          <h2><i class="fas fa-x-ray"></i> {{ texts.sidebar.assign_xray if texts else 'Assign X-ray Specialist' }}</h2>
+          <form class="health-officer-form" id="assignXrayForm" onsubmit="return handleXrayAssignment(event)">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+              <label for="patientSelect">{{ texts.forms.select_patient if texts else 'Select Patient' }}:</label>
+              <select id="patientSelect" name="patient_id" required>
+                <option value="">{{ texts.forms.select_patient if texts else 'Choose a patient...' }}</option>
+                <!-- Patients will be loaded dynamically -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="xraySpecialistSelect">{{ texts.forms.select_xray_specialist if texts else 'Select X-ray Specialist' }}:</label>
+              <select id="xraySpecialistSelect" name="xray_specialist_id" required>
+                <option value="">{{ texts.forms.select_xray_specialist if texts else 'Choose an X-ray specialist...' }}</option>
+                <!-- X-ray specialists will be loaded dynamically -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="assignmentNotes">{% if lang == 'or' %}Yaadannoo (Dirqama Miti):{% else %}Notes (Optional):{% endif %}</label>
+              <textarea id="assignmentNotes" name="notes" placeholder="{% if lang == 'or' %}Yaadannoo dabalataa galchi...{% else %}Enter any additional notes for this assignment...{% endif %}"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">{{ texts.forms.assign_button if texts else 'Assign X-ray Specialist' }}</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2><i class="fas fa-history"></i> Recent X-ray Assignments</h2>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Patient</th>
+                  <th>X-ray Specialist</th>
+                  <th>Assigned Date</th>
+                  <th>Status</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody id="xrayAssignmentsTable">
+                <tr>
+                  <td colspan="5">Loading assignments...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Clinical Interview Section -->
+      <div id="clinical-interview" class="section" role="region" aria-label="{{ texts.sidebar.clinical_interview if texts else 'Patient Clinical Interview' }}">
+        <div class="card">
+          <h2><i class="fas fa-user-md"></i> {{ texts.clinical_interview.title if texts else 'Patient Clinical Interview' }}</h2>
+          <p style="color: var(--gray); margin-bottom: 25px;">
+            {{ texts.clinical_interview.description if texts else 'Send clinical interview questions to your assigned patients and receive their responses for better patient assessment.' }}
+          </p>
+          
+          <form class="health-officer-form" id="clinicalInterviewForm" onsubmit="return handleClinicalInterview(event)">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="form-group">
+              <label for="interviewPatientSelect">{{ texts.forms.select_patient if texts else 'Select Patient' }}:</label>
+              <select id="interviewPatientSelect" name="patient_id" required>
+                <option value="">{{ texts.forms.select_patient if texts else 'Choose a patient...' }}</option>
+                <!-- Patients will be loaded dynamically -->
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="interviewQuestion">Clinical Interview Question:</label>
+              <textarea id="interviewQuestion" name="question" placeholder="Enter your clinical interview question for the patient..." required style="min-height: 120px;"></textarea>
+            </div>
+            
+            <div class="form-group">
+              <label for="interviewNotes">Private Notes (Optional):</label>
+              <textarea id="interviewNotes" name="notes" placeholder="Enter any private notes for your reference..." style="min-height: 80px;"></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-paper-plane"></i> Send Clinical Interview Question
+            </button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2><i class="fas fa-history"></i> Clinical Interview History</h2>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Patient</th>
+                  <th>Question</th>
+                  <th>Status</th>
+                  <th>Date Sent</th>
+                  <th>Response</th>
+                  <th>Private Notes</th>
+                </tr>
+              </thead>
+              <tbody id="clinicalInterviewTable">
+                <tr>
+                  <td colspan="6">Loading clinical interviews...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feedback Section -->
+      <div id="feedback" class="section" role="region" aria-label="{{ texts.sidebar.feedback if texts else 'Feedback' }}">
+        <!-- Feedback Tabs -->
+        <div class="card" style="padding: 0; overflow: hidden;">
+          <div style="display: flex; border-bottom: 2px solid #e0e0e0; background: #f8f9fa;">
+            <button class="feedback-tab-btn active" onclick="showFeedbackSection('receptionist-feedback')" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer; font-weight: 600; color: #666; transition: all 0.3s;">
+              <i class="fas fa-user-tie"></i> Receptionist Feedback
+            </button>
+            <button class="feedback-tab-btn" onclick="showFeedbackSection('send-to-admin')" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer; font-weight: 600; color: #666; transition: all 0.3s;">
+              <i class="fas fa-paper-plane"></i> Send to Admin
+            </button>
+            <button class="feedback-tab-btn" onclick="showFeedbackSection('xray-specialist-feedback')" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer; font-weight: 600; color: #666; transition: all 0.3s;">
+              <i class="fas fa-x-ray"></i> X-ray Specialist Feedback
+            </button>
+          </div>
+
+          <!-- Receptionist Feedback Section -->
+          <div id="receptionist-feedback" class="feedback-section" style="padding: 25px;">
+            <h3 style="color: #0078D4; margin-bottom: 20px;">
+              <i class="fas fa-comments"></i> Feedback from Receptionists
+            </h3>
+            <div id="receptionistFeedbackList">
+              <div style="text-align: center; padding: 40px; color: #999;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 32px; margin-bottom: 15px;"></i>
+                <p>Loading feedback...</p>
+              </div>
+            </div>
+            
+            <!-- Debug info (hidden in production) -->
+            <div id="feedbackDebugInfo" style="display: none; margin-top: 20px; padding: 10px; background: #f0f0f0; border-radius: 5px; font-size: 12px;">
+              <strong>Debug Info:</strong>
+              <div id="debugContent"></div>
+            </div>
+          </div>
+
+          <!-- Send to Admin Section -->
+          <div id="send-to-admin" class="feedback-section" style="padding: 25px; display: none;">
+            <h3 style="color: #0078D4; margin-bottom: 20px;">
+              <i class="fas fa-paper-plane"></i> Send Feedback to Admin
+            </h3>
+            <form id="adminFeedbackForm" style="max-width: 700px;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <label for="adminFeedbackMessage" style="display: block; margin-bottom: 10px; font-weight: 600; color: #333;">
+                Your Message:
+              </label>
+              <textarea 
+                id="adminFeedbackMessage" 
+                name="feedback_message" 
+                placeholder="Write your feedback, suggestions, or concerns for the admin here..."
+                required
+                style="width: 100%; min-height: 150px; padding: 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical;"
+              ></textarea>
+              <button type="submit" style="margin-top: 15px; width: auto; padding: 12px 30px;">
+                <i class="fas fa-paper-plane"></i> Send Feedback
+              </button>
+            </form>
+            
+            <!-- Feedback History Section -->
+            <div style="margin-top: 40px;">
+              <h3 style="color: #0078D4; margin-bottom: 20px;">
+                <i class="fas fa-history"></i> Your Feedback History & Admin Replies
+              </h3>
+              <div id="adminFeedbackHistoryList">
+                <div style="text-align: center; padding: 40px; color: #999;">
+                  <i class="fas fa-spinner fa-spin" style="font-size: 32px; margin-bottom: 15px;"></i>
+                  <p>Loading feedback history...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- X-ray Specialist Feedback Section -->
+          <div id="xray-specialist-feedback" class="feedback-section" style="padding: 25px; display: none;">
+            <h3 style="color: #0078D4; margin-bottom: 20px;">
+              <i class="fas fa-x-ray"></i> X-ray Specialist Communication
+            </h3>
+            
+            <!-- Send Feedback to X-ray Specialist Form -->
+            <div style="margin-bottom: 40px;">
+              <h4 style="color: #0078D4; margin-bottom: 15px;">
+                <i class="fas fa-paper-plane"></i> Send Feedback to X-ray Specialist
+              </h4>
+              <form id="xraySpecialistFeedbackForm" style="max-width: 700px;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <label for="xraySpecialistSelect" style="display: block; margin-bottom: 10px; font-weight: 600; color: #333;">
+                  Select X-ray Specialist:
+                </label>
+                <select id="xraySpecialistFeedbackSelect" name="xray_specialist_id" required style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; margin-bottom: 15px;">
+                  <option value="">Choose an X-ray specialist...</option>
+                  <!-- X-ray specialists will be loaded dynamically -->
+                </select>
+                
+                <label for="xrayFeedbackMessage" style="display: block; margin-bottom: 10px; font-weight: 600; color: #333;">
+                  Your Message:
+                </label>
+                <textarea 
+                  id="xrayFeedbackMessage" 
+                  name="feedback_message" 
+                  placeholder="Write your feedback, questions, or concerns for the X-ray specialist here..."
+                  required
+                  style="width: 100%; min-height: 120px; padding: 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-family: inherit; resize: vertical; margin-bottom: 15px;"
+                ></textarea>
+                
+                <button type="submit" style="margin-top: 10px; width: auto; padding: 12px 30px;">
+                  <i class="fas fa-paper-plane"></i> Send Feedback
+                </button>
+              </form>
+            </div>
+            
+            <!-- Feedback History Section -->
+            <div>
+              <h4 style="color: #0078D4; margin-bottom: 15px;">
+                <i class="fas fa-history"></i> Your Feedback & X-ray Specialist Replies
+              </h4>
+              <div id="xraySpecialistRepliesList">
+                <div style="text-align: center; padding: 40px; color: #999;">
+                  <i class="fas fa-spinner fa-spin" style="font-size: 32px; margin-bottom: 15px;"></i>
+                  <p>Loading feedback history...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Section -->
+      <div id="settings" class="section" role="region" aria-label="{{ texts.sidebar.settings if texts else 'Settings' }}">
+        
+        <!-- Profile Picture Settings -->
+        <div id="profile-picture" class="settings-content active">
+          <form class="profile-picture-form" id="profilePictureForm" enctype="multipart/form-data" onsubmit="return handleProfilePictureUpdate(event)">
+            <h2><i class="fas fa-user-circle"></i> {{ texts.sidebar.profile_picture if texts else 'Profile Picture' }}</h2>
+            
+            <div style="text-align: center; margin: 20px 0;">
+              <img id="currentProfilePic" src="{% if current_user.profile_picture and current_user.profile_picture != 'default_avatar.png' %}{{ url_for('profile_picture', filename=current_user.profile_picture) }}{% else %}{{ url_for('static', filename='images/default_avatar.png') }}{% endif %}" alt="Current profile" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid #0078D4;">
+            </div>
+            
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label for="profilePictureFile">{{ texts.forms.choose_profile_picture if texts else 'Choose New Picture' }}</label>
+            <input type="file" id="profilePictureFile" name="profile_picture" accept="image/*" required>
+            
+            <button type="submit">{{ texts.forms.update_profile_picture if texts else 'Update Picture' }}</button>
+          </form>
+        </div>
+
+        <!-- Change Password Settings -->
+        <div id="change-password" class="settings-content">
+          <form class="change-password-form" id="changePasswordForm" onsubmit="return handlePasswordChange(event)">
+            <h2><i class="fas fa-key"></i> {{ texts.sidebar.change_password if texts else 'Change Password' }}</h2>
+            
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <label for="currentPassword">{{ texts.forms.current_password if texts else 'Current Password' }}</label>
+            <input type="password" id="currentPassword" name="current_password" required>
+            
+            <label for="newPassword">{{ texts.forms.new_password if texts else 'New Password' }}</label>
+            <input type="password" id="newPassword" name="new_password" required minlength="6">
+            
+            <label for="confirmPassword">{{ texts.forms.confirm_new_password if texts else 'Confirm New Password' }}</label>
+            <input type="password" id="confirmPassword" name="confirm_password" required minlength="6">
+            
+            <button type="submit">{{ texts.forms.change_password_button if texts else 'Change Password' }}</button>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // ==================== MOBILE SIDEBAR FUNCTIONALITY ====================
+    const sidebar = document.getElementById('sidebar');
+    const toggleBtn = document.querySelector('.sidebar-toggle-btn');
+    const overlay = document.getElementById('sidebarOverlay');
+    
+    // Toggle sidebar function
+    function toggleSidebar() {
+      const isActive = sidebar.classList.toggle('mobile-active');
+      overlay.classList.toggle('active', isActive);
+      toggleBtn.setAttribute('aria-expanded', isActive);
+      
+      // Prevent body scrolling when sidebar is open
+      document.body.style.overflow = isActive ? 'hidden' : '';
+    }
+    
+    // Event listeners for toggle button
+    if (toggleBtn) toggleBtn.addEventListener('click', toggleSidebar);
+    
+    // Close sidebar when clicking overlay
+    if (overlay) overlay.addEventListener('click', toggleSidebar);
+    
+    // Close sidebar when pressing Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && sidebar && sidebar.classList.contains('mobile-active')) {
+        toggleSidebar();
+      }
+    });
+    
+    // Close sidebar on mobile after selecting a menu item
+    // Add both click and touchend events for better mobile support
+    document.querySelectorAll('.sidebar ul li').forEach(item => {
+      const handleItemClick = () => {
+        if (window.innerWidth <= 480 && sidebar && sidebar.classList.contains('mobile-active')) {
+          // Small delay to allow the click event to fire first
+          setTimeout(() => toggleSidebar(), 100);
+        }
+      };
+      
+      item.addEventListener('click', handleItemClick);
+      item.addEventListener('touchend', (e) => {
+        // Prevent double-firing on devices that support both touch and click
+        e.preventDefault();
+        // Manually trigger the onclick if it exists
+        if (item.onclick) {
+          item.onclick.call(item, e);
+        }
+        handleItemClick();
+      }, { passive: false });
+    });
+    
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 480 && sidebar && sidebar.classList.contains('mobile-active')) {
+        sidebar.classList.remove('mobile-active');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    });
+
+    // CSRF Token
+    let csrfToken = "{{ csrf_token() }}";
+    
+    // Function to refresh CSRF token if needed
+    async function refreshCSRFToken() {
+      try {
+        const response = await fetch('/dashboard/healthofficer', {
+          method: 'GET',
+          credentials: 'same-origin'
+        });
+        
+        if (response.ok) {
+          const html = await response.text();
+          const match = html.match(/name="csrf_token" value="([^"]+)"/);
+          if (match) {
+            csrfToken = match[1];
+            console.log('🔑 CSRF token refreshed:', csrfToken.substring(0, 20) + '...');
+            return true;
+          }
+        }
+        return false;
+      } catch (error) {
+        console.error('❌ Error refreshing CSRF token:', error);
+        return false;
+      }
+    }
+    
+    // Initialize dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+      // Ensure overview is active on page load/refresh
+      const overviewSection = document.getElementById('overview');
+      const overviewNavItem = document.querySelector('.sidebar ul li.active');
+      
+      if (overviewSection && overviewNavItem) {
+        // Remove active class from all sections and nav items
+        document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
+        document.querySelectorAll('.sidebar ul li').forEach(item => item.classList.remove('active'));
+        
+        // Set overview as active
+        overviewSection.classList.add('active');
+        overviewNavItem.classList.add('active');
+        
+        console.log('🏠 Health Officer Dashboard defaulted to Overview section');
+      }
+      
+      updateCurrentDate();
+      loadInitialData();
+      
+      // Update date every minute
+      setInterval(updateCurrentDate, 60000);
+      
+      // Debug: Check if universal notification system is working
+      setTimeout(() => {
+        console.log('🔍 Health Officer Dashboard - Checking notification system...');
+        console.log('- Universal notifications:', window.universalNotifications);
+        console.log('- Universal notifications initialized:', window.universalNotifications?.isInitialized);
+        console.log('- Notification bell:', document.getElementById('notificationBell'));
+        console.log('- Notification panel:', document.getElementById('notificationPanel'));
+        console.log('- User role from body:', document.body.dataset.userRole);
+        
+        // Test notification API
+        if (window.universalNotifications && window.universalNotifications.isInitialized) {
+          console.log('✅ Universal notification system is active');
+        } else {
+          console.log('❌ Universal notification system not initialized');
+        }
+      }, 3000);
+    });
+
+    // Update current date display
+    function updateCurrentDate() {
+      const now = new Date();
+      const options = { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      };
+      document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', options);
+    }
+
+    // Show section function
+    function showSection(sectionId, element) {
+      // Hide all sections
+      const sections = document.querySelectorAll('.section');
+      sections.forEach(section => {
+        section.classList.remove('active');
+      });
+
+      // Remove active class from all sidebar items
+      const sidebarItems = document.querySelectorAll('.sidebar ul li');
+      sidebarItems.forEach(item => {
+        item.classList.remove('active');
+      });
+
+      // Show selected section
+      const targetSection = document.getElementById(sectionId);
+      if (targetSection) {
+        targetSection.classList.add('active');
+      }
+
+      // Add active class to clicked sidebar item
+      if (element) {
+        element.classList.add('active');
+      }
+
+      // Load section-specific data
+      loadSectionData(sectionId);
+    }
+
+    // Load section-specific data
+    function loadSectionData(sectionId) {
+      switch(sectionId) {
+        case 'assigned-patients':
+          loadAssignedPatients();
+          break;
+        case 'assign-xray':
+          loadPatientsForAssignment();
+          loadXraySpecialists();
+          loadXrayAssignments();
+          break;
+        case 'clinical-interview':
+          loadPatientsForInterview();
+          loadClinicalInterviews();
+          break;
+        case 'feedback':
+          loadFeedback();
+          break;
+      }
+    }
+
+    // Load initial data
+    function loadInitialData() {
+      // Load any initial data needed for the overview
+      console.log('Health Officer Dashboard loaded successfully');
+    }
+
+    // Data loading functions
+    async function loadAssignedPatients() {
+      console.log('🔄 Loading assigned patients...');
+      
+      try {
+        console.log('📡 Making request to /healthofficer/get_assigned_patients...');
+        const response = await fetch('/healthofficer/get_assigned_patients', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache'
+          },
+          credentials: 'same-origin'
+        });
+        
+        console.log('📡 Response received:', {
+          status: response.status,
+          statusText: response.statusText,
+          ok: response.ok,
+          headers: Object.fromEntries(response.headers.entries())
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('❌ HTTP error response:', errorText);
+          throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+        }
+        
+        const patients = await response.json();
+        console.log('✅ Assigned patients loaded:', patients);
+        console.log('📊 Number of patients:', patients.length);
+        
+
+        
+        // Update the assigned patients table if it exists
+        const tableBody = document.querySelector('#assigned-patients tbody');
+        if (tableBody) {
+          if (patients.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="5">No patients assigned.</td></tr>';
+          } else {
+            let html = '';
+            patients.forEach((patient, index) => {
+              console.log(`   Adding patient ${index + 1}:`, patient);
+              html += `
+                <tr>
+                  <td>${patient.patient_unique_id || 'N/A'}</td>
+                  <td>${patient.username || 'N/A'}</td>
+                  <td>${patient.phone || 'N/A'}</td>
+                  <td>${patient.assigned_date || 'N/A'}</td>
+                  <td>${patient.status || 'N/A'}</td>
+                </tr>
+              `;
+            });
+            tableBody.innerHTML = html;
+          }
+        } else {
+          console.warn('⚠️ Table body not found for assigned patients');
+        }
+        
+      } catch (error) {
+        console.error('❌ Error loading assigned patients:', error);
+        console.error('❌ Error stack:', error.stack);
+        
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: 'Failed to load assigned patients: ' + error.message,
+          background: '#f44336',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 4000,
+          timerProgressBar: true
+        });
+      }
+    }
+
+    async function loadPatientsForAssignment() {
+      console.log('🔄 Loading patients for X-ray assignment...');
+      
+      const select = document.getElementById('patientSelect');
+      if (!select) {
+        console.error('❌ Patient select element not found!');
+        return;
+      }
+      
+      // Show loading state
+      select.innerHTML = '<option value="">Loading patients...</option>';
+      
+      try {
+        console.log('📡 Making request to /healthofficer/get_assigned_patients...');
+        const response = await fetch('/healthofficer/get_assigned_patients', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache'
+          },
+          credentials: 'same-origin'
+        });
+        
+        console.log('📡 Patients response status:', response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('❌ HTTP error response:', errorText);
+          throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+        }
+        
+        const patients = await response.json();
+        console.log('✅ Patients for assignment loaded:', patients);
+        console.log('📊 Number of patients:', patients.length);
+        
+        // Clear loading state
+        select.innerHTML = '<option value="">Choose a patient...</option>';
+        
+        if (patients.length === 0) {
+          select.innerHTML = '<option value="">No patients assigned to you</option>';
+        } else {
+          patients.forEach((patient, index) => {
+            console.log(`   Adding patient ${index + 1}:`, patient);
+            const option = document.createElement('option');
+            option.value = patient.id;
+            option.textContent = `${patient.username}`;
+            select.appendChild(option);
+          });
+        }
+        
+
+        
+      } catch (error) {
+        console.error('❌ Error loading patients for assignment:', error);
+        console.error('❌ Error stack:', error.stack);
+        
+        select.innerHTML = '<option value="">Error loading patients</option>';
+        
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: 'Failed to load patients for assignment: ' + error.message,
+          background: '#f44336',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 4000,
+          timerProgressBar: true
+        });
+      }
+    }
+
+    async function loadXraySpecialists() {
+      console.log('🔄 Loading X-ray specialists...');
+      
+      const select = document.getElementById('xraySpecialistSelect');
+      if (!select) {
+        console.error('❌ X-ray specialist select element not found!');
+        return;
+      }
+      
+      // Show loading state
+      select.innerHTML = '<option value="">Loading X-ray specialists...</option>';
+      
+      try {
+        console.log('📡 Making request to /healthofficer/get_xray_specialists...');
+        const response = await fetch('/healthofficer/get_xray_specialists', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache'
+          },
+          credentials: 'same-origin'
+        });
+        
+        console.log('📡 X-ray specialists response status:', response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('❌ HTTP error response:', errorText);
+          throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+        }
+        
+        const specialists = await response.json();
+        console.log('✅ X-ray specialists loaded:', specialists);
+        console.log('📊 Number of specialists:', specialists.length);
+        
+        // Clear loading state
+        select.innerHTML = '<option value="">Choose an X-ray specialist...</option>';
+        
+        if (specialists.length === 0) {
+          select.innerHTML = '<option value="">No X-ray specialists available</option>';
+        } else {
+          specialists.forEach((specialist, index) => {
+            console.log(`   Adding specialist ${index + 1}:`, specialist);
+            const option = document.createElement('option');
+            option.value = specialist.id;
+            option.textContent = `${specialist.username}`;
+            select.appendChild(option);
+          });
+        }
+        
+
+        
+      } catch (error) {
+        console.error('❌ Error loading X-ray specialists:', error);
+        console.error('❌ Error stack:', error.stack);
+        
+        select.innerHTML = '<option value="">Error loading specialists</option>';
+        
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: 'Failed to load X-ray specialists: ' + error.message,
+          background: '#f44336',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 4000,
+          timerProgressBar: true
+        });
+      }
+    }
+
+    async function loadXrayAssignments() {
+      console.log('Loading X-ray assignments...');
+      try {
+        const response = await fetch('/healthofficer/get_xray_assignments');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const assignments = await response.json();
+        console.log('X-ray assignments loaded:', assignments.length);
+        
+        const tableBody = document.getElementById('xrayAssignmentsTable');
+        if (tableBody) {
+          if (assignments.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="5">No X-ray assignments made yet.</td></tr>';
+          } else {
+            let html = '';
+            assignments.forEach(assignment => {
+              html += `
+                <tr>
+                  <td>${assignment.patient_name}</td>
+                  <td>${assignment.xray_specialist_name}</td>
+                  <td>${assignment.assignment_date}</td>
+                  <td><span class="status-${assignment.status.toLowerCase()}">${assignment.status}</span></td>
+                  <td>${assignment.notes || 'No notes'}</td>
+                </tr>
+              `;
+            });
+            tableBody.innerHTML = html;
+          }
+        }
+        
+      } catch (error) {
+        console.error('Error loading X-ray assignments:', error);
+        const tableBody = document.getElementById('xrayAssignmentsTable');
+        if (tableBody) {
+          tableBody.innerHTML = '<tr><td colspan="5">Error loading assignments</td></tr>';
+        }
+      }
+    }
+
+
+
+    // ==================== FEEDBACK FUNCTIONALITY ====================
+    
+    function loadFeedback() {
+      console.log('🔄 Loading feedback section...');
+      // Initialize the feedback section with proper tab display
+      initializeFeedbackSection();
+    }
+
+    // Show feedback section
+    function showFeedbackSection(sectionId) {
+      console.log('🔄 Switching to feedback section:', sectionId);
+      
+      // Hide all sections
+      document.querySelectorAll('.feedback-section').forEach(section => {
+        section.style.display = 'none';
+      });
+
+      // Remove active class from all tabs
+      document.querySelectorAll('.feedback-tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.style.background = 'transparent';
+        btn.style.color = '#666';
+      });
+
+      // Show selected section
+      const targetSection = document.getElementById(sectionId);
+      if (targetSection) {
+        targetSection.style.display = 'block';
+        console.log('✅ Section displayed:', sectionId);
+      } else {
+        console.error('❌ Section not found:', sectionId);
+      }
+
+      // Add active class to clicked tab
+      const activeBtn = document.querySelector(`[onclick="showFeedbackSection('${sectionId}')"]`);
+      if (activeBtn) {
+        activeBtn.classList.add('active');
+        activeBtn.style.background = '#0078D4';
+        activeBtn.style.color = 'white';
+      }
+
+      // Load section-specific data
+      if (sectionId === 'receptionist-feedback') {
+        console.log('📋 Loading receptionist feedback...');
+        loadReceptionistFeedback();
+      } else if (sectionId === 'send-to-admin') {
+        console.log('📋 Loading admin feedback history...');
+        loadAdminFeedbackHistory();
+      } else if (sectionId === 'xray-specialist-feedback') {
+        console.log('📋 Loading X-ray specialist feedback...');
+        loadXraySpecialistsForFeedback();
+        loadXraySpecialistReplies();
+      }
+    }
+    
+    // Initialize feedback section when page loads
+    function initializeFeedbackSection() {
+      console.log('🚀 Initializing feedback section...');
+      // Show the receptionist feedback tab by default
+      showFeedbackSection('receptionist-feedback');
+    }
+
+    // Load receptionist feedback
+    async function loadReceptionistFeedback() {
+      console.log('📋 Loading receptionist feedback from API...');
+      
+      const container = document.getElementById('receptionistFeedbackList');
+      
+      // Show loading state
+      container.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;"><i class="fas fa-spinner fa-spin" style="font-size: 32px; margin-bottom: 15px;"></i><p>Loading feedback...</p></div>';
+      
+      try {
+        const response = await fetch('/healthofficer/get_reception_feedback');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          const feedbacks = data.feedbacks;
+          let html = '';
+          
+          if (feedbacks.length === 0) {
+            html = '<div style="text-align: center; padding: 40px; color: #999;"><p>No feedback from receptionists yet.</p></div>';
+          } else {
+            feedbacks.forEach((f) => {
+              
+              const dateFormatted = f.date_sent ? new Date(f.date_sent).toLocaleString() : 'Unknown date';
+              const hasReply = f.reply && f.reply.trim() !== '';
+              
+              html += `
+                <div class="feedback-card" style="margin-bottom: 20px; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background: #f9f9f9;">
+                  <div style="margin-bottom: 15px;">
+                    <p style="margin: 0 0 10px 0;"><strong>From:</strong> ${f.sender_name || 'Unknown'}</p>
+                    <p style="margin: 0 0 10px 0;"><strong>Message:</strong> ${f.message || 'No message'}</p>
+                    <p style="margin: 0; color: #666; font-size: 0.9em;"><em>Received on: ${dateFormatted}</em></p>
+                  </div>
+                  
+                  ${hasReply ? `
+                    <div style="margin-top: 15px; padding: 15px; background: #e8f5e8; border-left: 4px solid #28a745; border-radius: 4px;">
+                      <p style="margin: 0 0 5px 0; font-weight: 600; color: #155724;">Your Reply:</p>
+                      <p style="margin: 0 0 5px 0;">${f.reply}</p>
+                      <p style="margin: 0; color: #666; font-size: 0.9em;"><em>Replied on: ${new Date(f.reply_date).toLocaleString()}</em></p>
+                    </div>
+                  ` : `
+                    <div style="margin-top: 15px;">
+                      <textarea id="reply-${f.id}" placeholder="Type your reply here..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; resize: vertical; min-height: 80px;"></textarea>
+                      <button onclick="replyToReceptionFeedback(${f.id})" style="margin-top: 10px; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        <i class="fas fa-reply"></i> Send Reply
+                      </button>
+                    </div>
+                  `}
+                </div>
+              `;
+            });
+          }
+          
+          container.innerHTML = html;
+          console.log(`✅ Successfully rendered ${feedbacks.length} feedback messages`);
+        } else {
+          const errorMsg = data.message || 'Unknown error';
+          container.innerHTML = `<div style="text-align: center; padding: 40px; color: #dc3545;"><p>Error loading feedback: ${errorMsg}</p></div>`;
+          console.error('❌ API returned error:', errorMsg);
+        }
+      } catch (error) {
+        console.error('❌ Error loading receptionist feedback:', error);
+        container.innerHTML = `<div style="text-align: center; padding: 40px; color: #dc3545;">
+          <p>Error loading feedback. Please try again.</p>
+        </div>`;
+      }
+    }
+    
+    // Reply to reception feedback
+    async function replyToReceptionFeedback(feedbackId) {
+      const replyText = document.getElementById(`reply-${feedbackId}`).value.trim();
+      
+      if (!replyText) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'warning',
+          title: 'Please enter a reply message.',
+          background: '#ff9800',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+        return;
+      }
+      
+      try {
+        const response = await fetch('/healthofficer/reply_to_reception_feedback', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            feedback_id: feedbackId,
+            reply: replyText
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: 'Feedback sent successfully!',
+            background: '#0078D4',
+            color: '#fff',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+          });
+          // Reload the feedback to show the reply
+          loadReceptionistFeedback();
+        } else {
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: 'Error sending reply: ' + data.message,
+            background: '#f44336',
+            color: '#fff',
+            showConfirmButton: false,
+            timer: 4000,
+            timerProgressBar: true
+          });
+        }
+      } catch (error) {
+        console.error('Error sending reply:', error);
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: 'Error sending reply. Please try again.',
+          background: '#f44336',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 4000,
+          timerProgressBar: true
+        });
+      }
+    }
+
+    // Load X-ray specialist replies
+    async function loadXraySpecialistReplies() {
+      try {
+        const response = await fetch('/healthofficer/get_sent_feedback');
+        const replies = await response.json();
+        
+        // Filter out admin feedback - only show X-ray specialist communication
+        const xrayReplies = replies.filter(r => r.feedback_type !== 'healthofficer_to_admin' && r.recipient_name !== 'Admin');
+        
+        const container = document.getElementById('xraySpecialistRepliesList');
+        let html = '';
+        
+        if (xrayReplies.length === 0) {
+          html = '<div style="text-align: center; padding: 40px; color: #999;"><p>No communication with X-ray specialists yet.</p></div>';
+        } else {
+          xrayReplies.forEach(r => {
+            html += `
+              <div class="feedback-card">
+                <p><strong>To:</strong> ${r.recipient_name}</p>
+                <p><strong>Your Message:</strong> ${r.message}</p>
+                ${r.reply ? `<p><strong>X-ray Specialist Reply:</strong> ${r.reply}</p>` : '<p><em>No reply yet</em></p>'}
+                <p><small><em>Sent on: ${r.date_sent}</em></small></p>
+              </div>
+            `;
+          });
+        }
+        
+        container.innerHTML = html;
+        
+      } catch (error) {
+        console.error('Error loading X-ray specialist replies:', error);
+        document.getElementById('xraySpecialistRepliesList').innerHTML = 
+          '<div style="text-align: center; padding: 40px; color: #999;"><p>Error loading replies.</p></div>';
+      }
+    }
+
+    // Load admin feedback history
+    async function loadAdminFeedbackHistory() {
+      console.log('🔄 Loading admin feedback history...');
+      try {
+        const response = await fetch('/healthofficer/get_sent_feedback');
+        const feedbacks = await response.json();
+        
+        console.log('📊 All feedbacks received:', feedbacks);
+        
+        // Filter only admin feedback (feedback_type: 'healthofficer_to_admin')
+        const adminFeedbacks = feedbacks.filter(f => f.feedback_type === 'healthofficer_to_admin');
+        
+        console.log('📊 Admin feedbacks after filtering:', adminFeedbacks);
+        
+        const container = document.getElementById('adminFeedbackHistoryList');
+        let html = '';
+        
+        if (adminFeedbacks.length === 0) {
+          html = '<div style="text-align: center; padding: 40px; color: #999;"><p>No feedback sent to admin yet.</p></div>';
+        } else {
+          adminFeedbacks.forEach(f => {
+            html += `
+              <div class="feedback-card" style="margin-bottom: 20px; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background: #f9f9f9;">
+                <div style="margin-bottom: 15px;">
+                  <p style="margin: 0 0 10px 0;"><strong>Your Message:</strong> ${f.message || 'No message'}</p>
+                  <p style="margin: 0; color: #666; font-size: 0.9em;"><em>Sent on: ${f.date_sent ? new Date(f.date_sent).toLocaleString() : 'Unknown date'}</em></p>
+                </div>
+                
+                ${f.reply ? `
+                  <div style="margin-top: 15px; padding: 15px; background: #e8f5e8; border-left: 4px solid #28a745; border-radius: 4px;">
+                    <p style="margin: 0 0 5px 0; font-weight: 600; color: #155724;">Admin Reply:</p>
+                    <p style="margin: 0 0 5px 0;">${f.reply}</p>
+                    <p style="margin: 0; color: #666; font-size: 0.9em;"><em>Replied on: ${f.reply_date ? new Date(f.reply_date).toLocaleString() : 'Unknown date'}</em></p>
+                  </div>
+                ` : `
+                  <div style="margin-top: 15px; padding: 10px; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+                    <p style="margin: 0; color: #856404; font-style: italic;">Admin reply awaiting</p>
+                  </div>
+                `}
+              </div>
+            `;
+          });
+        }
+        
+        container.innerHTML = html;
+        
+      } catch (error) {
+        console.error('Error loading admin feedback history:', error);
+        document.getElementById('adminFeedbackHistoryList').innerHTML = 
+          '<div style="text-align: center; padding: 40px; color: #dc3545;"><p>Error loading feedback history.</p></div>';
+      }
+    }
+
+    // Handle admin feedback form submission
+    document.addEventListener('DOMContentLoaded', function() {
+      const adminFeedbackForm = document.getElementById('adminFeedbackForm');
+      if (adminFeedbackForm) {
+        adminFeedbackForm.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          
+          const message = document.getElementById('adminFeedbackMessage').value.trim();
+          
+          if (!message) {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Missing Message',
+              text: 'Please enter your feedback message.'
+            });
+            return;
+          }
+          
+          try {
+            const response = await fetch('/healthofficer/send_admin_feedback', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+              },
+              body: JSON.stringify({
+                message: message
+              })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+              Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'Feedback sent to Admin!',
+                showConfirmButton: false,
+                timer: 3000
+              });
+              
+              // Clear form
+              adminFeedbackForm.reset();
+              
+              console.log('✅ Feedback sent successfully, reloading history...');
+              
+              // Reload the feedback history to show the new message
+              setTimeout(() => {
+                loadAdminFeedbackHistory();
+              }, 500);
+              
+            } else {
+              throw new Error(result.message);
+            }
+            
+          } catch (error) {
+            console.error('Error sending admin feedback:', error);
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Failed to send feedback. Please try again.'
+            });
+          }
+        });
+      }
+    });
+
+    // ==================== X-RAY SPECIALIST FEEDBACK FUNCTIONALITY ====================
+    
+    // Load X-ray specialists for the feedback dropdown
+    async function loadXraySpecialistsForFeedback() {
+      console.log('🔄 Loading X-ray specialists...');
+      try {
+        const response = await fetch('/healthofficer/get_xray_specialists');
+        console.log('📡 Response status:', response.status);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const specialists = await response.json();
+        console.log('👥 X-ray specialists received:', specialists);
+        
+        const select = document.getElementById('xraySpecialistFeedbackSelect');
+        console.log('🎯 Select element found:', !!select);
+        
+        if (select) {
+          select.innerHTML = '<option value="">Choose an X-ray specialist...</option>';
+          
+          if (specialists.length === 0) {
+            console.log('⚠️ No X-ray specialists found');
+            select.innerHTML += '<option value="" disabled>No X-ray specialists available</option>';
+          } else {
+            specialists.forEach(specialist => {
+              const option = document.createElement('option');
+              option.value = specialist.id;
+              option.textContent = specialist.username;
+              select.appendChild(option);
+              console.log('➕ Added specialist:', specialist.username);
+            });
+          }
+        } else {
+          console.error('❌ Select element not found!');
+        }
+      } catch (error) {
+        console.error('❌ Error loading X-ray specialists:', error);
+      }
+    }
+    
+    // Handle X-ray specialist feedback form submission
+    document.addEventListener('DOMContentLoaded', function() {
+      const xrayFeedbackForm = document.getElementById('xraySpecialistFeedbackForm');
+      if (xrayFeedbackForm) {
+        xrayFeedbackForm.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          
+          const xraySpecialistId = document.getElementById('xraySpecialistFeedbackSelect').value;
+          const message = document.getElementById('xrayFeedbackMessage').value.trim();
+          
+          if (!xraySpecialistId) {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Missing Selection',
+              text: 'Please select an X-ray specialist.'
+            });
+            return;
+          }
+          
+          if (!message) {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Missing Message',
+              text: 'Please enter your feedback message.'
+            });
+            return;
+          }
+          
+          try {
+            console.log('📤 Sending X-ray specialist feedback...', {
+              xray_specialist_id: xraySpecialistId,
+              message: message,
+              csrfToken: csrfToken
+            });
+            
+            const url = '/healthofficer/send_xray_feedback';
+            console.log('🌐 Request URL:', url);
+            console.log('🌐 Current location:', window.location.href);
+            
+            const response = await fetch(url, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+              },
+              body: JSON.stringify({
+                xray_specialist_id: xraySpecialistId,
+                message: message
+              })
+            });
+            
+            console.log('📡 Response status:', response.status);
+            console.log('📡 Response headers:', response.headers);
+            
+            let result;
+            const responseText = await response.text();
+            console.log('📋 Raw response:', responseText);
+            
+            try {
+              result = JSON.parse(responseText);
+              console.log('📋 Parsed JSON:', result);
+            } catch (parseError) {
+              console.error('❌ Failed to parse JSON:', parseError);
+              console.log('📋 Response was HTML, first 500 chars:', responseText.substring(0, 500));
+              throw new Error(`Server returned HTML instead of JSON: ${responseText.substring(0, 100)}...`);
+            }
+            
+            if (result.success) {
+              Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'Feedback sent to X-ray Specialist!',
+                showConfirmButton: false,
+                timer: 3000
+              });
+              
+              // Clear form
+              xrayFeedbackForm.reset();
+              
+              // Reload the feedback history to show the new message
+              setTimeout(() => {
+                loadXraySpecialistReplies();
+              }, 500);
+              
+            } else {
+              console.error('❌ Server returned error:', result.message);
+              throw new Error(result.message);
+            }
+            
+          } catch (error) {
+            console.error('❌ Error sending X-ray specialist feedback:', error);
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: `Failed to send feedback: ${error.message}`
+            });
+          }
+        });
+      }
+    });
+
+    // ==================== SETTINGS FUNCTIONALITY ====================
+    
+    // Initialize settings submenu toggle
+    document.addEventListener('DOMContentLoaded', function() {
+      const settingsToggle = document.getElementById('settingsToggle');
+      const settingsSubmenu = document.getElementById('settingsSubmenu');
+
+      if (settingsToggle && settingsSubmenu) {
+        settingsToggle.addEventListener('click', function(e) {
+          e.stopPropagation();
+          settingsSubmenu.classList.toggle('show');
+          const isShown = settingsSubmenu.classList.contains('show');
+          this.setAttribute('aria-expanded', isShown);
+          console.log('Settings submenu toggled:', isShown);
+          
+          // If opening submenu, show settings section and default to profile picture
+          if (isShown) {
+            showSection('settings', this);
+            showSettingsSubsection('profile-picture', settingsSubmenu.querySelector('li:first-child'));
+          }
+        });
+      }
+    });
+    
+    // Show settings subsection
+    function showSettingsSubsection(subsectionId, clickedButton) {
+      // First ensure we're in the settings section
+      showSection('settings', document.getElementById('settingsToggle'));
+      
+      // Hide all settings content
+      document.querySelectorAll('.settings-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      
+      // Remove active class from all submenu items
+      document.querySelectorAll('#settingsSubmenu li').forEach(item => {
+        item.classList.remove('active');
+      });
+      
+      // Show selected content
+      const targetContent = document.getElementById(subsectionId);
+      if (targetContent) {
+        targetContent.classList.add('active');
+      }
+      
+      // Add active class to clicked submenu item
+      if (clickedButton) {
+        clickedButton.classList.add('active');
+      }
+      
+      console.log('Settings subsection changed to:', subsectionId);
+    }
+
+    // Handle profile picture update
+    function handleProfilePictureUpdate(event) {
+      event.preventDefault();
+      const form = event.target;
+      const formData = new FormData(form);
+      
+      const fileInput = document.getElementById('profilePictureFile');
+      if (!fileInput.files || fileInput.files.length === 0) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: 'Please select a profile picture!',
+          background: '#f44336',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+        return false;
+      }
+      
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+      submitBtn.disabled = true;
+      
+      // Upload to actual backend endpoint
+      fetch('/user/upload_profile_picture', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: 'Profile picture updated successfully!',
+            background: '#0078D4',
+            color: '#fff',
+            iconColor: 'white',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+          });
+          
+          // Update the profile pictures in the UI
+          const newImageUrl = data.profile_picture_url;
+          document.querySelector('.profile img').src = newImageUrl;
+          document.getElementById('currentProfilePic').src = newImageUrl;
+          
+          form.reset();
+        } else {
+          throw new Error(data.message || 'Failed to update profile picture');
+        }
+      })
+      .catch(error => {
+        console.error('Error updating profile picture:', error);
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: 'Failed to update profile picture: ' + error.message,
+          background: '#f44336',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 4000,
+          timerProgressBar: true
+        });
+      })
+      .finally(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      });
+      
+      return false;
+    }
+
+    // Form handlers
+    async function handleXrayAssignment(event) {
+      event.preventDefault();
+      console.log('🔄 Handling X-ray assignment...');
+      
+      const form = event.target;
+      const formData = new FormData(form);
+      
+      // Debug form data
+      console.log('📋 Form data:');
+      for (let [key, value] of formData.entries()) {
+        console.log(`   ${key}: ${value}`);
+      }
+      
+      // Validate form data
+      const patientId = formData.get('patient_id');
+      const xraySpecialistId = formData.get('xray_specialist_id');
+      
+      if (!patientId || !xraySpecialistId) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: 'Please select both a patient and an X-ray specialist!',
+          showConfirmButton: false,
+          timer: 3000
+        });
+        return false;
+      }
+      
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Assigning...';
+      submitBtn.disabled = true;
+      
+      try {
+        console.log('📡 Making assignment request...');
+        console.log('🔑 CSRF Token:', csrfToken);
+        
+        const response = await fetch('/healthofficer/assign_xray_specialist', {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: formData,
+          credentials: 'same-origin'
+        });
+        
+        console.log('📡 Response status:', response.status);
+        console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('❌ HTTP error response:', errorText);
+          
+          // If it's a CSRF error, try to refresh token and retry once
+          if (response.status === 400 && errorText.includes('CSRF')) {
+            console.log('🔄 CSRF error detected, attempting token refresh...');
+            const refreshed = await refreshCSRFToken();
+            
+            if (refreshed) {
+              console.log('🔄 Retrying with new CSRF token...');
+              
+              // Update form CSRF token
+              const csrfInput = form.querySelector('input[name="csrf_token"]');
+              if (csrfInput) {
+                csrfInput.value = csrfToken;
+              }
+              
+              // Retry the request
+              const retryResponse = await fetch('/healthofficer/assign_xray_specialist', {
+                method: 'POST',
+                headers: {
+                  'X-CSRFToken': csrfToken,
+                  'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new FormData(form),
+                credentials: 'same-origin'
+              });
+              
+              if (retryResponse.ok) {
+                const retryResult = await retryResponse.json();
+                if (retryResult.success) {
+                  Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: retryResult.message,
+                    showConfirmButton: false,
+                    timer: 4000
+                  });
+                  
+                  form.reset();
+                  loadXrayAssignments();
+                  submitBtn.innerHTML = originalText;
+                  submitBtn.disabled = false;
+                  return false;
+                }
+              }
+            }
+          }
+          
+          throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: result.message,
+            showConfirmButton: false,
+            timer: 4000
+          });
+          
+          // Reset form and reload data
+          form.reset();
+          loadXrayAssignments();
+          
+        } else {
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: result.message,
+            showConfirmButton: false,
+            timer: 4000
+          });
+        }
+        
+      } catch (error) {
+        console.error('Error assigning X-ray specialist:', error);
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: 'Failed to assign X-ray specialist. Please try again.',
+          showConfirmButton: false,
+          timer: 4000
+        });
+      }
+      
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+      return false;
+    }
+
+
+
+    function handleProfileUpdate(event) {
+      event.preventDefault();
+      console.log('Handling profile update...');
+      // Implementation will be added when backend routes are created
+      return false;
+    }
+
+    function handlePasswordChange(event) {
+      event.preventDefault();
+      const form = event.target;
+      const currentPassword = document.getElementById('currentPassword').value;
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      
+      if (!currentPassword) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Current password is required!',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000
+        });
+        return false;
+      }
+      
+      if (newPassword !== confirmPassword) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Passwords do not match!',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000
+        });
+        return false;
+      }
+      
+      if (newPassword.length < 6) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Password must be at least 6 characters!',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000
+        });
+        return false;
+      }
+      
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Changing...';
+      submitBtn.disabled = true;
+      
+      // Use actual backend API
+      fetch('/user/change_password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({
+          current_password: currentPassword,
+          new_password: newPassword,
+          confirm_password: confirmPassword
+        })
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(result => {
+        if (result.success) {
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: 'Password changed successfully!',
+            background: '#4CAF50',
+            color: '#fff',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+          });
+          
+          // Reset form
+          form.reset();
+          
+        } else {
+          throw new Error(result.message || 'Failed to change password');
+        }
+      })
+      .catch(error => {
+        console.error('Error changing password:', error);
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: 'Failed to change password: ' + error.message,
+          background: '#f44336',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 4000,
+          timerProgressBar: true
+        });
+      })
+      .finally(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      });
+      
+      return false;
+    }
+
+    // ==================== CLINICAL INTERVIEW FUNCTIONALITY ====================
+    
+    // Load patients for clinical interview
+    async function loadPatientsForInterview() {
+      console.log('🔄 Loading patients for clinical interview...');
+      
+      const select = document.getElementById('interviewPatientSelect');
+      if (!select) {
+        console.error('❌ Interview patient select element not found!');
+        return;
+      }
+      
+      // Show loading state
+      select.innerHTML = '<option value="">Loading patients...</option>';
+      
+      try {
+        const response = await fetch('/healthofficer/get_assigned_patients', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache'
+          },
+          credentials: 'same-origin'
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const patients = await response.json();
+        console.log('✅ Patients for interview loaded:', patients);
+        
+        // Clear loading state
+        select.innerHTML = '<option value="">Choose a patient...</option>';
+        
+        if (patients.length === 0) {
+          select.innerHTML = '<option value="">No patients assigned to you</option>';
+        } else {
+          patients.forEach(patient => {
+            const option = document.createElement('option');
+            option.value = patient.id;
+            option.textContent = `${patient.username}`;
+            select.appendChild(option);
+          });
+        }
+        
+      } catch (error) {
+        console.error('❌ Error loading patients for interview:', error);
+        select.innerHTML = '<option value="">Error loading patients</option>';
+        
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: 'Failed to load patients: ' + error.message,
+          background: '#f44336',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 4000,
+          timerProgressBar: true
+        });
+      }
+    }
+    
+    // Handle clinical interview form submission
+    async function handleClinicalInterview(event) {
+      event.preventDefault();
+      
+      const form = event.target;
+      const formData = new FormData(form);
+      
+      const data = {
+        patient_id: formData.get('patient_id'),
+        question: formData.get('question').trim(),
+        priority: 'normal', // Default priority
+        interview_type: 'general', // Default interview type
+        notes: formData.get('notes').trim()
+      };
+      
+      // Validation
+      if (!data.patient_id) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: 'Please select a patient',
+          background: '#f44336',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+        return false;
+      }
+      
+      if (!data.question) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: 'Please enter a clinical interview question',
+          background: '#f44336',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+        return false;
+      }
+      
+      try {
+        const response = await fetch('/healthofficer/send_clinical_interview', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+          },
+          body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: 'Clinical interview question sent successfully!',
+            background: '#4CAF50',
+            color: '#fff',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+          });
+          
+          // Reset form
+          form.reset();
+          
+          // Reload clinical interviews
+          loadClinicalInterviews();
+        } else {
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: result.message || 'Failed to send clinical interview question',
+            background: '#f44336',
+            color: '#fff',
+            showConfirmButton: false,
+            timer: 4000,
+            timerProgressBar: true
+          });
+        }
+      } catch (error) {
+        console.error('Error sending clinical interview:', error);
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: 'Error sending clinical interview question',
+          background: '#f44336',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 4000,
+          timerProgressBar: true
+        });
+      }
+      
+      return false;
+    }
+    
+    // Load clinical interviews
+    async function loadClinicalInterviews() {
+      console.log('🔄 Loading clinical interviews...');
+      
+      const tableBody = document.getElementById('clinicalInterviewTable');
+      if (!tableBody) {
+        console.error('❌ Clinical interview table not found!');
+        return;
+      }
+      
+      // Show loading state
+      tableBody.innerHTML = '<tr><td colspan="7">Loading clinical interviews...</td></tr>';
+      
+      try {
+        const response = await fetch('/healthofficer/get_clinical_interviews', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache'
+          },
+          credentials: 'same-origin'
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const interviews = await response.json();
+        console.log('✅ Clinical interviews loaded:', interviews);
+        
+        if (interviews.length === 0) {
+          tableBody.innerHTML = '<tr><td colspan="6">No clinical interviews sent yet.</td></tr>';
+        } else {
+          let html = '';
+          interviews.forEach(interview => {
+            const statusClass = interview.status === 'answered' ? 'status-answered' : 
+                               interview.status === 'pending' ? 'status-pending' : 'status-closed';
+            
+            html += `
+              <tr>
+                <td>${interview.patient_name} (${interview.patient_unique_id || 'No ID'})</td>
+                <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;" title="${interview.question}">
+                  ${interview.question.length > 50 ? interview.question.substring(0, 50) + '...' : interview.question}
+                </td>
+                <td><span class="${statusClass}">${interview.status_display}</span></td>
+                <td>${interview.date_sent}</td>
+                <td>
+                  ${interview.is_answered ? 
+                    `<div style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;" title="${interview.patient_response}">
+                       ${interview.patient_response.length > 50 ? interview.patient_response.substring(0, 50) + '...' : interview.patient_response}
+                     </div>` : 
+                    '<em>No response yet</em>'
+                  }
+                </td>
+                <td>
+                  ${interview.notes ? 
+                    `<div style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;" title="${interview.notes}">
+                       ${interview.notes.length > 50 ? interview.notes.substring(0, 50) + '...' : interview.notes}
+                     </div>` : 
+                    '<em>No notes</em>'
+                  }
+                </td>
+              </tr>
+            `;
+          });
+          tableBody.innerHTML = html;
+        }
+        
+      } catch (error) {
+        console.error('❌ Error loading clinical interviews:', error);
+        tableBody.innerHTML = '<tr><td colspan="6">Error loading clinical interviews</td></tr>';
+        
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: 'Failed to load clinical interviews: ' + error.message,
+          background: '#f44336',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 4000,
+          timerProgressBar: true
+        });
+      }
+    }
+    
+
+
+    // Utility functions
+
+    // Logout function
+    function logout() {
+      window.location.href = '/logout';
+    }
+
+    // Mobile menu toggle (for future mobile optimization)
+    function toggleMobileMenu() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('mobile-open');
+    }
+  </script>
+
+  <!-- Flash Messages Handler -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <script>
+        {% for category, message in messages %}
+          let iconType = 'info';
+          let bgColor = '#2196f3';
+          if ("{{ category }}" === 'success') {
+            iconType = 'success';
+            bgColor = '#0078D4';
+          } else if ("{{ category }}" === 'danger') {
+            iconType = 'error';
+            bgColor = '#f44336';
+          } else if ("{{ category }}" === 'warning') {
+            iconType = 'warning';
+            bgColor = '#ff9800';
+          }
+
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: iconType,
+            title: "{{ message|escape }}",
+            background: bgColor,
+            color: '#fff',
+            showConfirmButton: false,
+            timer: 4000,
+            timerProgressBar: true
+          });
+        {% endfor %}
+      </script>
+    {% endif %}
+  {% endwith %}
+</body>
+</html>

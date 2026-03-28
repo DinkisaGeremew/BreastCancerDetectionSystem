@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>{{ texts.title }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- External CSS removed to prevent conflicts -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    {% if get_flashed_messages() %}
+    <meta name="flash-messages" content='{{ get_flashed_messages(with_categories=true)|tojson }}' />
+    {% endif %}
+    <style>
+        /* Reset and base styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0078D4 0%, #0063B1 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+            color: #333;
+            position: relative;
+            overflow: hidden;
+            /* Prevent text selection on all elements by default */
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.5;
+            z-index: 0;
+        }
+        
+        /* Allow text selection only in input fields */
+        input, textarea, select {
+            user-select: text !important;
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 120, 212, 0.3);
+            padding: 20px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .login-card h1 {
+            text-align: center;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #0078D4 0%, #0063B1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+            font-size: 22px;
+        }
+
+        .login-card label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 600;
+            color: #0078D4;
+            font-size: 0.85rem;
+        }
+
+        .login-card input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 12px;
+            border: 2px solid #E1E1E1;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-family: 'Roboto', sans-serif;
+            background: #F9F9F9;
+        }
+
+        .login-card input:focus {
+            border-color: #0078D4;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+            background: white;
+        }
+
+        .login-card button {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, #0078D4 0%, #0063B1 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Roboto', sans-serif;
+            margin-top: 3px;
+            box-shadow: 0 4px 15px rgba(0, 120, 212, 0.3);
+        }
+
+        .login-card button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 120, 212, 0.4);
+        }
+
+        /* Toast popup style */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            max-width: 90%;
+            margin-left: -125px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1000;
+            left: 50%;
+            bottom: 30px;
+            font-size: 17px;
+            opacity: 0;
+            transition: opacity 0.5s, bottom 0.5s;
+            word-wrap: break-word;
+            box-sizing: border-box;
+        }
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px;
+        }
+        #toast.success { background-color: #4CAF50; }
+        #toast.danger { background-color: #f44336; }
+        #toast.warning { background-color: #ff9800; }
+        #toast.info { background-color: #2196F3; }
+
+        /* Links container styling */
+        .links {
+            margin-top: 12px;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 400;
+            color: #1a237e;
+        }
+        .links span {
+            margin: 0 4px;
+        }
+        .links .static-text {
+            cursor: default;
+            color: inherit;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        .links .static-text:hover {
+            color: inherit;
+            font-weight: normal;
+            text-decoration: none;
+        }
+        .links a {
+            color: #0078D4;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        .links a:hover {
+            color: #005A9E;
+            text-decoration: underline;
+        }
+        .back-to-home {
+            margin-top: 10px;
+        }
+
+        /* Phone Input Wrapper */
+        .phone-wrapper {
+            display: flex;
+            align-items: stretch;
+            margin-bottom: 12px;
+            width: 100%;
+            position: relative;
+            border-radius: 6px;
+            border: 2px solid #E1E1E1;
+            background: #F9F9F9;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .phone-wrapper span {
+            padding: 8px 10px;
+            background: #E1E1E1;
+            border: none;
+            border-right: 2px solid #E1E1E1;
+            border-radius: 0;
+            font-weight: 600;
+            font-size: 14px;
+            color: #0078D4;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            cursor: default;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 55px;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        .phone-wrapper input {
+            flex: 1;
+            border-radius: 0;
+            border: none;
+            padding: 8px 10px;
+            margin-bottom: 0;
+            box-sizing: border-box;
+            background: #F9F9F9;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-family: 'Roboto', sans-serif;
+            color: #333;
+        }
+        .phone-wrapper input::placeholder {
+            color: #B0B0B0;
+        }
+        .phone-wrapper:focus-within {
+            border-color: #0078D4;
+            box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+            background: white;
+        }
+        .phone-wrapper:focus-within span {
+            border-right-color: #0078D4;
+            background: #0078D4;
+            color: white;
+        }
+        .phone-wrapper:focus-within input {
+            background: white;
+        }
+        .phone-wrapper input:focus {
+            outline: none;
+        }
+
+        /* Select dropdown styling */
+        .login-card select {
+            width: 100%;
+            padding: 8px 10px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            border: 2px solid #E1E1E1;
+            background: #F9F9F9;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+            color: #333;
+            cursor: pointer;
+        }
+        .login-card select:focus {
+            border-color: #0078D4;
+            box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+            background: white;
+        }
+        .login-card select option {
+            padding: 6px;
+            color: #333;
+        }
+
+        /* Password Toggle Icon */
+        .password-wrapper {
+            position: relative;
+            width: 100%;
+            margin-bottom: 12px;
+        }
+        .password-wrapper input {
+            padding-right: 35px;
+        }
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #F8BBD0;
+            transition: color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        .password-toggle:hover {
+            color: #E91E63;
+        }
+        .password-toggle svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Username validation styling */
+        .username-validation {
+            font-size: 0.75rem;
+            margin-top: -8px;
+            margin-bottom: 12px;
+            color: #666;
+            line-height: 1.3;
+        }
+
+        .username-validation.valid {
+            color: #4CAF50;
+        }
+
+        .username-validation.invalid {
+            color: #f44336;
+        }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            body {
+                padding: 8px;
+                min-height: 100vh;
+                height: 100vh;
+            }
+            .container {
+                width: 100%;
+                padding: 8px;
+                padding-top: 20px;
+            }
+            .login-card {
+                width: 100%;
+                max-width: 100%;
+                padding: 18px 15px;
+                margin: 0;
+                border-radius: 10px;
+                max-height: calc(100vh - 40px);
+                overflow-y: auto;
+            }
+            .login-card h1 {
+                font-size: 20px;
+                margin-bottom: 15px;
+            }
+            .login-card input,
+            .login-card select {
+                padding: 10px;
+                font-size: 16px;
+                margin-bottom: 12px;
+            }
+            .login-card button {
+                padding: 10px;
+                font-size: 16px;
+            }
+            .phone-wrapper {
+                border-radius: 10px;
+                margin-bottom: 12px;
+            }
+            .phone-wrapper span {
+                padding: 10px 8px;
+                font-size: 16px;
+                min-width: 50px;
+            }
+            .phone-wrapper input {
+                padding: 10px;
+            }
+            .links {
+                margin-top: 10px;
+                font-size: 0.8rem;
+            }
+            .links span {
+                margin: 0 3px;
+            }
+            #toast {
+                min-width: 200px;
+                max-width: 85%;
+                margin-left: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                font-size: 15px;
+                padding: 14px;
+                bottom: 20px;
+            }
+            #toast.show {
+                bottom: 30px;
+            }
+            .username-validation {
+                font-size: 0.7rem;
+            }
+        }
+        @media (max-width: 480px) {
+            body {
+                padding: 5px;
+                min-height: 100vh;
+                height: 100vh;
+            }
+            .container {
+                padding: 5px;
+                padding-top: 15px;
+            }
+            .login-card {
+                padding: 15px 12px;
+                border-radius: 8px;
+                max-height: calc(100vh - 30px);
+            }
+            .login-card h1 {
+                font-size: 18px;
+                margin-bottom: 12px;
+            }
+            .login-card input,
+            .login-card select {
+                padding: 9px;
+                font-size: 16px;
+                margin-bottom: 10px;
+                border-radius: 6px;
+            }
+            .login-card button {
+                padding: 9px;
+                font-size: 16px;
+                border-radius: 6px;
+            }
+            .phone-wrapper {
+                margin-bottom: 10px;
+                border-radius: 6px;
+            }
+            .phone-wrapper span {
+                padding: 9px 7px;
+                font-size: 16px;
+                min-width: 45px;
+            }
+            .phone-wrapper input {
+                padding: 9px;
+            }
+            .password-toggle {
+                right: 8px;
+            }
+            .password-wrapper input {
+                padding-right: 32px;
+            }
+            .links {
+                margin-top: 8px;
+                font-size: 0.75rem;
+            }
+            .links span {
+                margin: 0 2px;
+                display: inline-block;
+            }
+            #toast {
+                min-width: 180px;
+                max-width: 90%;
+                font-size: 14px;
+                padding: 12px;
+                bottom: 15px;
+            }
+            #toast.show {
+                bottom: 25px;
+            }
+            .username-validation {
+                font-size: 0.65rem;
+            }
+        }
+        @media (max-width: 360px) {
+            body {
+                padding: 3px;
+                min-height: 100vh;
+                height: 100vh;
+            }
+            .container {
+                padding: 3px;
+                padding-top: 10px;
+            }
+            .login-card {
+                padding: 12px 10px;
+                max-height: calc(100vh - 20px);
+            }
+            .login-card h1 {
+                font-size: 17px;
+                margin-bottom: 10px;
+            }
+            .links {
+                font-size: 0.7rem;
+            }
+            .links span {
+                display: block;
+                margin: 3px 0;
+            }
+            .password-toggle {
+                right: 6px;
+            }
+            .password-wrapper input {
+                padding-right: 30px;
+            }
+            .username-validation {
+                font-size: 0.6rem;
+            }
+        }
+        /* Prevent horizontal scroll on mobile */
+        html, body {
+            overflow-x: hidden;
+            width: 100%;
+        }
+        /* Ensure inputs don't zoom on iOS */
+        @media screen and (max-width: 768px) {
+            input[type="text"],
+            input[type="password"],
+            input[type="email"],
+            select,
+            textarea {
+                font-size: 16px !important;
+            }
+        }
+
+        /* Validation Error Animations */
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Validation Error Message (Top Right Corner) -->
+    <div id="validationErrorContainer" style="
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      max-width: 350px;
+    "></div>
+
+    <div class="container">
+        <div class="login-card">
+            <h1>{{ texts.title }}</h1>
+            <form method="POST" action="{{ url_for('register', lang=lang) }}" novalidate autocomplete="off">
+                {{ form.hidden_tag() if form else '' }}
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <label for="username">{{ texts.username }}</label>
+                <input type="text" id="username" name="username" placeholder="Enter username" value="" autocomplete="off" />
+              
+                <label for="phone">{{ texts.phone }}</label>
+                <div class="phone-wrapper">
+                    <span>+251</span>
+                    <input type="text" id="phone" name="phone" placeholder="912345678" maxlength="9" value="" autocomplete="off" />
+                </div>
+
+                <label for="email">{{ texts.email }}</label>
+                <input type="email" id="email" name="email" placeholder="yourname@gmail.com" value="" autocomplete="off" />
+
+                <label for="password">{{ texts.password }}</label>
+                <div class="password-wrapper">
+                    <input type="password" id="password" name="password" placeholder="Enter your password" value="" autocomplete="new-password" />
+                    <span class="password-toggle" id="passwordToggle" onclick="togglePassword('password')">
+                        <svg id="eyeIcon-password" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle id="eyePupil-password" cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <svg id="eyeSlashIcon-password" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none;">
+                            <path d="M17.94 17.94C16.2306 19.243 14.1491 19.9649 12 20C5 20 1 12 1 12C2.24389 9.68192 3.96914 7.65663 6.06 6.06M9.9 4.24C10.5883 4.0789 11.2931 3.99836 12 4C19 4 23 12 23 12C22.393 13.1356 21.6691 14.2048 20.84 15.19M14.12 14.12C13.8454 14.4148 13.5141 14.6512 13.1462 14.8151C12.7782 14.9791 12.3809 15.0673 11.9781 15.0744C11.5753 15.0815 11.1751 15.0074 10.8016 14.8565C10.4281 14.7056 10.0887 14.4811 9.80385 14.1962C9.51897 13.9113 9.29439 13.5719 9.14351 13.1984C8.99262 12.8249 8.91853 12.4247 8.92563 12.0219C8.93274 11.6191 9.02091 11.2218 9.18488 10.8538C9.34884 10.4859 9.58525 10.1546 9.88 9.88" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M1 1L23 23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                </div>
+
+                <label for="confirm_password">{{ texts.confirm_password }}</label>
+                <div class="password-wrapper">
+                    <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm your password" value="" autocomplete="new-password" />
+                    <span class="password-toggle" id="confirmPasswordToggle" onclick="togglePassword('confirm_password')">
+                        <svg id="eyeIcon-confirm_password" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle id="eyePupil-confirm_password" cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <svg id="eyeSlashIcon-confirm_password" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none;">
+                            <path d="M17.94 17.94C16.2306 19.243 14.1491 19.9649 12 20C5 20 1 12 1 12C2.24389 9.68192 3.96914 7.65663 6.06 6.06M9.9 4.24C10.5883 4.0789 11.2931 3.99836 12 4C19 4 23 12 23 12C22.393 13.1356 21.6691 14.2048 20.84 15.19M14.12 14.12C13.8454 14.4148 13.5141 14.6512 13.1462 14.8151C12.7782 14.9791 12.3809 15.0673 11.9781 15.0744C11.5753 15.0815 11.1751 15.0074 10.8016 14.8565C10.4281 14.7056 10.0887 14.4811 9.80385 14.1962C9.51897 13.9113 9.29439 13.5719 9.14351 13.1984C8.99262 12.8249 8.91853 12.4247 8.92563 12.0219C8.93274 11.6191 9.02091 11.2218 9.18488 10.8538C9.34884 10.4859 9.58525 10.1546 9.88 9.88" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M1 1L23 23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                </div>
+
+                <label for="role">{{ texts.role }}</label>
+                <select id="role" name="role">
+                    <option value="">{{ texts.select_role or 'Select Role' }}</option>
+                    {% for key, role_name in texts.roles.items() %}
+                        {# COMPLETELY EXCLUDE ADMIN AND PATIENT ROLES FROM REGISTRATION #}
+                        {% if key != 'admin' and key != 'patient' %}
+                            <option value="{{ key }}">{{ role_name }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+
+                <button type="submit">{{ texts.register_button }}</button>
+            </form>
+
+            <div class="links">
+                <span class="static-text">{{ texts.already_account }}</span>
+                <a href="/login?lang={{ lang }}">{{ texts.login_here }}</a>
+            </div>
+
+            <div class="links back-to-home">
+                <span class="static-text">{{ texts.back_to }}</span>
+                <a href="{{ url_for('home', lang=lang) }}">{{ texts.home }}</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div id="toast"></div>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+    // Clear all form fields on page load to prevent browser autocomplete
+    window.addEventListener('DOMContentLoaded', function() {
+        // Clear all input fields
+        document.getElementById('username').value = '';
+        document.getElementById('phone').value = '';
+        document.getElementById('email').value = '';
+        document.getElementById('password').value = '';
+        document.getElementById('confirm_password').value = '';
+        document.getElementById('role').selectedIndex = 0;
+        
+        // Also clear on page show (for back button)
+        window.addEventListener('pageshow', function() {
+            document.getElementById('username').value = '';
+            document.getElementById('phone').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('confirm_password').value = '';
+            document.getElementById('role').selectedIndex = 0;
+        });
+    });
+
+    // Password Toggle Function
+    function togglePassword(fieldId) {
+        const passwordInput = document.getElementById(fieldId);
+        const eyeIcon = document.getElementById('eyeIcon-' + fieldId);
+        const eyeSlashIcon = document.getElementById('eyeSlashIcon-' + fieldId);
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            eyeIcon.style.display = 'none';
+            eyeSlashIcon.style.display = 'block';
+        } else {
+            passwordInput.type = 'password';
+            eyeIcon.style.display = 'block';
+            eyeSlashIcon.style.display = 'none';
+        }
+    }
+
+    // Username validation - only filter input, no real-time error messages
+    const usernameInput = document.getElementById('username');
+    
+    if (usernameInput) {
+        usernameInput.addEventListener('input', function() {
+            const value = this.value;
+            
+            // Only allow letters, spaces, apostrophes, and hyphens (no numbers or special characters)
+            this.value = value.replace(/[^a-zA-Z\s\'-]/g, '');
+        });
+    }
+
+    // Phone input restriction
+    const phoneInput = document.querySelector('.phone-wrapper input[name="phone"]');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            // Only digits
+            this.value = this.value.replace(/\D/g,'');
+            // Limit to 9 digits
+            if(this.value.length > 9){
+                this.value = this.value.slice(0, 9);
+            }
+            // Must start with 7 or 9
+            if(this.value.length > 0 && !/^[79]/.test(this.value)) {
+                this.value = '';
+            }
+        });
+    }
+
+    // Email validation - only filter input, no real-time error messages
+    const emailInput = document.getElementById('email');
+    
+    if (emailInput) {
+        emailInput.addEventListener('input', function() {
+            // Filter input to only allow valid Gmail characters
+            let value = this.value;
+            
+            // Allow only valid email characters: letters, numbers, dots, plus, hyphens, and @
+            value = value.replace(/[^a-zA-Z0-9._+-@]/g, '');
+            
+            // Ensure only one @ symbol (remove extra @)
+            const atIndex = value.indexOf('@');
+            if (atIndex !== -1) {
+                const beforeAt = value.substring(0, atIndex);
+                const afterAt = value.substring(atIndex + 1).replace(/@/g, '');
+                value = beforeAt + '@' + afterAt;
+            }
+            
+            // If @ exists, ensure domain part can only be gmail.com
+            if (value.includes('@')) {
+                const parts = value.split('@');
+                if (parts.length === 2) {
+                    const localPart = parts[0];
+                    let domainPart = parts[1];
+                    
+                    // Auto-complete gmail.com if user is typing it
+                    if ('gmail.com'.startsWith(domainPart.toLowerCase()) && domainPart.length <= 9) {
+                        // Allow partial typing of gmail.com
+                    } else if (domainPart.toLowerCase() !== 'gmail.com') {
+                        // If domain is not gmail.com or partial gmail.com, reset to just @
+                        domainPart = '';
+                    }
+                    value = localPart + '@' + domainPart;
+                }
+            }
+            
+            this.value = value;
+        });
+    }
+
+    // Toast notification function
+    function showToast(message, type = 'info') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = 'show ' + type;
+        
+        setTimeout(function() {
+            toast.className = toast.className.replace('show', '');
+        }, 4000);
+    }
+
+    // Flash messages will be handled by a separate script block
+    </script>
+
+    <!-- Validation Error Functions -->
+    <script>
+    // Function to show validation error in top-right corner
+    function showValidationError(message) {
+        const container = document.getElementById('validationErrorContainer');
+        if (!container) return;
+        
+        const errorDiv = document.createElement('div');
+        errorDiv.id = 'validationError';
+        errorDiv.style.cssText = `
+            background-color: #dc3545;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+            animation: slideInRight 0.3s ease-out;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 100%;
+            word-wrap: break-word;
+        `;
+        
+        errorDiv.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 18px;"></i>
+                <span>${message}</span>
+                <button onclick="closeValidationError(this)" style="
+                    margin-left: 15px;
+                    background: none;
+                    border: none;
+                    color: white;
+                    font-size: 18px;
+                    cursor: pointer;
+                    padding: 0;
+                    width: 20px;
+                    height: 20px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                ">&times;</button>
+            </div>
+        `;
+        
+        container.appendChild(errorDiv);
+        
+        // Auto-hide after 8 seconds
+        setTimeout(() => {
+            closeValidationError(errorDiv.querySelector('button'));
+        }, 8000);
+    }
+    
+    // Function to close validation error
+    function closeValidationError(button) {
+        const errorDiv = button.closest('#validationError');
+        if (errorDiv) {
+            errorDiv.style.animation = 'slideOutRight 0.3s ease-in';
+            setTimeout(() => {
+                if (errorDiv.parentNode) {
+                    errorDiv.parentNode.removeChild(errorDiv);
+                }
+            }, 300);
+        }
+    }
+    </script>
+
+    <!-- Flash Messages Script -->
+    <script>
+    window.addEventListener('DOMContentLoaded', function() {
+        // Check for flash messages in meta tags
+        const flashMessages = document.querySelector('meta[name="flash-messages"]');
+        if (flashMessages) {
+            try {
+                const messages = JSON.parse(flashMessages.content);
+                messages.forEach(function(msgArray) {
+                    // msgArray is [category, message]
+                    const category = msgArray[0];
+                    const message = msgArray[1];
+                    
+                    // Show email validation errors in top-right corner
+                    if (category === 'danger' && (
+                        message.includes('Invalid email format') ||
+                        message.includes('Email must contain') ||
+                        message.includes('Email must be a Gmail') ||
+                        message.includes('@gmail.com') ||
+                        message.includes('Gmail format') ||
+                        message.includes('Gmail address')
+                    )) {
+                        showValidationError(message);
+                    } else {
+                        // Show other messages as toast
+                        showToast(message, category);
+                    }
+                });
+            } catch (e) {
+                console.log('No flash messages to display');
+            }
+        }
+    });
+    </script>
+</body>
+</html>

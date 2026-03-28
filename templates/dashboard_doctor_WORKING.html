@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Doctor Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/universal-notifications.css') }}" />
+    <script src="{{ url_for('static', filename='js/universal-notifications.js') }}"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .dashboard {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(135deg, #0078D4 0%, #0063B1 100%);
+            color: white;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .profile {
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .profile img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 3px solid rgba(255,255,255,0.3);
+            object-fit: cover;
+            margin-bottom: 15px;
+        }
+
+        .profile h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .profile p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            padding: 15px 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-left: 4px solid transparent;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(255,255,255,0.15);
+            border-left-color: #50E6FF;
+        }
+
+        .nav-item i {
+            width: 20px;
+        }
+
+        .submenu {
+            display: none;
+            background: rgba(0,0,0,0.1);
+        }
+
+        .submenu.show {
+            display: block;
+        }
+
+        .submenu .nav-item {
+            padding-left: 50px;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            margin-top: auto;
+            padding: 15px 25px;
+            background: rgba(255,255,255,0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .logout-btn a {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            padding: 30px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .header h1 {
+            color: #0078D4;
+            font-size: 28px;
+        }
+
+        .current-date {
+            background: linear-gradient(135deg, #0078D4 0%, #0063B1 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            color: #0078D4;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            border-left: 4px solid #0078D4;
+        }
+
+        .stat-box h3 {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .stat-box p {
+            color: #0078D4;
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background: linear-gradient(135deg, #0078D4 0%, #0063B1 100%);
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f5f5f5;
+        }
+
+        /* Form */
+        form label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        form select,
+        form textarea,
+        form input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        form select:focus,
+        form textarea:focus {
+            outline: none;
+            border-color: #0078D4;
+        }
+
+        form textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #0078D4 0%, #0063B1 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,120,212,0.3);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Analyze button specific styling */
+        .analyze-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .analyze-btn:hover {
+            background: linear-gradient(135deg, #218838 0%, #1e7e34 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .analyze-btn i {
+            font-size: 12px;
+        }
+            transform: none;
+        }
+
+        a {
+            color: #0078D4;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .overview-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #0078D4;
+        }
+
+        .overview-card h3 {
+            color: #0078D4;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .overview-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* Validation Error Animations */
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body data-user-role="doctor">
+    <!-- Validation Error Message (Top Right Corner) -->
+    <div id="validationErrorContainer" style="
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      max-width: 350px;
+    "></div>
+
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="profile">
+                {% if current_user.profile_picture and current_user.profile_picture != 'default_avatar.png' %}
+                    <img src="{{ url_for('profile_picture', filename=current_user.profile_picture) }}" alt="Profile">
+                {% else %}
+                    <img src="{{ url_for('static', filename='images/default_avatar.png') }}" alt="Profile">
+                {% endif %}
+                <h3>Dr. {{ current_user.username }}</h3>
+                <p>{{ texts.profile_role }}</p>
+            </div>
+
+            <ul class="nav-menu">
+                <li class="nav-item active" data-tab="overview">
+                    <i class="fas fa-home"></i>
+                    <span>{{ texts.sidebar.overview }}</span>
+                </li>
+                <li class="nav-item" data-tab="appointment">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>{{ texts.sidebar.appointment }}</span>
+                </li>
+                <li class="nav-item" data-tab="validation">
+                    <i class="fas fa-check-circle"></i>
+                    <span>{{ texts.sidebar.validation }}</span>
+                </li>
+                <li class="nav-item" data-tab="notes">
+                    <i class="fas fa-notes-medical"></i>
+                    <span>{{ texts.sidebar.notes }}</span>
+                </li>
+                <li class="nav-item" data-tab="feedback">
+                    <i class="fas fa-comments"></i>
+                    <span>{{ texts.sidebar.feedback if 'feedback' in texts.sidebar else 'Feedback' }}</span>
+                </li>
+                <li class="nav-item" id="settingsToggle">
+                    <i class="fas fa-cog"></i>
+                    <span>{{ texts.sidebar.settings }}</span>
+                    <i class="fas fa-chevron-down" style="margin-left: auto;"></i>
+                </li>
+                <ul class="submenu" id="settingsSubmenu">
+                    <li class="nav-item" data-tab="profile-picture">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Profile Picture</span>
+                    </li>
+                    <li class="nav-item" data-tab="change-password">
+                        <i class="fas fa-key"></i>
+                        <span>{{ texts.sidebar.change_password }}</span>
+                    </li>
+                </ul>
+            </ul>
+
+            <div class="logout-btn">
+                <a href="{{ url_for('logout') }}">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>{{ texts.sidebar.logout }}</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="header">
+                <h1>{{ texts.welcome.format(current_user.username) }}</h1>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <!-- Notification Bell -->
+                    <div class="notification-bell" id="notificationBell" aria-label="Notifications" role="button" tabindex="0">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+                    </div>
+                    <div class="current-date" id="currentDate"></div>
+                </div>
+            </div>
+
+            <!-- Notification Panel -->
+            <div class="notification-panel" id="notificationPanel" role="dialog" aria-label="Notifications" aria-modal="true">
+                <div class="notification-header">
+                    <h3>Notifications</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <button id="markAllReadBtn">Mark all as read</button>
+                        <button id="clearAllBtn">Clear All</button>
+                    </div>
+                </div>
+                <div class="notification-list" id="notificationList">
+                    <!-- Notifications will be loaded here -->
+                </div>
+                <div class="notification-footer">
+                    <button id="refreshNotificationsBtn">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Overview Tab -->
+            <div id="overview" class="tab-content active">
+                <div class="stats">
+                    <div class="stat-box">
+                        <h3>{{ texts.total_patients }}</h3>
+                        <p>{{ total_patients }}</p>
+                    </div>
+                    <div class="stat-box">
+                        <h3>{{ texts.total_appointments }}</h3>
+                        <p>{{ total_appointments }}</p>
+                    </div>
+                </div>
+
+                <div class="overview-grid">
+                    <div class="overview-card">
+                        <h3><i class="fas fa-briefcase-medical"></i> Professional Dashboard</h3>
+                        <p>Welcome to your professional medical dashboard. Here you can efficiently manage patient appointments, review diagnostic validations, and maintain organized clinical notes.</p>
+                    </div>
+                    <div class="overview-card">
+                        <h3><i class="fas fa-chart-line"></i> Quick Insights</h3>
+                        <p>Use the navigation menu to access different clinical sections quickly. Your daily overview provides real-time insights into patient statistics and appointment management.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Appointment Tab -->
+            <div id="appointment" class="tab-content">
+                <div class="card">
+                    <h2>{{ texts.sidebar.appointment }}</h2>
+                    {% if predictions %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>{{ texts.patient_name }}</th>
+                                <th>{{ texts.file_name }}</th>
+                                <th>{{ texts.view }}</th>
+                                <th>{% if lang == 'or' %}AI waliin Xiinxali{% else %}Analyze with AI{% endif %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pred in predictions %}
+                            <tr>
+                                <td>{{ pred.patient.username }}</td>
+                                <td>{{ pred.image_filename }}</td>
+                                <td><a href="{{ url_for('uploaded_file', filename=pred.image_filename) }}" target="_blank">{{ texts.view }}</a></td>
+                                <td>
+                                    <button class="analyze-btn" onclick="analyzeAppointmentImage({{ pred.id }}, '{{ pred.image_filename }}', '{{ pred.patient.username }}')">
+                                        <i class="fas fa-brain"></i> {% if lang == 'or' %}AI waliin Xiinxali{% else %}Analyze with AI{% endif %}
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    
+                    <!-- AI Analysis Results Container -->
+                    <div id="aiAnalysisResults" style="display: none; margin-top: 30px; padding: 25px; background: #f8f9fa; border-radius: 12px; border-left: 5px solid #0078D4;">
+                        <h3 style="color: #0078D4; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-brain"></i> {% if lang == 'or' %}Bu'aa Xiinxala AI{% else %}AI Analysis Results{% endif %}
+                        </h3>
+                        <div id="aiResultsContent">
+                            <!-- Results will be populated here -->
+                        </div>
+                    </div>
+                    
+                    {% else %}
+                    <p>{{ texts.no_xray_submissions }}</p>
+                    {% endif %}
+                </div>
+
+
+            </div>
+
+            <!-- Validation Tab -->
+            <div id="validation" class="tab-content">
+                <div class="card">
+                    <h2>{{ texts.sidebar.validation }}</h2>
+                    {% if predictions %}
+                    <form method="POST" action="{{ url_for('doctor_validate') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <label for="prediction_id">{{ texts.select_patient_xray }}</label>
+                        <select id="prediction_id" name="prediction_id" required>
+                            <option value="">{{ texts.select_option }}</option>
+                            {% for pred in predictions %}
+                            <option value="{{ pred.id }}">{{ pred.patient.username }} - {{ pred.image_filename }}</option>
+                            {% endfor %}
+                        </select>
+
+                        <label>{{ texts.validation_label }}</label>
+                        <select name="doctor_validation" required>
+                            <option value="">{{ texts.select_option }}</option>
+                            <option value="Malignant">{{ texts.malignant }}</option>
+                            <option value="Benign">{{ texts.benign }}</option>
+                        </select>
+
+                        <label>{{ texts.recommendation }}</label>
+                        <textarea name="doctor_recommendation" placeholder="{{ texts.recommendation_placeholder }}"></textarea>
+
+                        <button type="submit">{{ texts.send_result }}</button>
+                    </form>
+                    {% else %}
+                    <p>{{ texts.no_xray_submissions }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Notes Tab -->
+            <div id="notes" class="tab-content">
+                <div class="card">
+                    <h2>{{ texts.sidebar.notes }}</h2>
+                    {% if validations %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>{{ texts.patient_name }}</th>
+                                <th>{{ texts.validation_result }}</th>
+                                <th>{{ texts.recommendation }}</th>
+                                <th>{{ texts.date_sent }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for val in validations %}
+                            <tr>
+                                <td>{{ val.patient.username }}</td>
+                                <td>{{ val.doctor_validation }}</td>
+                                <td>{{ val.doctor_recommendation }}</td>
+                                <td>{{ val.date_uploaded.strftime('%Y-%m-%d %H:%M') if val.date_uploaded else 'N/A' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p>{{ texts.no_results_sent }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Feedback Tab -->
+            <div id="feedback" class="tab-content">
+                <div class="card">
+                    <h2>Feedback System</h2>
+                    
+                    <!-- Feedback Navigation -->
+                    <div style="display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 2px solid #e0e0e0; padding-bottom: 15px;">
+                        <button class="feedback-tab-btn active" onclick="showFeedbackSection('send-admin')" style="background: #0078D4; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">Send to Admin</button>
+                        <button class="feedback-tab-btn" onclick="showFeedbackSection('xray-feedback')" style="background: #f5f5f5; color: #333; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">X-ray Specialist Feedback</button>
+                        <button class="feedback-tab-btn" onclick="showFeedbackSection('patient-feedback')" style="background: #f5f5f5; color: #333; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">Patient Feedback</button>
+                    </div>
+                    
+                    <!-- Send Feedback to Admin Section -->
+                    <div id="send-admin-section" class="feedback-section">
+                        <h3>Send Feedback to Admin</h3>
+                        <form id="doctorFeedbackForm">
+                            <label for="doctorFeedbackMessage">Your Message:</label>
+                            <textarea id="doctorFeedbackMessage" name="message" placeholder="Enter your feedback message..." required></textarea>
+                            <button type="submit">Send Feedback</button>
+                        </form>
+                        
+                        <!-- Admin Replies -->
+                        <div style="margin-top: 30px;">
+                            <h4>Admin Replies</h4>
+                            <div id="adminRepliesList">
+                                <p style="color: #666; text-align: center; padding: 20px;">Loading admin replies...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- X-ray Specialist Feedback Section -->
+                    <div id="xray-feedback-section" class="feedback-section" style="display: none;">
+                        <h3>Feedback from X-ray Specialists</h3>
+                        <div id="xrayFeedbackList">
+                            <p style="color: #666; text-align: center; padding: 20px;">Loading X-ray specialist feedback...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Patient Feedback Section -->
+                    <div id="patient-feedback-section" class="feedback-section" style="display: none;">
+                        <h3>Feedback from Patients</h3>
+                        <div id="patientFeedbackList">
+                            <p style="color: #666; text-align: center; padding: 20px;">Loading patient feedback...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Picture Tab -->
+            <div id="profile-picture" class="tab-content">
+                <div class="card">
+                    <h2>Change Profile Picture</h2>
+                    <div style="text-align: center; margin: 20px 0;">
+                        <img id="currentProfilePic" src="{% if current_user.profile_picture and current_user.profile_picture != 'default_avatar.png' %}{{ url_for('profile_picture', filename=current_user.profile_picture) }}{% else %}{{ url_for('static', filename='images/default_avatar.png') }}{% endif %}" alt="Current profile" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid #0078D4;">
+                    </div>
+                    <form id="profilePictureForm" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <label for="profilePictureInput">Choose New Picture</label>
+                        <input type="file" id="profilePictureInput" name="profile_picture" accept="image/*" required>
+                        <div id="imagePreview" style="text-align: center; margin: 15px 0; display: none;">
+                            <p style="font-size: 14px; color: #666;">Preview:</p>
+                            <img id="previewImg" src="" alt="Preview" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 2px solid #ddd;">
+                        </div>
+                        <button type="submit">Update Picture</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Change Password Tab -->
+            <div id="change-password" class="tab-content">
+                <div class="card">
+                    <h2>{{ texts.sidebar.change_password }}</h2>
+                    <form id="changePasswordForm">
+                        <label for="currentPassword">Current Password</label>
+                        <input type="password" id="currentPassword" name="current_password" required style="width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid #e0e0e0; border-radius: 8px;">
+
+                        <label for="newPassword">New Password</label>
+                        <input type="password" id="newPassword" name="new_password" required style="width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid #e0e0e0; border-radius: 8px;">
+
+                        <label for="confirmPassword">Confirm New Password</label>
+                        <input type="password" id="confirmPassword" name="confirm_password" required style="width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid #e0e0e0; border-radius: 8px;">
+
+                        <button type="submit">{{ texts.sidebar.change_password }}</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Display current date
+        const dateElement = document.getElementById('currentDate');
+        const today = new Date();
+        dateElement.textContent = today.toLocaleDateString('{{ "en-US" if lang == "en" else "om-ET" }}', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        // Tab switching
+        const navItems = document.querySelectorAll('.nav-item[data-tab]');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        navItems.forEach(item => {
+            item.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                
+                console.log('🔄 Main navigation triggered for tab:', tabId);
+                console.log('🔍 Event target:', this);
+                console.log('🔍 Feedback section locked:', window.feedbackSectionLocked);
+                
+                // If feedback section is locked and we're trying to switch away from feedback, prevent it
+                if (window.feedbackSectionLocked && tabId !== 'feedback') {
+                    console.log('⚠️ Navigation blocked - feedback section is locked');
+                    return;
+                }
+                
+                // Remove active class from all nav items
+                navItems.forEach(nav => nav.classList.remove('active'));
+                
+                // Hide all tab contents
+                tabContents.forEach(tab => tab.classList.remove('active'));
+                
+                // Add active class to clicked item
+                this.classList.add('active');
+                
+                // Show selected tab
+                const selectedTab = document.getElementById(tabId);
+                if (selectedTab) {
+                    selectedTab.classList.add('active');
+                }
+                
+                console.log('✅ Switched to tab:', tabId);
+            });
+        });
+
+        // Settings submenu toggle
+        const settingsToggle = document.getElementById('settingsToggle');
+        const settingsSubmenu = document.getElementById('settingsSubmenu');
+
+        settingsToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            settingsSubmenu.classList.toggle('show');
+            console.log('Settings menu toggled');
+        });
+
+        // Profile picture preview
+        const profilePictureInput = document.getElementById('profilePictureInput');
+        if (profilePictureInput) {
+            profilePictureInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById('previewImg').src = e.target.result;
+                        document.getElementById('imagePreview').style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        // Profile picture form submission
+        const profilePictureForm = document.getElementById('profilePictureForm');
+        if (profilePictureForm) {
+            profilePictureForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                
+                try {
+                    const response = await fetch("{{ url_for('upload_profile_picture') }}", {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    // Check if response is JSON
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        throw new Error('Server returned non-JSON response. You may need to login again.');
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: 'Profile picture updated!',
+                            timer: 2000
+                        });
+                        
+                        // Update sidebar image
+                        document.querySelector('.profile img').src = data.profile_picture_url;
+                        document.getElementById('currentProfilePic').src = data.profile_picture_url;
+                    } else {
+                        throw new Error(data.message);
+                    }
+                } catch (error) {
+                    console.error('Profile picture error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: error.message || 'An error occurred. Please try again.'
+                    });
+                }
+            });
+        }
+
+        // Change password form submission
+        const changePasswordForm = document.getElementById('changePasswordForm');
+        if (changePasswordForm) {
+            changePasswordForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const currentPassword = document.getElementById('currentPassword').value;
+                const newPassword = document.getElementById('newPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                
+                if (newPassword !== confirmPassword) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'New passwords do not match!'
+                    });
+                    return;
+                }
+                
+                try {
+                    const response = await fetch("{{ url_for('change_password') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({
+                            current_password: currentPassword,
+                            new_password: newPassword,
+                            confirm_password: confirmPassword
+                        })
+                    });
+                    
+                    // Check if response is JSON
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        throw new Error('Server returned non-JSON response. You may need to login again.');
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: 'Password updated successfully!',
+                            timer: 2000
+                        });
+                        this.reset();
+                    } else {
+                        throw new Error(data.message);
+                    }
+                } catch (error) {
+                    console.error('Change password error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: error.message || 'An error occurred. Please try again.'
+                    });
+                }
+            });
+        }
+
+        // AI Prediction form with full reasoning display
+        const aiPredictionForm = document.getElementById('aiPredictionForm');
+        if (aiPredictionForm) {
+            aiPredictionForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const predictButton = document.getElementById('predictButton');
+                const resultDiv = document.getElementById('predictionResult');
+                
+                // Show loading state
+                predictButton.disabled = true;
+                predictButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+                resultDiv.style.display = 'none';
+                
+                try {
+                    const response = await fetch("{{ url_for('doctor_predict') }}", {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    
+                    // Check if response is JSON
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        throw new Error('Server returned non-JSON response. You may need to login again.');
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Display main result
+                        document.getElementById('classificationResult').textContent = data.prediction_result;
+                        document.getElementById('confidenceResult').textContent = 
+                            'Confidence: ' + data.confidence + '%';
+                        
+                        // Display reasoning if available
+                        if (data.reasoning) {
+                            const reasoning = data.reasoning;
+                            
+                            // Show reasoning section
+                            document.getElementById('reasoningSection').style.display = 'block';
+                            
+                            // Certainty level
+                            document.getElementById('certaintyLevel').textContent = reasoning.certainty_level;
+                            
+                            // Explanation
+                            document.getElementById('explanation').textContent = reasoning.explanation;
+                            
+                            // Indicators
+                            const indicatorsList = document.getElementById('indicators');
+                            indicatorsList.innerHTML = '';
+                            reasoning.indicators.forEach(indicator => {
+                                const li = document.createElement('li');
+                                li.textContent = indicator;
+                                li.style.marginBottom = '8px';
+                                indicatorsList.appendChild(li);
+                            });
+                            
+                            // Next steps
+                            const nextStepsList = document.getElementById('nextSteps');
+                            nextStepsList.innerHTML = '';
+                            reasoning.next_steps.forEach(step => {
+                                const li = document.createElement('li');
+                                li.textContent = step;
+                                li.style.marginBottom = '8px';
+                                nextStepsList.appendChild(li);
+                            });
+                            
+                            // Disclaimer
+                            document.getElementById('disclaimer').textContent = reasoning.disclaimer;
+                        } else {
+                            document.getElementById('reasoningSection').style.display = 'none';
+                        }
+                        
+                        // Show result div
+                        resultDiv.style.display = 'block';
+                        
+                        // Scroll to result
+                        resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        
+                        // Show success toast
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'success',
+                            title: 'Analysis Complete!',
+                            text: 'Result: ' + data.prediction_result,
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true
+                        });
+                        
+                        console.log('✅ Prediction successful:', data.prediction_result);
+                        console.log('✅ Confidence:', data.confidence + '%');
+                        console.log('✅ Reasoning:', data.reasoning ? 'Present' : 'Not available');
+                    } else {
+                        throw new Error(data.error || 'Prediction failed');
+                    }
+                } catch (error) {
+                    console.error('❌ Prediction error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Prediction Failed',
+                        text: error.message || 'An error occurred during prediction. Please try again.',
+                        confirmButtonColor: '#0078D4'
+                    });
+                } finally {
+                    // Reset button
+                    predictButton.disabled = false;
+                    predictButton.innerHTML = '<i class="fas fa-brain"></i> Analyze with AI';
+                }
+            });
+        }
+
+        // Flag to prevent interference from main navigation
+        window.feedbackSectionLocked = false;
+        
+        // Feedback System Functions
+        window.showFeedbackSection = function(sectionName) {
+            // Add stack trace to see what's calling this function
+            console.log(`🔄 showFeedbackSection called with: ${sectionName}`);
+            console.log('📍 Call stack:', new Error().stack);
+            
+            window.feedbackSectionLocked = true;
+            
+            // Hide all feedback sections
+            document.querySelectorAll('.feedback-section').forEach(section => {
+                section.style.display = 'none';
+                console.log(`🙈 Hiding section: ${section.id}`);
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.feedback-tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.style.background = '#f5f5f5';
+                btn.style.color = '#333';
+            });
+            
+            // Show selected section
+            const targetSection = document.getElementById(sectionName + '-section');
+            if (targetSection) {
+                targetSection.style.display = 'block';
+                console.log(`✅ Showing section: ${sectionName}-section`);
+            } else {
+                console.error(`❌ Section not found: ${sectionName}-section`);
+            }
+            
+            // Activate the correct button based on section name
+            let targetButton = null;
+            if (sectionName === 'send-admin') {
+                targetButton = document.querySelector('button[onclick="showFeedbackSection(\'send-admin\')"]');
+            } else if (sectionName === 'xray-feedback') {
+                targetButton = document.querySelector('button[onclick="showFeedbackSection(\'xray-feedback\')"]');
+            } else if (sectionName === 'patient-feedback') {
+                targetButton = document.querySelector('button[onclick="showFeedbackSection(\'patient-feedback\')"]');
+            }
+            
+            console.log(`🔍 Looking for button with section: ${sectionName}, found:`, targetButton);
+            
+            if (targetButton) {
+                targetButton.classList.add('active');
+                targetButton.style.background = '#0078D4';
+                targetButton.style.color = 'white';
+                console.log(`✅ Activated button for: ${sectionName}`);
+            } else {
+                console.error(`❌ Button not found for: ${sectionName}`);
+            }
+            
+            // Load data for the section (but don't call loadAdminReplies if we're already in send-admin)
+            if (sectionName === 'send-admin') {
+                console.log('🔄 In send-admin section, admin replies should already be loaded');
+                // Don't call loadAdminReplies here to avoid conflicts
+            } else if (sectionName === 'xray-feedback') {
+                console.log('🔄 Loading X-ray feedback...');
+                loadXrayFeedback();
+            } else if (sectionName === 'patient-feedback') {
+                console.log('🔄 Loading patient feedback...');
+                loadPatientFeedback();
+            }
+            
+            // Release the lock after a short delay
+            setTimeout(() => {
+                window.feedbackSectionLocked = false;
+            }, 1000);
+        };
+        
+        // Doctor Feedback Form Submission
+        const doctorFeedbackForm = document.getElementById('doctorFeedbackForm');
+        if (doctorFeedbackForm) {
+            doctorFeedbackForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const message = document.getElementById('doctorFeedbackMessage').value.trim();
+                
+                if (!message) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Please enter a message'
+                    });
+                    return;
+                }
+                
+                try {
+                    const response = await fetch("{{ url_for('doctor_submit_feedback') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            message: message
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        console.log('✅ Feedback submitted successfully');
+                        
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: 'Feedback sent successfully!',
+                            timer: 2000
+                        });
+                        
+                        console.log('🔄 Form submitted successfully, maintaining send-admin section');
+                        
+                        // Clear form
+                        document.getElementById('doctorFeedbackMessage').value = '';
+                        
+                        // Immediately ensure we stay in the send-admin section (no timeout)
+                        console.log('🔄 Explicitly maintaining send-admin section after form submission');
+                        
+                        // Make sure send-admin section is visible
+                        const sendAdminSection = document.getElementById('send-admin-section');
+                        const xraySection = document.getElementById('xray-feedback-section');
+                        const patientSection = document.getElementById('patient-feedback-section');
+                        
+                        if (sendAdminSection) {
+                            sendAdminSection.style.display = 'block';
+                            console.log('✅ send-admin-section set to visible');
+                        }
+                        if (xraySection) {
+                            xraySection.style.display = 'none';
+                            console.log('✅ xray-feedback-section set to hidden');
+                        }
+                        if (patientSection) {
+                            patientSection.style.display = 'none';
+                            console.log('✅ patient-feedback-section set to hidden');
+                        }
+                        
+                        // Make sure the correct button is active
+                        document.querySelectorAll('.feedback-tab-btn').forEach(btn => {
+                            btn.classList.remove('active');
+                            btn.style.background = '#f5f5f5';
+                            btn.style.color = '#333';
+                        });
+                        
+                        const sendAdminBtn = document.querySelector('button[onclick="showFeedbackSection(\'send-admin\')"]');
+                        if (sendAdminBtn) {
+                            sendAdminBtn.classList.add('active');
+                            sendAdminBtn.style.background = '#0078D4';
+                            sendAdminBtn.style.color = 'white';
+                            console.log('✅ send-admin button set to active');
+                        }
+                        
+                        // Reload admin replies AFTER setting the correct section
+                        loadAdminReplies();
+                        
+                        console.log('✅ Explicitly maintained send-admin section as active');
+                    } else {
+                        throw new Error(data.message);
+                    }
+                } catch (error) {
+                    console.error('Feedback error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: error.message || 'Failed to send feedback'
+                    });
+                }
+            });
+        }
+        
+        // Load Admin Replies
+        async function loadAdminReplies() {
+            try {
+                const response = await fetch('/doctor/get_admin_replies');
+                const data = await response.json();
+                
+                const repliesList = document.getElementById('adminRepliesList');
+                if (data.length === 0) {
+                    repliesList.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No admin replies yet.</p>';
+                } else {
+                    repliesList.innerHTML = data.map(reply => `
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #0078D4;">
+                            <div style="font-weight: 600; color: #0078D4; margin-bottom: 8px;">Admin Reply</div>
+                            <div style="color: #333; margin-bottom: 8px;">${reply.reply}</div>
+                            <div style="color: #666; font-size: 12px;">${reply.reply_date}</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading admin replies:', error);
+                document.getElementById('adminRepliesList').innerHTML = '<p style="color: #dc3545; text-align: center; padding: 20px;">Error loading admin replies.</p>';
+            }
+        }
+        
+        // Load X-ray Feedback
+        async function loadXrayFeedback() {
+            try {
+                const response = await fetch('/doctor/get_xray_feedback');
+                const data = await response.json();
+                
+                const feedbackList = document.getElementById('xrayFeedbackList');
+                if (data.length === 0) {
+                    feedbackList.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No X-ray specialist feedback yet.</p>';
+                } else {
+                    feedbackList.innerHTML = data.map(feedback => `
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #28a745;">
+                            <div style="font-weight: 600; color: #28a745; margin-bottom: 8px;">X-ray Specialist: ${feedback.sender_name}</div>
+                            <div style="color: #333; margin-bottom: 8px;">${feedback.message}</div>
+                            <div style="color: #666; font-size: 12px;">${feedback.date_sent}</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading X-ray feedback:', error);
+                document.getElementById('xrayFeedbackList').innerHTML = '<p style="color: #dc3545; text-align: center; padding: 20px;">Error loading X-ray feedback.</p>';
+            }
+        }
+        
+        // Load Patient Feedback
+        async function loadPatientFeedback() {
+            try {
+                const response = await fetch('/doctor/get_patient_feedback');
+                const data = await response.json();
+                
+                const feedbackList = document.getElementById('patientFeedbackList');
+                if (data.length === 0) {
+                    feedbackList.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No patient feedback yet.</p>';
+                } else {
+                    feedbackList.innerHTML = data.map(feedback => `
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #17a2b8;">
+                            <div style="font-weight: 600; color: #17a2b8; margin-bottom: 8px;">Patient: ${feedback.sender_name}</div>
+                            <div style="color: #333; margin-bottom: 8px;">${feedback.message}</div>
+                            <div style="color: #666; font-size: 12px;">${feedback.date_sent}</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading patient feedback:', error);
+                document.getElementById('patientFeedbackList').innerHTML = '<p style="color: #dc3545; text-align: center; padding: 20px;">Error loading patient feedback.</p>';
+            }
+        }
+        
+        // Load admin replies on page load
+        loadAdminReplies();
+
+        // Function to show validation error
+        function showValidationError(message) {
+            const container = document.getElementById('validationErrorContainer');
+            if (!container) return;
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.id = 'validationError';
+            errorDiv.style.cssText = `
+                background-color: #dc3545;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+                font-weight: 600;
+                font-size: 14px;
+                border-left: 5px solid #a71e2a;
+                animation: slideInRight 0.5s ease-out;
+                margin-bottom: 10px;
+            `;
+            
+            errorDiv.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 18px;"></i>
+                    <span>${message}</span>
+                    <button onclick="closeValidationError(this)" style="
+                        background: none;
+                        border: none;
+                        color: white;
+                        font-size: 18px;
+                        cursor: pointer;
+                        margin-left: auto;
+                        padding: 0;
+                        width: 20px;
+                        height: 20px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    ">×</button>
+                </div>
+            `;
+            
+            container.appendChild(errorDiv);
+            
+            // Auto-hide after 8 seconds
+            setTimeout(() => {
+                closeValidationError(errorDiv.querySelector('button'));
+            }, 8000);
+        }
+        
+        // Function to close validation error
+        function closeValidationError(button) {
+            const errorDiv = button.closest('#validationError');
+            if (errorDiv) {
+                errorDiv.style.animation = 'slideOutRight 0.3s ease-in';
+                setTimeout(() => {
+                    errorDiv.remove();
+                }, 300);
+            }
+        }
+
+        // Function to analyze image directly from appointment
+        function analyzeAppointmentImage(predictionId, filename, patientName) {
+            // Show loading state
+            const button = event.target.closest('button');
+            const originalContent = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> {% if lang == "or" %}Xiinxalaa jira...{% else %}Analyzing...{% endif %}';
+            
+            // Make AJAX request to analyze the image
+            fetch(`/doctor/analyze_appointment_image/${predictionId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('meta[name=csrf-token]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Reset button
+                button.disabled = false;
+                button.innerHTML = originalContent;
+                
+                if (data.success) {
+                    // Show AI analysis results below the table
+                    const confidenceColor = data.confidence >= 75 ? '#28a745' : data.confidence >= 60 ? '#ffc107' : '#dc3545';
+                    const resultColor = data.prediction_result === 'Malignant' ? '#dc3545' : '#28a745';
+                    
+                    const resultsContainer = document.getElementById('aiAnalysisResults');
+                    const resultsContent = document.getElementById('aiResultsContent');
+                    
+                    resultsContent.innerHTML = `
+                        <div style="margin-bottom: 20px; padding: 15px; background: white; border-radius: 8px; border: 1px solid #e0e0e0;">
+                            <div style="margin-bottom: 15px; font-size: 16px;">
+                                <strong>{% if lang == "or" %}Dhukkubsataa:{% else %}Patient:{% endif %}</strong> ${patientName}<br>
+                                <strong>{% if lang == "or" %}Faayila:{% else %}File:{% endif %}</strong> ${filename}
+                            </div>
+                            <div style="margin-bottom: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                                <div style="font-size: 24px; font-weight: bold; color: ${resultColor}; margin-bottom: 10px;">
+                                    ${data.prediction_result}
+                                </div>
+                                <div style="font-size: 18px; color: ${confidenceColor}; font-weight: 600;">
+                                    {% if lang == "or" %}Amanamummaa:{% else %}Confidence:{% endif %} ${data.confidence}%
+                                </div>
+                            </div>
+                            ${data.reasoning ? `
+                                <div style="margin-bottom: 15px;">
+                                    <strong style="font-size: 16px; color: #0078D4;">{% if lang == "or" %}Ibsa AI:{% else %}AI Explanation:{% endif %}</strong><br>
+                                    <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-top: 10px; font-size: 14px; line-height: 1.5;">
+                                        ${data.reasoning.explanation}
+                                    </div>
+                                </div>
+                            ` : ''}
+                            <div style="background: #fff3cd; padding: 15px; border-radius: 8px; font-size: 13px; color: #856404; border-left: 4px solid #ffc107;">
+                                <i class="fas fa-exclamation-triangle"></i> 
+                                {% if lang == "or" %}Kun tilmaama AI ti. Qorannoo dhumaa ogeessa fayyaa biraa gaafachuu qaba.{% else %}This is an AI prediction. Final diagnosis should be confirmed by medical professionals.{% endif %}
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Show the results container
+                    resultsContainer.style.display = 'block';
+                    
+                    // Scroll to the results
+                    resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } else {
+                    // Check if this is a validation error (X-ray detection)
+                    if (data.validation_error && data.saturation_error) {
+                        // Show only validation error in top-right corner
+                        showValidationError(data.error || data.message);
+                    } else {
+                        // Regular error
+                        Swal.fire({
+                            icon: 'error',
+                            title: '{% if lang == "or" %}Dogoggora!{% else %}Error!{% endif %}',
+                            text: data.error || '{% if lang == "or" %}Xiinxalli hin milkoofne. Irra deebi\'ii yaali.{% else %}Analysis failed. Please try again.{% endif %}',
+                            confirmButtonColor: '#dc3545'
+                        });
+                    }
+                }
+            })
+            .catch(error => {
+                // Reset button
+                button.disabled = false;
+                button.innerHTML = originalContent;
+                
+                console.error('Analysis error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: '{% if lang == "or" %}Dogoggora!{% else %}Error!{% endif %}',
+                    text: '{% if lang == "or" %}Dogoggorri uumame. Irra deebi\'ii yaali.{% else %}An error occurred. Please try again.{% endif %}',
+                    confirmButtonColor: '#dc3545'
+                });
+            });
+        }
+
+        console.log('✅ Doctor Dashboard loaded successfully!');
+        console.log('✅ All event listeners attached');
+        console.log('✅ Date displayed:', dateElement.textContent);
+    </script>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <script>
+                {% for category, message in messages %}
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: '{{ "success" if category == "success" else "error" if category == "danger" else "info" }}',
+                        title: '{{ message }}',
+                        background: '{{ "#0078D4" if category == "success" else "#dc3545" if category == "danger" else "#17a2b8" }}',
+                        color: '#fff',
+                        showConfirmButton: false,
+                        timer: 4000,
+                        timerProgressBar: true,
+                        iconColor: '#fff'
+                    });
+                {% endfor %}
+            </script>
+        {% endif %}
+    {% endwith %}
+</body>
+</html>

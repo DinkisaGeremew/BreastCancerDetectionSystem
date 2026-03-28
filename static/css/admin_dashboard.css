@@ -1,0 +1,212 @@
+<style>
+    /* Professional Enhancement Styles */
+
+    /* Sidebar */
+    .sidebar {
+        border-right: 1px solid #3949ab;
+        font-weight: 500;
+        letter-spacing: 0.03em;
+    }
+
+    .profile h3 {
+        font-size: 20px;
+        letter-spacing: 0.05em;
+        color: #e8eaf6;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+
+    .sidebar ul li {
+        font-weight: 600;
+        font-size: 16px;
+        padding: 16px 30px;
+        border-left: 4px solid transparent;
+        transition: all 0.25s ease;
+        user-select: none;
+    }
+
+    .sidebar ul li:hover,
+    .sidebar ul li.active {
+        background-color: #283593;
+        border-left-color: #ffca28;
+        color: #fffde7;
+        box-shadow: inset 4px 0 15px #ffca28aa;
+    }
+
+    .submenu li {
+        padding-left: 55px;
+        font-size: 14.5px;
+        color: #c5cae9;
+        transition: color 0.3s ease;
+    }
+
+    .submenu li:hover {
+        color: #ffca28;
+        cursor: pointer;
+    }
+
+    .sidebar ul li a {
+        font-weight: 600;
+        font-size: 15px;
+        letter-spacing: 0.03em;
+        transition: color 0.3s ease;
+    }
+
+    .sidebar ul li a:hover {
+        color: #ffca28;
+    }
+
+    .sidebar .logout-item a {
+        font-weight: 700;
+        font-size: 16px;
+        color: #ef5350;
+        border-top: 1.5px solid #ef5350;
+        padding-top: 18px;
+        display: block;
+        transition: color 0.3s ease;
+    }
+
+    .sidebar .logout-item a:hover {
+        color: #b71c1c;
+        text-shadow: 0 0 5px #b71c1ccc;
+    }
+
+    /* Main Content */
+    .main-content {
+        background: linear-gradient(135deg, #e8eaf6 0%, #f4f6f8 100%);
+        box-shadow: inset 0 0 20px #c5cae9aa;
+        border-radius: 0 20px 20px 0;
+        padding: 40px 50px;
+    }
+
+    h1, h2 {
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-shadow: 0 1px 2px #c5cae9;
+    }
+
+    .current-date {
+        font-weight: 600;
+        font-size: 15px;
+        letter-spacing: 0.03em;
+        box-shadow: 0 2px 8px #3949ab88;
+    }
+
+    /* Stats Section */
+    .stats-container {
+        gap: 24px;
+    }
+
+    .stat-box {
+        background: #3949ab;
+        color: #fffde7;
+        box-shadow: 0 8px 16px #3949ab66;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        padding: 24px 30px;
+    }
+
+    .stat-box:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px #ffca2877;
+    }
+
+    .stat-box h3 {
+        font-weight: 700;
+        font-size: 22px;
+        margin-bottom: 14px;
+        text-shadow: 0 1px 3px #283593cc;
+    }
+
+    .stat-box p {
+        font-size: 36px;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        text-shadow: 0 2px 6px #283593cc;
+    }
+
+    /* Tables */
+    table {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 20px #3949ab22;
+    }
+
+    th, td {
+        padding: 14px 20px;
+        font-size: 15px;
+        letter-spacing: 0.02em;
+    }
+
+    th {
+        background: linear-gradient(90deg, #283593, #1a237e);
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        border-bottom: 3px solid #ffca28;
+    }
+
+    tr:nth-child(even) {
+        background-color: #e8eaf6;
+    }
+
+    tr:hover {
+        background-color: #c5cae9cc;
+        cursor: default;
+    }
+
+    /* Buttons */
+    button {
+        font-weight: 600;
+        font-size: 14px;
+        padding: 8px 16px;
+        border-radius: 8px;
+        box-shadow: 0 3px 6px #283593aa;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    button:hover {
+        background-color: #ffca28;
+        color: #1a237e;
+        box-shadow: 0 6px 12px #ffca2877;
+    }
+
+    /* Search Bar */
+    .search-bar input {
+        border: 2px solid #283593;
+        font-weight: 500;
+        font-size: 15px;
+        transition: border-color 0.3s ease;
+    }
+
+    .search-bar input:focus {
+        outline: none;
+        border-color: #ffca28;
+        box-shadow: 0 0 8px #ffca2877;
+    }
+
+    /* Images */
+    img {
+        box-shadow: 0 8px 18px #3949ab44;
+        border-radius: 15px;
+        transition: transform 0.3s ease;
+    }
+
+    img:hover {
+        transform: scale(1.02);
+    }
+
+    /* Scrollbar for main content */
+    .main-content::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .main-content::-webkit-scrollbar-track {
+        background: #f4f6f8;
+        border-radius: 10px;
+    }
+
+    .main-content::-webkit-scrollbar-thumb {
+        background: #283593;
+        border-radius: 10px;
+    }
+
+</style>

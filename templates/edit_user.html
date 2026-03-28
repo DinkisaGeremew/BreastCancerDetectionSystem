@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit User - Breast Cancer Detection System</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f6f8; padding: 30px; }
+        h2 { color: #1a237e; }
+        form { background: white; padding: 20px; border-radius: 10px; width: 400px; }
+        label { display: block; margin-top: 15px; font-weight: bold; }
+        input, select { width: 100%; padding: 8px; margin-top: 5px; border-radius: 5px; border: 1px solid #ccc; }
+        button { margin-top: 20px; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; }
+        button[type="submit"] { background-color: #1a237e; color: white; }
+        button[type="button"] { background-color: #ccc; margin-left: 10px; }
+    </style>
+</head>
+<body>
+
+    <h2>Edit User: {{ user.role|capitalize }}</h2>
+
+    <form method="POST" action="{{ url_for('update_user', user_id=user.id) }}">
+        <!-- CSRF token must be inside the form as hidden input -->
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        
+        <label>Username:</label>
+        <input type="text" name="username" value="{{ user.username }}" required>
+
+        <label>Phone:</label>
+        <input type="text" name="phone" value="{{ user.phone }}" required>
+
+        <label>Role:</label>
+        <select name="role">
+            <option value="patient" {% if user.role=='patient' %}selected{% endif %}>Patient</option>
+            <option value="doctor" {% if user.role=='doctor' %}selected{% endif %}>Doctor</option>
+            <option value="xrayspecialist" {% if user.role=='xrayspecialist' %}selected{% endif %}>X-ray Specialist</option>
+            <option value="reception" {% if user.role=='reception' %}selected{% endif %}>Reception</option>
+            <option value="healthofficer" {% if user.role=='healthofficer' %}selected{% endif %}>Health Officer</option>
+        </select>
+
+        <button type="submit">Update</button>
+        <button type="button" onclick="window.location.href='{{ url_for('dashboard_xray') }}'">Cancel</button>
+    </form>
+
+</body>
+</html>

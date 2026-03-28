@@ -1,0 +1,2080 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{{ texts.page_title }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/universal-notifications.css') }}" />
+<script src="{{ url_for('static', filename='js/universal-notifications.js') }}"></script>
+<style>
+  :root {
+    --primary: #0078D4;
+    --primary-dark: #005A9E;
+    --primary-light: #4A9EFF;
+    --secondary: #0063B1;
+    --accent: #00BCF2;
+    --accent-light: #50E6FF;
+    --dark: #1F1F1F;
+    --light: #F3F3F3;
+    --gray: #6c757d;
+    --success: #107C10;
+    --card-bg: rgba(255, 255, 255, 0.98);
+    --shadow: 0 10px 30px rgba(0, 120, 212, 0.15);
+    --gradient: linear-gradient(135deg, #0078D4 0%, #0063B1 100%);
+    --medical-gradient: linear-gradient(135deg, #0078D4 0%, #0063B1 100%);
+    --sidebar-width: 280px;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--light);
+    color: var(--dark);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  input, textarea, select, .user-select-text {
+    user-select: text !important;
+  }
+  
+  /* Validation Error Animations */
+  @keyframes slideInRight {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes slideOutRight {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+  }
+  
+  /* Dashboard container */
+  .dashboard-container {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+  
+  /* Sidebar styles */
+  .sidebar {
+    width: var(--sidebar-width);
+    background: var(--medical-gradient);
+    color: white;
+    padding: 25px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Mobile sidebar toggle button */
+  .sidebar-toggle-btn {
+    display: none;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: #fbc02d;
+    border: 2px dashed #f9a825;
+    color: #1a237e;
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 16px;
+    cursor: pointer;
+    z-index: 1100;
+    user-select: none;
+    transition: background-color 0.3s, color 0.3s;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .sidebar-toggle-btn:hover,
+  .sidebar-toggle-btn:focus {
+    background-color: #f9a825;
+    color: #fff;
+    outline: none;
+  }
+  
+  /* Overlay for mobile when sidebar is open */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+  }
+  
+  .profile {
+    text-align: center;
+    margin-bottom: 35px;
+    flex-shrink: 0;
+    margin-top: 10px;
+    padding: 0 25px;
+  }
+  
+  .profile img {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    object-fit: cover;
+    pointer-events: none;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  }
+  
+  .profile h3 {
+    margin-top: 15px;
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+  }
+  
+  .profile p {
+    margin: 8px 0 0;
+    font-weight: 500;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.15);
+    padding: 8px 16px;
+    border-radius: 20px;
+    display: inline-block;
+  }
+  
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+    width: 100%;
+    margin: 0;
+    flex-shrink: 0;
+  }
+  
+  .sidebar ul li {
+    padding: 16px 28px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-left: 4px solid transparent;
+    margin: 5px 0;
+  }
+  
+  .sidebar ul li a {
+    color: inherit;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+  }
+  
+  .sidebar ul li:hover,
+  .sidebar ul li.active {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-left-color: var(--accent);
+    transform: translateX(5px);
+  }
+  
+  .submenu {
+    display: none;
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+  
+  .submenu li {
+    padding-left: 50px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+    border-left: none;
+  }
+  
+  .submenu li:hover,
+  .submenu li.active {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+  
+  .submenu.show {
+    display: block;
+  }
+  
+  .logout-btn {
+    margin-top: auto;
+    width: 100%;
+    padding: 16px 28px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-weight: 600;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+  }
+  
+  .logout-btn a {
+    color: inherit;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    cursor: pointer;
+  }
+  
+  .logout-btn:hover,
+  .logout-btn:focus {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Main content */
+  .main-content {
+    flex: 1;
+    padding: 35px;
+    overflow-y: auto;
+    position: relative;
+    color: var(--dark);
+    min-height: 100vh;
+    box-sizing: border-box;
+    margin-left: var(--sidebar-width);
+    transition: margin-left 0.3s ease;
+    background: var(--light);
+  }
+  
+  .main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 35px;
+    padding-bottom: 25px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  
+  .main-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--dark);
+    background: var(--medical-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .current-date {
+    background: var(--medical-gradient);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 15px;
+    font-size: 14px;
+    font-weight: 600;
+    pointer-events: none;
+    user-select: none;
+    white-space: nowrap;
+    box-shadow: 0 5px 15px rgba(46, 139, 87, 0.3);
+  }
+
+
+
+  /* Overview content - Split into two sections */
+  .overview-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-top: 35px;
+  }
+  
+  .overview-section {
+    background: var(--card-bg);
+    padding: 35px;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    border-left: 5px solid var(--secondary);
+  }
+  
+  .overview-section h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .overview-section h2 i {
+    color: var(--accent);
+  }
+  
+  .overview-section p {
+    color: var(--gray);
+    line-height: 1.7;
+    font-size: 16px;
+    margin-bottom: 0;
+  }
+  
+  .overview-section:first-child {
+    border-left-color: var(--primary);
+  }
+  
+  .overview-section:last-child {
+    border-left-color: var(--accent);
+  }
+  
+  /* Tab content management */
+  .tab-content {
+    display: none;
+    animation: fadeIn 0.5s ease;
+  }
+  
+  .tab-content.active {
+    display: block;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  section.card {
+    background: var(--card-bg);
+    padding: 35px;
+    margin-top: 35px;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    border-left: 5px solid var(--primary);
+  }
+  
+  section.card h2, section.card h3 {
+    font-weight: 700;
+    margin-bottom: 25px;
+    user-select: text;
+    color: var(--primary);
+  }
+  
+  section.card p {
+    font-weight: 500;
+    color: var(--gray);
+  }
+  
+  form label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 12px;
+    user-select: text;
+    color: var(--dark);
+  }
+  
+  form select, form input[type="file"], form textarea {
+    width: 100%;
+    padding: 16px 18px;
+    margin-bottom: 25px;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    font-size: 15px;
+    box-sizing: border-box;
+    font-family: inherit;
+    user-select: text;
+    transition: all 0.3s ease;
+  }
+  
+  form select:focus, form input[type="file"]:focus, form textarea:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.1);
+  }
+  
+  /* Enhanced styling for doctor selection dropdown */
+  #doctorSelect {
+    background: white;
+    border: 2px solid var(--primary);
+    font-weight: 500;
+    color: var(--dark);
+  }
+  
+  #doctorSelect:focus {
+    border-color: var(--primary-dark);
+    box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+  }
+  
+  /* Style for the doctor selection label */
+  label[for="doctorSelect"] {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--primary);
+  }
+  
+  form textarea {
+    resize: vertical;
+    min-height: 130px;
+  }
+  
+  button {
+    background: var(--medical-gradient);
+    border: none;
+    color: white;
+    padding: 16px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    margin-top: 20px;
+    width: 100%;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(46, 139, 87, 0.3);
+  }
+  
+  button:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(46, 139, 87, 0.4);
+  }
+  
+  button:disabled {
+    opacity: 0.6;
+    cursor: default;
+    transform: none;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    margin-top: 30px;
+    user-select: text;
+    background: var(--card-bg);
+  }
+  
+  th, td {
+    padding: 18px 22px;
+    text-align: left;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    vertical-align: middle;
+    font-weight: 500;
+  }
+  
+  th {
+    background: var(--medical-gradient);
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  
+  tr:hover {
+    background-color: rgba(46, 139, 87, 0.05);
+    cursor: default;
+  }
+  
+  a {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+  
+  a:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+  }
+  
+  .feedback-card {
+    background: rgba(46, 139, 87, 0.08);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    color: var(--dark);
+    box-shadow: 0 4px 12px rgba(46, 139, 87, 0.15);
+    user-select: text;
+    border-left: 4px solid var(--primary);
+  }
+  
+  .feedback-card strong {
+    font-weight: 700;
+    color: var(--primary);
+  }
+  
+  .feedback-card em {
+    color: var(--gray);
+    font-style: italic;
+  }
+
+  /* Change Password Form Styling */
+  .change-password-form,
+  .profile-picture-form {
+    background: var(--card-bg);
+    max-width: 500px;
+    padding: 35px;
+    margin: 40px auto;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    color: var(--dark);
+    border-left: 5px solid var(--primary);
+  }
+  
+  .change-password-form h2,
+  .profile-picture-form h2 {
+    margin-bottom: 25px;
+    text-align: center;
+    color: var(--primary);
+    font-weight: 700;
+  }
+  
+  .change-password-form label,
+  .profile-picture-form label {
+    display: block;
+    margin-bottom: 12px;
+    font-weight: 600;
+    color: var(--dark);
+  }
+  
+  .change-password-form input[type="password"],
+  .profile-picture-form input[type="file"] {
+    width: 100%;
+    padding: 14px 18px;
+    margin-bottom: 25px;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+  }
+  
+  .change-password-form input[type="password"]:focus,
+  .profile-picture-form input[type="file"]:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.1);
+  }
+  
+  .change-password-form button,
+  .profile-picture-form button {
+    width: 100%;
+    padding: 16px;
+    font-weight: 700;
+    font-size: 16px;
+    margin-top: 15px;
+  }
+
+  /* Status and Priority indicators */
+  .status-pending {
+    background: #fff3cd;
+    color: #856404;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .status-answered {
+    background: #d4edda;
+    color: #155724;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .status-closed {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .priority-normal {
+    background: #e2e3e5;
+    color: #383d41;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .priority-high {
+    background: #ffeaa7;
+    color: #d63031;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .priority-urgent {
+    background: #ff7675;
+    color: #ffffff;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  /* Mobile-specific styles */
+  @media (max-width: 1024px) {
+    .sidebar {
+      width: 240px;
+    }
+    .main-content {
+      margin-left: 240px;
+      padding: 30px;
+    }
+    .overview-content {
+      grid-template-columns: 1fr;
+      gap: 25px;
+    }
+
+  }
+  
+  @media (max-width: 768px) {
+    .sidebar {
+      width: 240px;
+    }
+    .main-content {
+      margin-left: 0;
+      padding: 25px;
+    }
+    .main-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 20px;
+    }
+    .current-date {
+      align-self: flex-start;
+    }
+    .notification-container {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+
+  }
+  
+  @media (max-width: 480px) {
+    /* Show mobile toggle button */
+    .sidebar-toggle-btn {
+      display: flex;
+    }
+    
+    /* Sidebar hidden by default on mobile */
+    .sidebar {
+      transform: translateX(-100%);
+    }
+    
+    /* Sidebar visible when active */
+    .sidebar.mobile-active {
+      transform: translateX(0);
+    }
+    
+    /* Show overlay when sidebar is active */
+    .sidebar-overlay.active {
+      display: block;
+    }
+    
+    .main-content {
+      padding: 20px;
+      margin-left: 0;
+    }
+    
+    .main-header h1 {
+      font-size: 26px;
+      margin-top: 50px;
+    }
+    
+    .current-date {
+      font-size: 13px;
+      padding: 10px 16px;
+    }
+    
+    section.card {
+      padding: 25px;
+      margin-top: 25px;
+      border-radius: 18px;
+    }
+    
+    .overview-content {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    
+    .overview-section {
+      padding: 25px;
+    }
+    
+    table {
+      font-size: 14px;
+    }
+    
+    th, td {
+      padding: 14px 16px;
+    }
+    
+    form select, form input[type="file"], form textarea {
+      font-size: 14px;
+      padding: 14px 16px;
+    }
+    
+    button {
+      font-size: 14px;
+      padding: 14px;
+    }
+
+
+    
+    /* Stack table columns on very small screens */
+    @media (max-width: 360px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+      
+      thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+      }
+      
+      tr {
+        margin-bottom: 20px;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 18px;
+      }
+      
+      td {
+        border: none;
+        position: relative;
+        padding-left: 50%;
+      }
+      
+      td:before {
+        position: absolute;
+        top: 14px;
+        left: 14px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        font-weight: bold;
+        color: var(--primary);
+      }
+      
+      /* Label each cell */
+      td:nth-of-type(1):before { content: "{{ texts.file_name }}:"; }
+      td:nth-of-type(2):before { content: "{{ texts.sent_by }}:"; }
+      td:nth-of-type(3):before { content: "{{ texts.date_uploaded }}:"; }
+      td:nth-of-type(4):before { content: "{{ texts.download }}:"; }
+    }
+  }
+
+  /* For desktop - hide toggle button */
+  @media (min-width: 481px) {
+    .sidebar-toggle-btn {
+      display: none;
+    }
+  }
+</style>
+</head>
+<body data-user-role="patient">
+
+<!-- Validation Error Message (Top Right Corner) -->
+<div id="validationErrorContainer" style="
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  max-width: 350px;
+"></div>
+
+<!-- Mobile sidebar toggle button -->
+<button class="sidebar-toggle-btn" aria-label="Toggle sidebar" aria-expanded="false" aria-controls="sidebar">☰</button>
+
+<!-- Overlay for mobile sidebar -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="dashboard-container">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" role="navigation" aria-label="{{ texts.sidebar.overview }} navigation" id="sidebar">
+    <div class="profile" aria-label="Patient profile">
+      {% if current_user.profile_picture and current_user.profile_picture != 'default_avatar.png' %}
+        <img src="{{ url_for('profile_picture', filename=current_user.profile_picture) }}" alt="{{ texts.profile_role }} Profile Picture" />
+      {% else %}
+        <img src="{{ url_for('static', filename='images/default_avatar.png') }}" alt="{{ texts.profile_role }} Profile Picture" />
+      {% endif %}
+      <h3>{{ current_user.username }}</h3>
+      <p>{{ texts.profile_role }}</p>
+      {% if current_user.patient_profile and current_user.patient_profile.patient_unique_id %}
+      <p style="font-size: 0.85em; color: rgba(255,255,255,0.8); margin-top: 5px;">
+        <i class="fas fa-id-card"></i> ID: {{ current_user.patient_profile.patient_unique_id }}
+      </p>
+      {% endif %}
+    </div>
+    <ul>
+      <li class="active" role="button" tabindex="0" aria-current="page" onclick="showTab('overview', this)">
+        <i class="fas fa-home"></i> {{ texts.sidebar.overview }}
+      </li>
+
+      <li role="button" tabindex="0" onclick="showTab('results', this)">
+        <i class="fas fa-chart-bar"></i> {{ texts.sidebar.xray_results }}
+      </li>
+
+      <li role="button" tabindex="0" onclick="showTab('feedback', this)">
+        <i class="fas fa-comment-medical"></i> {{ texts.sidebar.feedback }}
+      </li>
+      <li role="button" tabindex="0" id="settingsBtn" aria-expanded="false" aria-haspopup="true" aria-controls="settingsSubmenu" onclick="toggleSettingsMenu()">
+        <i class="fas fa-cog"></i> {{ texts.sidebar.settings }} <i class="fas fa-chevron-down" style="margin-left: auto; font-size: 12px;"></i>
+      </li>
+      <ul class="submenu" id="settingsSubmenu" aria-label="{{ texts.sidebar.settings }} submenu" role="menu">
+        <li role="menuitem" tabindex="0" onclick="loadProfilePicture()">
+          <i class="fas fa-user-circle"></i> {{ texts.sidebar.profile_picture if texts else 'Profile Picture' }}
+        </li>
+        <li role="menuitem" tabindex="0" onclick="loadChangePassword()">
+          <i class="fas fa-key"></i> {{ texts.sidebar.change_password }}
+        </li>
+      </ul>
+      <li class="logout-btn" role="listitem">
+        <a href="{{ url_for('logout') }}" role="link" tabindex="0" aria-label="{{ texts.sidebar.logout }}">
+          <i class="fas fa-sign-out-alt"></i> {{ texts.sidebar.logout }}
+        </a>
+      </li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content" id="mainContent" role="main">
+    <div class="main-header">
+      <h1>{{ texts.welcome.format(current_user.username) }}</h1>
+      <div style="display: flex; align-items: center; gap: 15px;">
+        <!-- Notification Bell (Universal System) -->
+        <div class="notification-bell" id="notificationBell" aria-label="Notifications" role="button" tabindex="0">
+          <i class="fas fa-bell"></i>
+          <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+        </div>
+        
+        <span class="current-date" id="today-date" aria-live="polite" aria-atomic="true" aria-label="{{ texts.current_date_aria }}"></span>
+      </div>
+    </div>
+
+    <!-- Notification Panel (Universal System) -->
+    <div class="notification-panel" id="notificationPanel" role="dialog" aria-label="Notifications" aria-modal="true">
+      <div class="notification-header">
+        <h3>Notifications</h3>
+        <div style="display: flex; gap: 10px;">
+          <button id="markAllReadBtn" class="notification-action-btn">Mark all as read</button>
+          <button id="clearAllBtn" class="notification-action-btn clear-all-btn">Clear All</button>
+        </div>
+      </div>
+      <div class="notification-list" id="universalNotificationList">
+        <div class="notification-loading">
+          <i class="fas fa-spinner fa-spin"></i>
+          <span>Loading notifications...</span>
+        </div>
+      </div>
+      <div class="notification-footer">
+        <button id="refreshNotificationsBtn" class="notification-refresh-btn">
+          <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- Overview Tab -->
+    <div id="overview" class="tab-content active" role="region" aria-label="{{ texts.overview_section }}">
+      <!-- Two health-related text sections -->
+      <div class="overview-content">
+        <div class="overview-section">
+          <h2><i class="fas fa-heartbeat"></i> {{ texts.overview.patient_overview if texts else 'Patient Overview' }}</h2>
+          <p>{{ texts.overview.overview_text if texts else 'Welcome to your personal health management dashboard.' }}</p>
+        </div>
+        
+        <div class="overview-section">
+          <h2><i class="fas fa-stethoscope"></i> {{ texts.overview.patient_tools if texts else 'Patient Tools' }}</h2>
+          <p>{{ texts.overview.tools_text if texts else 'Use the navigation menu to access different patient functions.' }}</p>
+        </div>
+      </div>
+    </div>
+
+
+
+
+    <!-- X-ray Results Tab -->
+    <div id="results" class="tab-content" role="region" aria-label="{{ texts.xray_results_feedback }}">
+      <section class="card">
+        <h2>{{ texts.xray_results_feedback }}</h2>
+        <table aria-describedby="resultsDesc">
+          <caption id="resultsDesc" class="sr-only">{{ texts.xray_results_feedback }}</caption>
+          <thead>
+            <tr>
+              <th>{{ texts.file_name }}</th>
+              <th>{{ texts.doctor }}</th>
+              <th>{{ texts.date_uploaded }}</th>
+              <th>{{ texts.validation }}</th>
+              <th>{{ texts.recommendation }}</th>
+              <th>{{ texts.download }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if xray_results %}
+              {% for r in xray_results %}
+              <tr>
+                <td>{{ r.image_filename or texts.not_available }}</td>
+                <td>{{ r.doctor.username if r.doctor else texts.not_available }}</td>
+                <td>{{ r.date_uploaded.strftime('%Y-%m-%d %H:%M') if r.date_uploaded else texts.not_available }}</td>
+                <td>{{ r.doctor_validation or texts.pending }}</td>
+                <td>{{ r.doctor_recommendation or texts.pending }}</td>
+                <td>
+                  {% if r.image_filename %}
+                    <a href="{{ url_for('uploaded_file', filename=r.image_filename) }}" download>{{ texts.download }}</a>
+                  {% else %}
+                    {{ texts.not_available }}
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="6" style="text-align:center;">{{ texts.no_results }}</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </section>
+    </div>
+
+    <!-- Feedback Tab -->
+    <div id="feedback" class="tab-content" role="region" aria-label="{{ texts.feedback_section }}">
+      <section class="card">
+        <h2>{{ texts.feedback_section }}</h2>
+        
+        <!-- Form to send feedback to doctors who provided X-ray results -->
+        <div style="background: rgba(0, 120, 212, 0.05); padding: 25px; border-radius: 15px; margin-bottom: 30px; border-left: 4px solid var(--primary);">
+          <h3 style="margin-top: 0; color: var(--primary); margin-bottom: 15px;">
+            <i class="fas fa-comment-medical"></i> {{ 'Send Feedback to Doctor' if lang == 'en' else 'Yaada Gara Ogeessa Fayyaatti Ergi' }}
+          </h3>
+          <p style="margin-bottom: 20px; color: var(--gray); font-size: 14px;">
+            {{ 'Send feedback to doctors who have provided you with X-ray results.' if lang == 'en' else 'Ogeessa fayyaa bu\'uura X-ray siif kennan yaada ergi.' }}
+          </p>
+          
+          <!-- Doctors who provided results will be loaded here -->
+          <div id="doctorsWithResults">
+            <div style="text-align: center; padding: 40px; color: #999;">
+              <i class="fas fa-spinner fa-spin" style="font-size: 32px; margin-bottom: 15px;"></i>
+              <p>{{ 'Loading doctors who provided results...' if lang == 'en' else 'Ogeessa fayyaa bu\'uura kennan fe\'aa jira...' }}</p>
+            </div>
+          </div>
+          
+          <!-- Feedback form (initially hidden) -->
+          <div id="feedbackFormContainer" style="display: none; margin-top: 25px; padding-top: 25px; border-top: 2px solid #e0e0e0;">
+            <form id="doctorFeedbackForm">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" id="selectedDoctorId" name="doctor_id" value="">
+              
+              <div id="selectedDoctorInfo" style="background: rgba(0, 120, 212, 0.1); padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                <!-- Selected doctor info will be shown here -->
+              </div>
+              
+              <label for="feedbackMessage"><strong>{{ 'Your Message' if lang == 'en' else 'Ergaa Keessan' }}:</strong></label>
+              <textarea name="message" id="feedbackMessage" placeholder="{{ texts.write_feedback_placeholder }}" required></textarea>
+              
+              <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button type="button" onclick="submitDoctorFeedback()" style="flex: 1;">{{ texts.submit_feedback }}</button>
+                <button type="button" onclick="cancelFeedback()" style="background: #6c757d; flex: 0 0 80px; min-width: 80px;">{{ 'Cancel' if lang == 'en' else 'Dhiisi' }}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Your Feedback to Doctors & Replies Section Header -->
+        <div style="margin: 40px 0 25px 0; padding-bottom: 15px; border-bottom: 2px solid #e0e0e0;">
+          <h2 style="margin: 0; color: var(--primary); font-size: 24px; font-weight: 700;">
+            <i class="fas fa-comments"></i> {{ 'Your Feedback to Doctors & Replies' if lang == 'en' else 'Yaada Keessan Gara Ogeessa Fayyaatti & Deebii' }}
+          </h2>
+        </div>
+        <div id="feedbackList">
+          {% if feedbacks %}
+            {% for f in feedbacks %}
+            <div class="feedback-card">
+              <p><strong>{{ 'To' if lang == 'en' else 'Gara' }}:</strong> 
+                {% if f.doctor %}
+                  Dr. {{ f.doctor.username }}
+                {% else %}
+                  {{ 'Administrator' if lang == 'en' else 'Admin' }}
+                {% endif %}
+              </p>
+              <p><strong>{{ texts.feedback }}:</strong> {{ f.feedback }}</p>
+              {% if f.reply %}
+              <p><strong>{{ 'Doctor Reply' if lang == 'en' else 'Deebii Ogeessa Fayyaa' }}:</strong> {{ f.reply }}</p>
+              {% else %}
+              <p><em>{{ 'No reply yet' if lang == 'en' else 'Deebiin hin jiru' }}</em></p>
+              {% endif %}
+              <p><small><em>{{ 'Sent on' if lang == 'en' else 'Ergame' }}: {{ f.date_submitted.strftime('%Y-%m-%d %H:%M') if f.date_submitted else 'N/A' }}</em></small></p>
+            </div>
+            {% endfor %}
+          {% else %}
+            <p>{{ texts.no_feedback }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Clinical Interview Questions Section -->
+        <div style="background: rgba(255, 193, 7, 0.1); padding: 25px; border-radius: 15px; margin-bottom: 30px; border-left: 4px solid #ffc107;">
+          <h3 style="margin-top: 0; color: #e65100; margin-bottom: 15px;">
+            <i class="fas fa-user-md"></i> {{ 'Clinical Interview Questions from Health Officer' if lang == 'en' else 'Gaaffii Qorannoo Fayyaa Ogeessa Fayyaa Irraa' }}
+          </h3>
+          <p style="margin-bottom: 20px; color: var(--gray); font-size: 14px;">
+            {{ 'Answer clinical interview questions from your assigned health officer to help with your health assessment.' if lang == 'en' else 'Gaaffii qorannoo fayyaa ogeessa fayyaa siif ramadame deebisii madaallii fayyaa keetii gargaaruuf.' }}
+          </p>
+          
+          <div id="clinicalInterviewList">
+            <div style="text-align: center; padding: 40px; color: #999;">
+              <i class="fas fa-spinner fa-spin" style="font-size: 32px; margin-bottom: 15px;"></i>
+              <p>Loading clinical interview questions...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Settings Content -->
+    <div id="settings-content" class="tab-content" role="region" aria-label="{{ texts.sidebar.settings }}">
+      <section class="card">
+        <div id="change-password-container">
+          <!-- Change Password Form will be loaded here -->
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script>
+  // ==================== SESSION SECURITY ====================
+  // Prevent back button access after logout
+  (function() {
+    // Check if user is authenticated
+    const isAuthenticated = {{ 'true' if current_user.is_authenticated else 'false' }};
+    
+    if (!isAuthenticated) {
+      // If not authenticated, redirect to login
+      window.location.replace("{{ url_for('login') }}");
+      return;
+    }
+    
+    // Prevent caching
+    window.history.pushState(null, "", window.location.href);
+    window.onpopstate = function() {
+      window.history.pushState(null, "", window.location.href);
+    };
+    
+    // Detect page visibility changes (when user navigates away and back)
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden) {
+        // Page became visible again - verify session is still valid
+        fetch("{{ url_for('dashboard_patient') }}", {
+          method: 'HEAD',
+          cache: 'no-cache'
+        }).catch(() => {
+          // If request fails, redirect to login
+          window.location.replace("{{ url_for('login') }}");
+        });
+      }
+    });
+  })();
+  
+  const csrfToken = "{{ csrf_token() }}";
+  
+
+
+  // Mobile sidebar functionality
+  const sidebar = document.getElementById('sidebar');
+  const toggleBtn = document.querySelector('.sidebar-toggle-btn');
+  const overlay = document.getElementById('sidebarOverlay');
+  
+  // Toggle sidebar function
+  function toggleSidebar() {
+    const isActive = sidebar.classList.toggle('mobile-active');
+    overlay.classList.toggle('active', isActive);
+    toggleBtn.setAttribute('aria-expanded', isActive);
+    
+    // Prevent body scrolling when sidebar is open
+    document.body.style.overflow = isActive ? 'hidden' : '';
+  }
+  
+  // Event listeners for toggle button
+  toggleBtn.addEventListener('click', toggleSidebar);
+  
+  // Close sidebar when clicking overlay
+  overlay.addEventListener('click', toggleSidebar);
+  
+  // Close sidebar when pressing Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && sidebar.classList.contains('mobile-active')) {
+      toggleSidebar();
+    }
+  });
+
+  // Show today's date with translation support for locale
+  const currentDateElement = document.getElementById("today-date");
+  currentDateElement.textContent = new Date().toLocaleDateString("{{ 'en-US' if lang == 'en' else 'om-ET' }}", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  // Toggle settings submenu
+  function toggleSettingsMenu() {
+    const submenu = document.getElementById("settingsSubmenu");
+    const isShown = submenu.classList.contains("show");
+    if (isShown) {
+      submenu.classList.remove("show");
+      document.getElementById("settingsBtn").setAttribute("aria-expanded", "false");
+    } else {
+      submenu.classList.add("show");
+      document.getElementById("settingsBtn").setAttribute("aria-expanded", "true");
+    }
+  }
+
+  // Tab switching function with URL hash and localStorage sync
+  function showTab(tabId, element) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    
+    // Remove active class from all sidebar items
+    document.querySelectorAll('.sidebar ul > li').forEach(li => li.classList.remove('active'));
+    
+    // Show the selected tab
+    const tab = document.getElementById(tabId);
+    if (tab) tab.classList.add('active');
+
+    // Activate the clicked sidebar item
+    if (element) element.classList.add('active');
+
+    // Close settings submenu if not in settings tab
+    if (tabId !== 'settings-content') {
+      document.getElementById('settingsSubmenu').classList.remove('show');
+      document.getElementById('settingsBtn').setAttribute('aria-expanded', 'false');
+    }
+
+    // Save active tab to localStorage
+    localStorage.setItem('patientDashboardActiveTab', tabId);
+
+    // Update URL hash without scrolling
+    if (window.location.hash !== '#' + tabId) {
+      history.replaceState(null, null, '#' + tabId);
+    }
+    
+    // Close sidebar on mobile after selecting a tab
+    if (window.innerWidth <= 480) {
+      toggleSidebar();
+    }
+  }
+
+  // Load Profile Picture upload form
+  function loadProfilePicture() {
+    showTab('settings-content');
+    const currentPicture = "{{ current_user.profile_picture or 'default_avatar.png' }}";
+    const pictureUrl = currentPicture === 'default_avatar.png' ? '/static/images/default_avatar.png' : '/uploads/profile_pictures/' + currentPicture;
+    
+    const titleText = "{{ texts.sidebar.profile_picture if texts else 'Profile Picture' }}";
+    const labelText = "{{ texts.forms.choose_profile_picture if texts else 'Select New Picture' }}";
+    const buttonText = "{{ texts.forms.update_profile_picture if texts else 'Update Picture' }}";
+    
+    document.getElementById('change-password-container').innerHTML = `
+      <div class="profile-picture-form">
+        <h2>${titleText}</h2>
+        
+        <div style="text-align: center; margin: 20px 0;">
+          <img id="currentProfilePic" src="${pictureUrl}" alt="Current profile picture" 
+               style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary);" />
+        </div>
+        
+        <form id="profilePictureForm" onsubmit="return submitProfilePicture(event)" enctype="multipart/form-data">
+          <input type="hidden" name="csrf_token" value="${csrfToken}" />
+          <label for="profilePictureInput">${labelText}</label>
+          <input type="file" id="profilePictureInput" name="profile_picture" accept="image/*" required onchange="previewProfilePicture(event)" />
+          
+          <button type="submit">${buttonText}</button>
+        </form>
+      </div>
+    `;
+  }
+
+  // Preview profile picture before upload
+  function previewProfilePicture(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('currentProfilePic').src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  // Submit profile picture
+  async function submitProfilePicture(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    
+    const successMsg = "{{ 'Suuraa profaayilii haaromfame!' if lang == 'or' else 'Profile picture updated!' }}";
+    const failMsg = "{{ 'Suuraa haaromsuu hin milkoofne!' if lang == 'or' else 'Failed to update picture!' }}";
+    const errorMsg = "{{ 'Dogoggorri uumame!' if lang == 'or' else 'An error occurred!' }}";
+    
+    try {
+      const response = await fetch("{{ url_for('upload_profile_picture') }}", {
+        method: "POST",
+        body: formData
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Update the profile picture in the sidebar
+        document.querySelector('.profile img').src = data.profile_picture_url;
+        document.getElementById('currentProfilePic').src = data.profile_picture_url;
+        
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: successMsg,
+          background: 'var(--primary)',
+          color: '#fff',
+          iconColor: 'white',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+        
+        form.reset();
+      } else {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: data.message || failMsg,
+          background: '#f44336',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+      }
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: errorMsg,
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+    }
+    return false;
+  }
+
+  // Load Change Password form
+  function loadChangePassword() {
+    showTab('settings-content');
+    document.getElementById('change-password-container').innerHTML = `
+      <form class="change-password-form" aria-label="{{ texts.sidebar.change_password }} Form" onsubmit="return submitChangePassword(event)">
+        <h2>{{ texts.sidebar.change_password }}</h2>
+        <label for="currentPassword">{{ texts.forms.current_password if texts else 'Current Password' }}</label>
+        <input type="password" id="currentPassword" name="current_password" required autocomplete="current-password" />
+        <label for="newPassword">{{ texts.forms.new_password if texts else 'New Password' }}</label>
+        <input type="password" id="newPassword" name="new_password" required autocomplete="new-password" />
+        <label for="confirmPassword">{{ texts.forms.confirm_new_password if texts else 'Confirm New Password' }}</label>
+        <input type="password" id="confirmPassword" name="confirm_password" required autocomplete="new-password" />
+        <button type="submit">{{ texts.forms.change_password_button if texts else 'Change Password' }}</button>
+      </form>
+    `;
+  }
+
+  // Submit Change Password
+  async function submitChangePassword(event) {
+    event.preventDefault();
+    const form = event.target;
+    const current_password = form.current_password.value.trim();
+    const new_password = form.new_password.value.trim();
+    const confirm_password = form.confirm_password.value.trim();
+
+    // Validation
+    if (!current_password || !new_password || !confirm_password) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'All fields are required!' if lang == 'en' else 'Bakka hunda guutuun barbaachisaa dha!' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+      return false;
+    }
+
+    if (new_password !== confirm_password) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'New password and confirmation do not match!' if lang == 'en' else 'Jecha darbii haaraa fi mirkaneessaa wal hin siman!' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+      return false;
+    }
+
+    if (new_password.length < 6) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'warning',
+        title: "{{ 'New password should be at least 6 characters!' if lang == 'en' else 'Jecha darbii haaraa lakkoofsa herregaa 6 ol qabaachuu qaba!' }}",
+        background: '#ff9800',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+      return false;
+    }
+
+    // Show loading state
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.innerHTML = "{{ 'Updating...' if lang == 'en' else 'Haaromsaa...' }} <i class='fas fa-spinner fa-spin'></i>";
+    submitBtn.disabled = true;
+
+    try {
+      const response = await fetch("{{ url_for('change_password') }}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken
+        },
+        body: JSON.stringify({ 
+          current_password: current_password, 
+          new_password: new_password,
+          confirm_password: confirm_password
+        })
+      });
+
+      const result = await response.json();
+      
+      // Restore button state
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+
+      if (result.success) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: result.message || "{{ 'Password updated successfully!' if lang == 'en' else 'Jecha darbii milkaa\'inaan haaromfame!' }}",
+          background: '#4CAF50',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+        form.reset();
+      } else {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: result.message || "{{ 'Failed to update password!' if lang == 'en' else 'Jecha darbii haaromsuu hin milkoofne!' }}",
+          background: '#f44336',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+      }
+    } catch (err) {
+      console.error('Password change error:', err);
+      
+      // Restore button state
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+      
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'An error occurred while updating password!' if lang == 'en' else 'Dogoggorri uumame yeroo jecha darbii haaromsuu!' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+    }
+    return false;
+  }
+
+  // Load doctors who have provided X-ray results to this patient
+  async function loadDoctorsWithResults() {
+    console.log('🔄 Loading doctors who provided results...');
+    
+    const container = document.getElementById('doctorsWithResults');
+    if (!container) {
+      console.error('❌ Doctors container not found!');
+      return;
+    }
+    
+    try {
+      const response = await fetch('/patient/get_doctors', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        }
+      });
+      
+      const data = await response.json();
+      console.log('✅ Doctors with results loaded:', data);
+      
+      if (data.success && data.doctors.length > 0) {
+        let html = '<h4 style="margin-bottom: 20px; color: var(--primary);">{{ "Doctors who provided you with X-ray results:" if lang == "en" else "Ogeessa fayyaa bu\'uura X-ray siif kennan:" }}</h4>';
+        
+        data.doctors.forEach(doctor => {
+          const resultDate = doctor.latest_result_date ? new Date(doctor.latest_result_date).toLocaleDateString() : 'N/A';
+          const validation = doctor.latest_validation ? doctor.latest_validation.charAt(0).toUpperCase() + doctor.latest_validation.slice(1) : 'N/A';
+          
+          html += `
+            <div class="doctor-card" style="background: white; border: 2px solid #e0e0e0; border-radius: 12px; padding: 20px; margin-bottom: 15px; cursor: pointer; transition: all 0.3s ease;" onclick="selectDoctorForFeedback(${doctor.id}, '${doctor.name}', '${validation}', '${resultDate}')">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <h5 style="margin: 0 0 8px 0; color: var(--primary); font-size: 18px;">
+                    <i class="fas fa-user-md"></i> ${doctor.name}
+                  </h5>
+                  <p style="margin: 0; color: var(--gray); font-size: 14px;">
+                    <strong>{{ "Latest Result:" if lang == "en" else "Bu\'uura Dhiyoo:" }}</strong> ${validation} (${resultDate})
+                  </p>
+                </div>
+                <div style="color: var(--primary); font-size: 20px;">
+                  <i class="fas fa-comment-medical"></i>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        
+        container.innerHTML = html;
+        
+        // Add hover effects
+        const doctorCards = container.querySelectorAll('.doctor-card');
+        doctorCards.forEach(card => {
+          card.addEventListener('mouseenter', function() {
+            this.style.borderColor = 'var(--primary)';
+            this.style.boxShadow = '0 5px 15px rgba(0, 120, 212, 0.2)';
+          });
+          card.addEventListener('mouseleave', function() {
+            this.style.borderColor = '#e0e0e0';
+            this.style.boxShadow = 'none';
+          });
+        });
+        
+      } else {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 40px; color: #999;">
+            <i class="fas fa-info-circle" style="font-size: 48px; margin-bottom: 15px; opacity: 0.5;"></i>
+            <p style="font-size: 16px; margin: 0;">
+              {{ "No doctors have provided you with X-ray results yet." if lang == "en" else "Ogeessi fayyaa tokkollee bu\'uura X-ray siif hin kennine." }}
+            </p>
+            <p style="font-size: 14px; margin: 10px 0 0 0; color: #666;">
+              {{ "You can only send feedback to doctors who have reviewed your X-rays." if lang == "en" else "Ogeessa fayyaa X-ray kee ilaalanitti qofa yaada erguu dandeessa." }}
+            </p>
+          </div>
+        `;
+      }
+      
+    } catch (error) {
+      console.error('❌ Error loading doctors with results:', error);
+      container.innerHTML = `
+        <div style="text-align: center; padding: 40px; color: #dc3545;">
+          <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 15px;"></i>
+          <p>{{ "Error loading doctors. Please try again." if lang == "en" else "Dogoggorri ogeessa fayyaa fe\'uu. Maaloo irra deebi\'ii yaali." }}</p>
+        </div>
+      `;
+    }
+  }
+  
+  // Select a doctor for feedback
+  function selectDoctorForFeedback(doctorId, doctorName, validation, resultDate) {
+    console.log(`🔄 Selecting doctor ${doctorName} for feedback`);
+    
+    // Set the selected doctor ID
+    document.getElementById('selectedDoctorId').value = doctorId;
+    
+    // Show selected doctor info
+    const infoContainer = document.getElementById('selectedDoctorInfo');
+    infoContainer.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 15px;">
+        <i class="fas fa-user-md" style="font-size: 24px; color: var(--primary);"></i>
+        <div>
+          <h5 style="margin: 0; color: var(--primary);">{{ "Sending feedback to:" if lang == "en" else "Yaada ergaa jirtu:" }} ${doctorName}</h5>
+          <p style="margin: 5px 0 0 0; font-size: 14px; color: var(--gray);">{{ "Latest result:" if lang == "en" else "Bu\'uura dhiyoo:" }} ${validation} (${resultDate})</p>
+        </div>
+      </div>
+    `;
+    
+    // Show the feedback form
+    document.getElementById('feedbackFormContainer').style.display = 'block';
+    
+    // Scroll to the form
+    document.getElementById('feedbackFormContainer').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    // Focus on the message textarea
+    setTimeout(() => {
+      document.getElementById('feedbackMessage').focus();
+    }, 500);
+  }
+  
+  // Cancel feedback
+  function cancelFeedback() {
+    document.getElementById('feedbackFormContainer').style.display = 'none';
+    document.getElementById('selectedDoctorId').value = '';
+    document.getElementById('feedbackMessage').value = '';
+  }
+  
+  // Submit feedback to a specific doctor
+  async function submitDoctorFeedback() {
+    const doctorId = document.getElementById('selectedDoctorId').value;
+    const message = document.getElementById('feedbackMessage').value.trim();
+    
+    if (!doctorId) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'Please select a doctor!' if lang == 'en' else 'Maaloo ogeessa fayyaa(Dr) filadhu!' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+      return;
+    }
+    
+    if (!message) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'Please enter your message!' if lang == 'en' else 'Maaloo ergaa keessan galchaa!' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+      return;
+    }
+    
+    try {
+      const response = await fetch("{{ url_for('submit_feedback') }}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken
+        },
+        body: JSON.stringify({
+          doctor_id: doctorId,
+          message: message
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: result.message || "{{ 'Feedback sent to doctor successfully!' if lang == 'en' else 'Yaadni gara ogeessa fayyaatti(Dr) milkaa\'inaan ergame!' }}",
+          background: '#4CAF50',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+        
+        // Clear form and hide it
+        cancelFeedback();
+        
+        // Reload feedback list
+        loadFeedbackList();
+      } else {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: result.message || "{{ 'Failed to send feedback!' if lang == 'en' else 'Yaada erguu hin dandeenye!' }}",
+          background: '#f44336',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+      }
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'An error occurred while sending feedback!' if lang == 'en' else 'Rakkoon yeroo yaada erguu mudate!' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+    }
+  }
+  
+  // Load feedback list
+  async function loadFeedbackList() {
+    try {
+      const response = await fetch("{{ url_for('patient_feedbacks') }}");
+      const feedbacks = await response.json();
+      
+      const feedbackList = document.getElementById('feedbackList');
+      
+      if (feedbacks.length === 0) {
+        feedbackList.innerHTML = '<p>{{ texts.no_feedback }}</p>';
+        return;
+      }
+      
+      let html = '';
+      feedbacks.forEach(f => {
+        html += `
+          <div class="feedback-card">
+            <p><strong>{{ 'To' if lang == 'en' else 'Gara' }}:</strong> ${f.recipient}</p>
+            <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin: 10px 0;">
+              <p style="margin: 0;"><strong>{{ 'Your Message' if lang == 'en' else 'Ergaa Keessan' }}:</strong></p>
+              <p style="margin: 8px 0 0 0;">${f.message}</p>
+            </div>
+            ${f.has_reply ? `
+              <div style="background: #e3f2fd; padding: 12px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #0078D4;">
+                <p style="margin: 0;"><strong>{{ 'Doctor Reply' if lang == 'en' else 'Deebii Ogeessa Fayyaa' }}:</strong></p>
+                <p style="margin: 8px 0 0 0;">${f.reply}</p>
+              </div>
+            ` : `<p style="color: #6c757d; font-style: italic; margin: 10px 0;">{{ 'Awaiting doctor reply...' if lang == 'en' else 'Deebii ogeessa fayyaa eeggachaa...' }}</p>`}
+            <p><small><em>{{ 'Sent on' if lang == 'en' else 'Ergame' }}: ${f.date}</em></small></p>
+          </div>
+        `;
+      });
+      
+      feedbackList.innerHTML = html;
+    } catch (error) {
+      console.error('Error loading feedback list:', error);
+    }
+  }
+
+
+
+
+
+  // ==================== CLINICAL INTERVIEW FUNCTIONALITY ====================
+  
+  // Load clinical interview questions
+  async function loadClinicalInterviews() {
+    console.log('🔄 Loading clinical interview questions...');
+    
+    const container = document.getElementById('clinicalInterviewList');
+    if (!container) {
+      console.error('❌ Clinical interview container not found!');
+      return;
+    }
+    
+    // Show loading state
+    container.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;"><i class="fas fa-spinner fa-spin" style="font-size: 32px; margin-bottom: 15px;"></i><p>Loading clinical interview questions...</p></div>';
+    
+    try {
+      const response = await fetch('/patient/get_clinical_interviews', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
+        },
+        credentials: 'same-origin'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const interviews = await response.json();
+      console.log('✅ Clinical interviews loaded:', interviews);
+      
+      if (interviews.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;"><p>No clinical interview questions yet.</p></div>';
+      } else {
+        let html = '';
+        interviews.forEach(interview => {
+          const statusClass = interview.status === 'answered' ? 'status-answered' : 
+                             interview.status === 'pending' ? 'status-pending' : 'status-closed';
+          
+          html += `
+            <div class="feedback-card" style="margin-bottom: 20px; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background: #fff;">
+              <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 15px;">
+                <div>
+                  <p style="margin: 0 0 5px 0;"><strong>From:</strong> Health Officer ${interview.health_officer_name}</p>
+                  <p style="margin: 0 0 5px 0;"><strong>Date:</strong> ${interview.date_sent}</p>
+                  <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <span class="${statusClass}">${interview.status_display}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div style="margin-bottom: 15px;">
+                <p style="margin: 0 0 10px 0; font-weight: 600; color: #333;">Question:</p>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #0078D4;">
+                  ${interview.question}
+                </div>
+              </div>
+              
+              ${interview.is_answered ? `
+                <div style="margin-bottom: 15px;">
+                  <p style="margin: 0 0 10px 0; font-weight: 600; color: #28a745;">Your Response:</p>
+                  <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745;">
+                    ${interview.patient_response}
+                  </div>
+                  <p style="margin: 10px 0 0 0; color: #666; font-size: 0.9em;"><em>Responded on: ${interview.date_responded}</em></p>
+                </div>
+              ` : `
+                <div style="margin-top: 15px;">
+                  <p style="margin: 0 0 10px 0; font-weight: 600; color: #333;">Your Response:</p>
+                  <textarea id="response-${interview.id}" placeholder="Type your response here..." style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; resize: vertical; min-height: 100px; font-family: inherit;"></textarea>
+                  <button onclick="submitClinicalInterviewResponse(${interview.id})" style="margin-top: 10px; padding: 10px 20px; background: #0078D4; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                    <i class="fas fa-paper-plane"></i> Submit Response
+                  </button>
+                </div>
+              `}
+            </div>
+          `;
+        });
+        
+        container.innerHTML = html;
+      }
+      
+    } catch (error) {
+      console.error('❌ Error loading clinical interviews:', error);
+      container.innerHTML = `<div style="text-align: center; padding: 40px; color: #dc3545;">
+        <p>Error loading clinical interview questions. Please try again.</p>
+      </div>`;
+    }
+  }
+  
+  // Submit clinical interview response
+  async function submitClinicalInterviewResponse(interviewId) {
+    const responseText = document.getElementById(`response-${interviewId}`).value.trim();
+    
+    if (!responseText) {
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'Please enter your response!' if lang == 'en' else 'Maaloo deebii keessan galchaa!' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+      return;
+    }
+    
+    try {
+      const response = await fetch('/patient/respond_clinical_interview', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({
+          interview_id: interviewId,
+          response: responseText
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: result.message || "{{ 'Response submitted successfully!' if lang == 'en' else 'Deebiin milkaa\'inaan ergame!' }}",
+          background: '#4CAF50',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+        
+        // Reload clinical interviews to show the response
+        loadClinicalInterviews();
+      } else {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'error',
+          title: result.message || "{{ 'Failed to submit response!' if lang == 'en' else 'Deebii erguu hin dandeenye!' }}",
+          background: '#f44336',
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+      }
+    } catch (error) {
+      console.error('Error submitting clinical interview response:', error);
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'error',
+        title: "{{ 'An error occurred while submitting response!' if lang == 'en' else 'Rakkoon yeroo deebii erguu mudate!' }}",
+        background: '#f44336',
+        color: '#fff',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+      });
+    }
+  }
+
+  // Initialize dashboard with overview as default
+  function initializeDashboard() {
+    // Try to detect activeTab from URL hash if present
+    let activeTab = null;
+    if (window.location.hash) {
+      const hashTab = window.location.hash.substring(1);
+      if (document.getElementById(hashTab)) {
+        activeTab = hashTab;
+      }
+    }
+    
+    // If no hash or invalid, fallback to localStorage
+    if (!activeTab) {
+      activeTab = localStorage.getItem('patientDashboardActiveTab');
+    }
+    
+    // If still no active tab, default to overview
+    if (!activeTab) {
+      activeTab = 'overview';
+    }
+    
+    // Show the tab
+    const elementToActivate = Array.from(document.querySelectorAll('.sidebar ul > li')).find(li => {
+      const onclickAttr = li.getAttribute('onclick');
+      return onclickAttr && onclickAttr.includes(`'${activeTab}'`);
+    });
+    
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    const tabElement = document.getElementById(activeTab);
+    if (tabElement) tabElement.classList.add('active');
+
+    document.querySelectorAll('.sidebar ul > li').forEach(li => li.classList.remove('active'));
+    if (elementToActivate) {
+      elementToActivate.classList.add('active');
+    } else {
+      // If no matching element found, default to overview
+      const overviewElement = document.querySelector('.sidebar ul > li[onclick*="overview"]');
+      if (overviewElement) {
+        overviewElement.classList.add('active');
+        showTab('overview', overviewElement);
+      }
+    }
+
+    // Update localStorage to current tab (ensure sync)
+    localStorage.setItem('patientDashboardActiveTab', activeTab);
+
+    // Update URL hash without scrolling
+    if (window.location.hash !== '#' + activeTab) {
+      history.replaceState(null, null, '#' + activeTab);
+    }
+  }
+
+  // Override default tab restore to handle refresh with URL param
+  window.onload = function() {
+    initializeDashboard();
+    loadFeedbackList();
+    loadClinicalInterviews();
+    loadDoctorsWithResults();
+  };
+
+  // Handle window resize
+  window.addEventListener('resize', function() {
+    // If window is resized to desktop size, ensure sidebar is visible
+    if (window.innerWidth > 480) {
+      sidebar.classList.remove('mobile-active');
+      overlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  });
+
+  // Force overview tab on every page load (default behavior)
+  // Function to show validation error
+  function showValidationError(message) {
+    const container = document.getElementById('validationErrorContainer');
+    if (!container) return;
+    
+    const errorDiv = document.createElement('div');
+    errorDiv.id = 'validationError';
+    errorDiv.style.cssText = `
+      background-color: #dc3545;
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+      font-weight: 600;
+      font-size: 14px;
+      border-left: 5px solid #a71e2a;
+      animation: slideInRight 0.5s ease-out;
+      margin-bottom: 10px;
+    `;
+    
+    errorDiv.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-exclamation-triangle" style="font-size: 18px;"></i>
+        <span>${message}</span>
+        <button onclick="closeValidationError(this)" style="
+          background: none;
+          border: none;
+          color: white;
+          font-size: 18px;
+          cursor: pointer;
+          margin-left: auto;
+          padding: 0;
+          width: 20px;
+          height: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        ">×</button>
+      </div>
+    `;
+    
+    container.appendChild(errorDiv);
+    
+    // Auto-hide after 8 seconds
+    setTimeout(() => {
+      closeValidationError(errorDiv.querySelector('button'));
+    }, 8000);
+  }
+  
+  // Function to close validation error
+  function closeValidationError(button) {
+    const errorDiv = button.closest('#validationError');
+    if (errorDiv) {
+      errorDiv.style.animation = 'slideOutRight 0.3s ease-in';
+      setTimeout(() => {
+        errorDiv.remove();
+      }, 300);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // Always clear localStorage and force overview as default on page load
+    localStorage.removeItem('patientDashboardActiveTab');
+    
+    // Ensure overview is always active on page load
+    const overviewElement = document.querySelector('.sidebar ul > li[onclick*="overview"]');
+    if (overviewElement) {
+      showTab('overview', overviewElement);
+    }
+  });
+
+
+</script>
+
+<!-- SweetAlert2 for toast messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <script>
+      {% for category, message in messages %}
+        let iconType = 'info';
+        let bgColor = '';
+        if ("{{ category }}" === 'success') {
+          iconType = 'success';
+          bgColor = '#0078D4';
+        } else if ("{{ category }}" === 'danger') {
+          iconType = 'error';
+          bgColor = '#f44336';
+        } else if ("{{ category }}" === 'warning') {
+          iconType = 'warning';
+          bgColor = 'var(--accent)';
+        }
+
+        // Show SweetAlert2 toast
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: iconType,
+          title: "{{ message|escape }}",
+          background: bgColor,
+          color: '#fff',
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true
+        });
+        
+        // Also show validation errors in top-right corner if it's a validation error
+        const message = "{{ message|escape }}";
+        if (("{{ category }}" === 'danger' || "{{ category }}" === 'warning') && 
+            (message.includes('not an X-ray') || message.includes('Invalid file type'))) {
+          showValidationError(message);
+        }
+      {% endfor %}
+    </script>
+  {% endif %}
+{% endwith %}
+
+</body>
+</html>
