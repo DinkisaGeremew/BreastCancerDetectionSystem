@@ -1,14 +1,10 @@
 services:
   - type: web
     name: breast-cancer-detection
-    runtime: python
-    pythonVersion: "3.11.0"
-    buildCommand: pip install --upgrade pip setuptools wheel && pip install -r requirements.txt
-    startCommand: gunicorn app:app
+    runtime: docker
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: SECRET_KEY
         generateValue: true
       - key: SESSION_COOKIE_SECURE
         value: "True"
-      - key: PYTHON_VERSION
-        value: "3.11.0"
